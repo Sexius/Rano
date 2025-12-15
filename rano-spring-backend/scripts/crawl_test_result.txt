@@ -1,0 +1,13 @@
+OK 5: 배쉬 (SM_BASH) - ATK 400%
+OK 7: 매그넘 브레이크 (SM_MAGNUM) - ATK 300%
+OK 56: 피어스 (KN_PIERCE) - ATK None%
+OK 57: 브랜디쉬 스피어 (KN_BRANDISHSPEAR) - ATK 1400%
+OK 62: 볼링 배쉬 (KN_BOWLINGBASH) - ATK 500%
+OK 355: 오라 블레이드 (LK_AURABLADE) - ATK None%
+OK 356: 패링 (LK_PARRYING) - ATK None%
+OK 357: 컨센트레이션 (LK_CONCENTRATION) - ATK None%
+OK 358: 텐션 릴렉스 (LK_TENSIONRELAX) - ATK None%
+OK 359: 버서크 (LK_BERSERK) - ATK None%
+OK 397: 스파이럴 피어스 (LK_SPIRALPIERCE) - ATK 400%
+OK 398: 헤드 크러쉬 (LK_HEADCRUSH) - ATK 300%
+OK 399: 조인트 비트 (LK_JOINTBEAT) - ATK 150%

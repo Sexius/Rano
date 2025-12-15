@@ -1,0 +1,69 @@
+Total skills found: 66
+DB updated: 45
+
+배쉬 (SM_BASH): 400% x 1hit
+매그넘 브레이크 (SM_MAGNUM): 300% x 1hit
+네이팜 비트 (MG_NAPALMBEAT): 170% x 1hit
+프로스트 다이버 (MG_FROSTDIVER): 200% x 1hit
+화이어 볼 (MG_FIREBALL): 255% x 1hit
+매머나이트 (MC_MAMMONITE): 600% x 1hit
+더블 스트레이핑 (AC_DOUBLE): 190% x 1hit
+애로우 샤워 (AC_SHOWER): 250% x 1hit
+피어스 (KN_PIERCE): 200% x 3hit
+브랜디쉬 스피어 (KN_BRANDISHSPEAR): 1400% x 1hit
+스피어 스탭 (KN_SPEARSTAB): 300% x 1hit
+스피어 부메랑 (KN_SPEARBOOMERANG): 350% x 1hit
+볼링 배쉬 (KN_BOWLINGBASH): 500% x 4hit
+사이트래셔 (WZ_SIGHTRASHER): 300% x 1hit
+로드 오브 버밀리온 (WZ_VERMILION): 1400% x 1hit
+워터볼 (WZ_WATERBALL): 250% x 1hit
+스톰 가스트 (WZ_STORMGUST): 570% x 1hit
+헤븐즈 드라이브 (WZ_HEAVENDRIVE): 625% x 1hit
+소닉 블로우 (AS_SONICBLOW): 1200% x 1hit
+그림투스 (AS_GRIMTOOTH): 200% x 1hit
+포이즌 리액트 (AS_POISONREACT): 400% x 1hit
+베넘 스플래셔 (AS_SPLASHER): 1400% x 1hit
+백 스탭 (RG_BACKSTAP): 350% x 1hit
+기습 (RG_RAID): 800% x 1hit
+인티머데이트 (RG_INTIMIDATE): 250% x 1hit
+애시드 테러 (AM_ACIDTERROR): 1000% x 1hit
+쉴드 챠지 (CR_SHIELDCHARGE): 200% x 1hit
+쉴드 부메랑 (CR_SHIELDBOOMERANG): 400% x 1hit
+홀리 크로스 (CR_HOLYCROSS): 900% x 1hit
+그랜드 크로스 (CR_GRANDCROSS): 500% x 1hit
+육합권 (MO_TRIPLEATTACK): 300% x 1hit
+침투경 (MO_INVESTIGATE): 500% x 1hit
+탄지신통 (MO_FINGEROFFENSIVE): 1600% x 1hit
+연환전신장 (MO_CHAINCOMBO): 500% x 1hit
+맹룡과강 (MO_COMBOFINISH): 1200% x 1hit
+뮤지컬 스트라이크 (BA_MUSICALSTRIKE): 310% x 2hit
+불협화음 (BA_DISSONANCE): 310% x 1hit
+화살 감아 던지기 (DC_THROWARROW): 310% x 2hit
+프레셔 (PA_PRESSURE): 1250% x 1hit
+맹호경파산 (CH_PALMSTRIKE): 1000% x 1hit
+복호권 (CH_TIGERFIST): 1250% x 1hit
+연주붕격 (CH_CHAINCRUSH): 2000% x 1hit
+기공포 (ASC_BREAKER): 1500% x 1hit
+샤프슈팅 (SN_SHARPSHOOTING): 1800% x 1hit
+애로우 발칸 (CG_ARROWVULCAN): 1500% x 1hit
+스파이럴 피어스 (LK_SPIRALPIERCE): 400% x 1hit
+헤드 크러쉬 (LK_HEADCRUSH): 300% x 1hit
+조인트 비트 (LK_JOINTBEAT): 150% x 1hit
+네이팜 발칸 (HW_NAPALMVULCAN): 350% x 1hit
+마인드 브레이커 (PF_MINDBREAKER): 100% x 1hit
+메테오 어절트 (ASC_METEORASSAULT): 1400% x 1hit
+쉴드체인 (PA_SHIELDCHAIN): 1300% x 1hit
+그라비테이션 필드 (HW_GRAVITATION): 500% x 1hit
+애시드 데몬스트레이션 (CR_ACIDDEMONSTRATION): 2000% x 1hit
+트래킹 (GS_TRACKING): 1200% x 1hit
+수리검 던지기 (NJ_SYURIKEN): 150% x 1hit
+쿠나이 던지기 (NJ_KUNAI): 500% x 1hit
+풍마수리검 던지기 (NJ_HUUMA): 1200% x 1hit
+다다미 뒤집기 (NJ_TATAMIGAESHI): 150% x 1hit
+안개 베기 (NJ_KASUMIKIRI): 300% x 1hit
+그림자 베기 (NJ_KIRIKAGE): 800% x 1hit
+폭염룡 (NJ_BAKUENRYU): 900% x 1hit
+빙정락 (NJ_HYOUSYOURAKU): 900% x 1hit
+뇌격쇄 (NJ_RAIGEKISAI): 600% x 1hit
+삭풍 (NJ_KAMAITACHI): 600% x 1hit
+라운드 트립 (RL_R_TRIP): 2500% x 1hit

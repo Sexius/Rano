@@ -1,0 +1,702 @@
+{
+  "12754": {
+    "id": 12754,
+    "unidentified_name": "설날만두",
+    "name": "설날만두",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100253": {
+    "id": 100253,
+    "unidentified_name": "G STAR 기념상자",
+    "name": "G STAR 기념상자",
+    "slots": 0,
+    "class_num": 0
+  },
+  "14908": {
+    "id": 14908,
+    "unidentified_name": "[비매품]송편",
+    "name": "[비매품]송편",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100127": {
+    "id": 100127,
+    "unidentified_name": "라그마블 의상 상자",
+    "name": "라그마블 의상 상자",
+    "slots": 0,
+    "class_num": 0
+  },
+  "31732": {
+    "id": 31732,
+    "unidentified_name": "리본",
+    "name": "의상 곰돌이 풍선",
+    "slots": 0,
+    "class_num": 1734
+  },
+  "7472": {
+    "id": 7472,
+    "unidentified_name": "1레벨 요리책",
+    "name": "1레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7473": {
+    "id": 7473,
+    "unidentified_name": "2레벨 요리책",
+    "name": "2레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7474": {
+    "id": 7474,
+    "unidentified_name": "3레벨 요리책",
+    "name": "3레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7475": {
+    "id": 7475,
+    "unidentified_name": "4레벨 요리책",
+    "name": "4레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7476": {
+    "id": 7476,
+    "unidentified_name": "5레벨 요리책",
+    "name": "5레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7477": {
+    "id": 7477,
+    "unidentified_name": "6레벨 요리책",
+    "name": "6레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7478": {
+    "id": 7478,
+    "unidentified_name": "7레벨 요리책",
+    "name": "7레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7479": {
+    "id": 7479,
+    "unidentified_name": "8레벨 요리책",
+    "name": "8레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7480": {
+    "id": 7480,
+    "unidentified_name": "9레벨 요리책",
+    "name": "9레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7481": {
+    "id": 7481,
+    "unidentified_name": "10레벨 요리책",
+    "name": "10레벨 요리책",
+    "slots": 0,
+    "class_num": 0
+  },
+  "1000007": {
+    "id": 1000007,
+    "unidentified_name": "포링 케이크",
+    "name": "포링 케이크",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12041": {
+    "id": 12041,
+    "unidentified_name": "메뚜기 볶음",
+    "name": "메뚜기 볶음",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12042": {
+    "id": 12042,
+    "unidentified_name": "물갈퀴 무침",
+    "name": "물갈퀴 무침",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12043": {
+    "id": 12043,
+    "unidentified_name": "봄버 스테이크",
+    "name": "봄버 스테이크",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12044": {
+    "id": 12044,
+    "unidentified_name": "허브 양념갈비",
+    "name": "허브 양념갈비",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12045": {
+    "id": 12045,
+    "unidentified_name": "루티에 아줌마의 부침개",
+    "name": "루티에 아줌마의 부침개",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12046": {
+    "id": 12046,
+    "unidentified_name": "포도과즙 허브티",
+    "name": "포도과즙 허브티",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12047": {
+    "id": 12047,
+    "unidentified_name": "만엽의 홍차",
+    "name": "만엽의 홍차",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12048": {
+    "id": 12048,
+    "unidentified_name": "허브 꿀차",
+    "name": "허브 꿀차",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12049": {
+    "id": 12049,
+    "unidentified_name": "모로크 과일주",
+    "name": "모로크 과일주",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12050": {
+    "id": 12050,
+    "unidentified_name": "마스테라의 술",
+    "name": "마스테라의 술",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12051": {
+    "id": 12051,
+    "unidentified_name": "게 집게발 찜",
+    "name": "게 집게발 찜",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12052": {
+    "id": 12052,
+    "unidentified_name": "해산물 요리",
+    "name": "해산물 요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12053": {
+    "id": 12053,
+    "unidentified_name": "조개탕",
+    "name": "조개탕",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12054": {
+    "id": 12054,
+    "unidentified_name": "해파리 무침",
+    "name": "해파리 무침",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12055": {
+    "id": 12055,
+    "unidentified_name": "매콤하게 구운 만두",
+    "name": "매콤하게 구운 만두",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12056": {
+    "id": 12056,
+    "unidentified_name": "개구리알 스프",
+    "name": "개구리알 스프",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12057": {
+    "id": 12057,
+    "unidentified_name": "미끌미끌 국수",
+    "name": "미끌미끌 국수",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12058": {
+    "id": 12058,
+    "unidentified_name": "촉수 치즈 그라탕",
+    "name": "촉수 치즈 그라탕",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12059": {
+    "id": 12059,
+    "unidentified_name": "루티에 비빔냉면",
+    "name": "루티에 비빔냉면",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12060": {
+    "id": 12060,
+    "unidentified_name": "박쥐날개 호박찜",
+    "name": "박쥐날개 호박찜",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12061": {
+    "id": 12061,
+    "unidentified_name": "꿀포도 쥬스",
+    "name": "꿀포도 쥬스",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12062": {
+    "id": 12062,
+    "unidentified_name": "초콜렛무스 케이크",
+    "name": "초콜렛무스 케이크",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12063": {
+    "id": 12063,
+    "unidentified_name": "후르츠 믹스",
+    "name": "후르츠 믹스",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12064": {
+    "id": 12064,
+    "unidentified_name": "크림 샌드위치",
+    "name": "크림 샌드위치",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12065": {
+    "id": 12065,
+    "unidentified_name": "녹색의 샐러드",
+    "name": "녹색의 샐러드",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12066": {
+    "id": 12066,
+    "unidentified_name": "원숭이 꼬리볶음",
+    "name": "원숭이 꼬리볶음",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12067": {
+    "id": 12067,
+    "unidentified_name": "혼합쥬스",
+    "name": "혼합쥬스",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12068": {
+    "id": 12068,
+    "unidentified_name": "맛탕",
+    "name": "맛탕",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12069": {
+    "id": 12069,
+    "unidentified_name": "고대어 요리",
+    "name": "고대어 요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12070": {
+    "id": 12070,
+    "unidentified_name": "전갈볶음",
+    "name": "전갈볶음",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12071": {
+    "id": 12071,
+    "unidentified_name": "빛나는 너비아니",
+    "name": "빛나는 너비아니",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12072": {
+    "id": 12072,
+    "unidentified_name": "통 바베큐",
+    "name": "통 바베큐",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12073": {
+    "id": 12073,
+    "unidentified_name": "특제 곰발바닥요리",
+    "name": "특제 곰발바닥요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12074": {
+    "id": 12074,
+    "unidentified_name": "힘줄 소테",
+    "name": "힘줄 소테",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12075": {
+    "id": 12075,
+    "unidentified_name": "혓바닥요리",
+    "name": "혓바닥요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12076": {
+    "id": 12076,
+    "unidentified_name": "붉은버섯 와인",
+    "name": "붉은버섯 와인",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12077": {
+    "id": 12077,
+    "unidentified_name": "특제 로얄제리 허브 티",
+    "name": "특제 로얄제리 허브 티",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12078": {
+    "id": 12078,
+    "unidentified_name": "왕실전용 고급차",
+    "name": "왕실전용 고급차",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12079": {
+    "id": 12079,
+    "unidentified_name": "트리스탄 12년산",
+    "name": "트리스탄 12년산",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12080": {
+    "id": 12080,
+    "unidentified_name": "칵테일 용의 숨결",
+    "name": "칵테일 용의 숨결",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12081": {
+    "id": 12081,
+    "unidentified_name": "무지 쓴 보약",
+    "name": "무지 쓴 보약",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12082": {
+    "id": 12082,
+    "unidentified_name": "특제 산해진미",
+    "name": "특제 산해진미",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12083": {
+    "id": 12083,
+    "unidentified_name": "거대 쌈요리",
+    "name": "거대 쌈요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12084": {
+    "id": 12084,
+    "unidentified_name": "승룡탕",
+    "name": "승룡탕",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12085": {
+    "id": 12085,
+    "unidentified_name": "불사의 찌개",
+    "name": "불사의 찌개",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12086": {
+    "id": 12086,
+    "unidentified_name": "칠리 새우 그라탕",
+    "name": "칠리 새우 그라탕",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12087": {
+    "id": 12087,
+    "unidentified_name": "악어구이 야채찜",
+    "name": "악어구이 야채찜",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12088": {
+    "id": 12088,
+    "unidentified_name": "초 매운맛 카레+9",
+    "name": "초 매운맛 카레+9",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12089": {
+    "id": 12089,
+    "unidentified_name": "특제 불도장",
+    "name": "특제 불도장",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12090": {
+    "id": 12090,
+    "unidentified_name": "사막전갈 모래찜",
+    "name": "사막전갈 모래찜",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12091": {
+    "id": 12091,
+    "unidentified_name": "복숭아케이크",
+    "name": "복숭아케이크",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12092": {
+    "id": 12092,
+    "unidentified_name": "소울 헌트 브레드",
+    "name": "소울 헌트 브레드",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12093": {
+    "id": 12093,
+    "unidentified_name": "스페셜 토스트",
+    "name": "스페셜 토스트",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12094": {
+    "id": 12094,
+    "unidentified_name": "천상의 과일쥬스",
+    "name": "천상의 과일쥬스",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12095": {
+    "id": 12095,
+    "unidentified_name": "흐베르겔미르의 술",
+    "name": "흐베르겔미르의 술",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12096": {
+    "id": 12096,
+    "unidentified_name": "거운탕",
+    "name": "거운탕",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12097": {
+    "id": 12097,
+    "unidentified_name": "꼬치구이",
+    "name": "꼬치구이",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12098": {
+    "id": 12098,
+    "unidentified_name": "딸기맛 주먹밥",
+    "name": "딸기맛 주먹밥",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12099": {
+    "id": 12099,
+    "unidentified_name": "피맛나는 탄산소다",
+    "name": "피맛나는 탄산소다",
+    "slots": 0,
+    "class_num": 0
+  },
+  "12100": {
+    "id": 12100,
+    "unidentified_name": "구미호 꼬리요리",
+    "name": "구미호 꼬리요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100075": {
+    "id": 100075,
+    "unidentified_name": "5레벨 모듬요리",
+    "name": "5레벨 모듬요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100076": {
+    "id": 100076,
+    "unidentified_name": "6레벨 모듬요리",
+    "name": "6레벨 모듬요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100077": {
+    "id": 100077,
+    "unidentified_name": "7레벨 모듬요리",
+    "name": "7레벨 모듬요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100078": {
+    "id": 100078,
+    "unidentified_name": "8레벨 모듬요리",
+    "name": "8레벨 모듬요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100079": {
+    "id": 100079,
+    "unidentified_name": "9레벨 모듬요리",
+    "name": "9레벨 모듬요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100080": {
+    "id": 100080,
+    "unidentified_name": "10레벨 모듬요리",
+    "name": "10레벨 모듬요리",
+    "slots": 0,
+    "class_num": 0
+  },
+  "7868": {
+    "id": 7868,
+    "unidentified_name": "맑은 물",
+    "name": "맑은 물",
+    "slots": 0,
+    "class_num": 0
+  },
+  "400003": {
+    "id": 400003,
+    "unidentified_name": "머리띠",
+    "name": "TimeExtension(임대)",
+    "slots": 0,
+    "class_num": 15
+  },
+  "16492": {
+    "id": 16492,
+    "unidentified_name": "토끼머리띠 상자",
+    "name": "토끼머리띠 상자",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100024": {
+    "id": 100024,
+    "unidentified_name": "TimeExtension(계정)",
+    "name": "TimeExtension(계정)",
+    "slots": 0,
+    "class_num": 0
+  },
+  "100026": {
+    "id": 100026,
+    "unidentified_name": "TimeExtension(캐릭터)",
+    "name": "TimeExtension(캐릭터)",
+    "slots": 0,
+    "class_num": 0
+  },
+  "19308": {
+    "id": 19308,
+    "unidentified_name": "모자",
+    "name": "아미스트르 베레모",
+    "slots": 1,
+    "class_num": 1294
+  },
+  "24386": {
+    "id": 24386,
+    "unidentified_name": "웨폰 쉐도우",
+    "name": "인피니티 웨폰 쉐도우",
+    "slots": 0,
+    "class_num": 0
+  },
+  "17886": {
+    "id": 17886,
+    "unidentified_name": "인피니티 박스",
+    "name": "인피니티 박스",
+    "slots": 0,
+    "class_num": 0
+  },
+  "17887": {
+    "id": 17887,
+    "unidentified_name": "인피니티 박스 10세트",
+    "name": "인피니티 박스 10세트",
+    "slots": 0,
+    "class_num": 0
+  },
+  "17888": {
+    "id": 17888,
+    "unidentified_name": "[비매품]카프라 명함 10개 상자",
+    "name": "[비매품]카프라 명함 10개 상자",
+    "slots": 0,
+    "class_num": 0
+  },
+  "23473": {
+    "id": 23473,
+    "unidentified_name": "인피니티 스크롤",
+    "name": "인피니티 스크롤",
+    "slots": 0,
+    "class_num": 0
+  },
+  "23474": {
+    "id": 23474,
+    "unidentified_name": "인피니티 쉐도우 뚝딱상자",
+    "name": "인피니티 쉐도우 뚝딱상자",
+    "slots": 0,
+    "class_num": 0
+  },
+  "27106": {
+    "id": 27106,
+    "unidentified_name": "각성한 페르 카드",
+    "name": "각성한 페르 카드",
+    "slots": 0,
+    "class_num": 0
+  },
+  "27109": {
+    "id": 27109,
+    "unidentified_name": "지터벅 카드",
+    "name": "지터벅 카드",
+    "slots": 0,
+    "class_num": 0
+  },
+  "31300": {
+    "id": 31300,
+    "unidentified_name": "액세서리",
+    "name": "의상 따뜻한 고양이 머플러",
+    "slots": 0,
+    "class_num": 1657
+  },
+  "20514": {
+    "id": 20514,
+    "unidentified_name": "걸칠것",
+    "name": "의상 타나토스의 검",
+    "slots": 0,
+    "class_num": 23
+  },
+  "31134": {
+    "id": 31134,
+    "unidentified_name": "모자",
+    "name": "의상 수다쟁이 앵무새",
+    "slots": 0,
+    "class_num": 1116
+  },
+  "31136": {
+    "id": 31136,
+    "unidentified_name": "모자",
+    "name": "의상 클락 카스켓",
+    "slots": 0,
+    "class_num": 1555
+  }
+}

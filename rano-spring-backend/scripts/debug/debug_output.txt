@@ -1,0 +1,68 @@
+Requesting https://ro.gnjoy.com/itemdeal/itemDealList.asp with params {'itemFullName': '카드', 'curpage': 1, 'svrID': '129', 'itemOrder': '', 'inclusion': ''}
+Status Code: 200
+URL: https://ro.gnjoy.com/itemdeal/itemDealList.asp?itemFullName=%EC%B9%B4%EB%93%9C&curpage=1&svrID=129&itemOrder=&inclusion=
+Rows found with '#divItemDealList > table > tbody > tr': 10
+Row 0 columns: 5
+  Server: 바포메트
+  Item: 크룩스 카드
+  Price: 30,000
+Row 1 columns: 5
+  Server: 바포메트
+  Item: 프리드리히 카드
+  Price: 50,000
+Row 2 columns: 5
+  Server: 바포메트
+  Item: 마이어 카드
+  Price: 50,000
+Row 3 columns: 5
+  Server: 바포메트
+  Item: 포포링 카드
+  Price: 50,000
+Row 4 columns: 5
+  Server: 바포메트
+  Item: 스켈레톤 카드
+  Price: 50,000
+Row 5 columns: 5
+  Server: 바포메트
+  Item: 좀비 카드
+  Price: 50,000
+Row 6 columns: 5
+  Server: 바포메트
+  Item: 퍼밀리어 카드
+  Price: 50,000
+Row 7 columns: 5
+  Server: 바포메트
+  Item: 환상총서 완독기념 카드
+  Price: 50,013
+Row 8 columns: 5
+  Server: 바포메트
+  Item: 환상총서 완독기념 카드
+  Price: 50,015
+Row 9 columns: 5
+  Server: 바포메트
+  Item: 환상총서 완독기념 카드
+  Price: 59,899
+Total tables found: 1
+Pagination elements: 0
+HTML Snippet (first 1000 chars):
+
+      <nav>
+        <ul>
+          <li><a href="dealSearch.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_1_on.gif" alt="거래 아이템 조회" /></a></li>
+          <li><a href="quoteSearch.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_2.gif" alt="아이템 시세 조회" /></a></li>
+		  <li class="lastCell"><a href="popularItem.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_3.gif" alt="인기 아이템" /></a></li>
+        </ul>
+      </nav>
+      
+	  <form onsubmit="return false;">
+	  <fieldset class="itemSearch">
+        <legend>거래 아이템 조회</legend>
+        <select id="svrID" name="svrID">
+          <option value="">전체</option>
+		  <option value="129" selected>바포메트</option>
+<option value="229">이그드라실</option>
+<option value="529">다크로드</option>
+<option value="729">이프리트</option>
+
+        </select>
+        <input type="text" id="itemFullName" name="itemFullN

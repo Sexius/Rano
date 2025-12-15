@@ -1,0 +1,166 @@
+
+      <nav>
+        <ul>
+          <li><a href="dealSearch.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_1_on.gif" alt="거래 아이템 조회" /></a></li>
+          <li><a href="quoteSearch.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_2.gif" alt="아이템 시세 조회" /></a></li>
+		  <li class="lastCell"><a href="popularItem.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_3.gif" alt="인기 아이템" /></a></li>
+        </ul>
+      </nav>
+      
+	  <form onsubmit="return false;">
+	  <fieldset class="itemSearch">
+        <legend>거래 아이템 조회</legend>
+        <select id="svrID" name="svrID">
+          <option value="">전체</option>
+		  <option value="129">바포메트</option>
+<option value="229">이그드라실</option>
+<option value="529">다크로드</option>
+<option value="729">이프리트</option>
+
+        </select>
+        <input type="text" id="itemFullName" name="itemFullName" maxlength="50" class="itemDeal" onfocus="ItemFullNameChangeClass('onfocus', 'Deal')" onblur="ItemFullNameChangeClass('onblur', 'Deal')" value="천공" alt="아이템 이름을 입력하세요." />
+        <button onclick="CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, '', '', 1)"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/btn_search.gif" alt="검색" /></button>
+		<input type="hidden" value="" id="inclusion" name="inclusion" />
+      </fieldset>
+	  </form>
+	  <!-- /form -->
+
+	  <div id="divItemDealList">
+	  <fieldset class="searchResult">
+        <p id="searchResult">
+	  
+		검색결과 : <strong>95건</strong>
+	  
+		</p>
+		<ul><!-- for와 id 값 교체 시 동일하게 적용 부탁 드립니다. -->
+	      <li  class="choice" ><label for="itemAll">전체</label> <input type="radio" id="itemAll" name="itemInclusion" value="" checked onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	      <li ><label for="itemWeapon">무기</label> <input type="radio" id="itemWeapon" name="itemInclusion" value="W"  onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	      <li ><label for="itemArmor">방어구</label> <input type="radio" id="itemArmor" name="itemInclusion" value="D"  onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	      <li ><label for="itemExpendables">소비 아이템</label> <input type="radio" id="itemExpendables" name="itemInclusion" value="C"  onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	      <li ><label for="itemEtc">기타</label> <input type="radio" id="itemEtc" name="itemInclusion" value="E"  onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	    </ul>
+      </fieldset>
+	  <table class="listTypeOfDefault dealList">
+        <caption>거래아이템 검색결과 리스트</caption>
+        <thead>
+          <tr>
+            <th class="server">서버</th>
+			<th class="item">아이템</th>
+            <th class="quantity">수량</th>
+			<th class="price">가격<a href="javascript:CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', '', 1)"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/icon_priceUp.gif" alt="높은 가격순으로 정렬" /></a><a href="javascript:CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, '', '', 1)"><img src="https://imgc.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/icon_priceDown.gif" alt="낮은 가격순으로 정렬" /></a></th>
+            <!-- th class="price"><a href="">가격</a>▲</th -->
+            <th class="shop">노점 이름(<span class="sale">판매</span>, <span class="buy">구매</span>)</th>
+          </tr>
+        </thead>
+        <tbody>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579299615833914768',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/401058.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="천공의 룬 크라운(임페리얼 가드)[1]" /><span>천공의 룬 크라운(임페리얼 가드)[1]...</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv5">100,000</span></td>
+            <td class="shop sale">로가의상.쉐크 뒷판</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579287980767507232',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/530076.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="천공의 임페리얼 스피어[2]" /><span>천공의 임페리얼 스피어[2]</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv5">220,000</span></td>
+            <td class="shop sale">분수대 왼쪽이요</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579287980767507233',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/530076.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="천공의 임페리얼 스피어[2]" /><span>천공의 임페리얼 스피어[2]</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv5">220,000</span></td>
+            <td class="shop sale">분수대 왼쪽이요</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579241599415663521',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/401060.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="천공의 룬 크라운(혼령사)[1]" /><span>천공의 룬 크라운(혼령사)[1]</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv5">300,000</span></td>
+            <td class="shop sale">7</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579264586080638607',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/401058.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="천공의 룬 크라운(임페리얼 가드)[1]" /><span>천공의 룬 크라운(임페리얼 가드)[1]...</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv5">500,000</span></td>
+            <td class="shop sale">6시 수수료 귓말 주세요</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579282723727535179',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/401058.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="천공의 룬 크라운(임페리얼 가드)[1]" /><span>천공의 룬 크라운(임페리얼 가드)[1]...</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv5">500,000</span></td>
+            <td class="shop sale">274  50</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7577936603667269417',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/530076.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="천공의 임페리얼 스피어[2]" /><span>천공의 임페리얼 스피어[2]</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv5">950,000</span></td>
+            <td class="shop sale">하프중단</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579204886035204309',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/550187.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="[RARE]천공의 철호 폭스테일[2]" /><span>[RARE]천공의 철호 폭스테일[2]...</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv6">1,000,000</span></td>
+            <td class="shop sale">잡템처리반</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579308497826283995',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/401060.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="[RARE]천공의 룬 크라운(혼령사)[1]" /><span>[RARE]천공의 룬 크라운(혼령사)...</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv6">2,000,000</span></td>
+            <td class="shop sale">사딸</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7579265711362070495',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/401060.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="[RARE]천공의 룬 크라운(혼령사)[1]" /><span>[RARE]천공의 룬 크라운(혼령사)...</span></a>
+            </td>
+            <td class="quantity">1</td>
+            <td class="price"><span class="priceLv6">2,000,000</span></td>
+            <td class="shop sale">dfdhtr</td>
+          </tr>
+   
+        </tbody>
+      </table>
+
+	  <span class="pagingNav">
+      <span class="pageNav_first">첫목록</span><span class="pageNav_prev">이전</span><em>1</em> <a href="javascript:CallItemDealList(-1,'천공', '', '',2)" title="2페이지">2</a> <a href="javascript:CallItemDealList(-1,'천공', '', '',3)" title="3페이지">3</a> <a href="javascript:CallItemDealList(-1,'천공', '', '',4)" title="4페이지">4</a> <a href="javascript:CallItemDealList(-1,'천공', '', '',5)" title="5페이지">5</a> <a href="javascript:CallItemDealList(-1,'천공', '', '',6)" title="6페이지">6</a> <a href="javascript:CallItemDealList(-1,'천공', '', '',7)" title="7페이지">7</a> <a href="javascript:CallItemDealList(-1,'천공', '', '',8)" title="8페이지">8</a> <a href="javascript:CallItemDealList(-1,'천공', '', '',9)" title="9페이지">9</a> <a href="javascript:CallItemDealList(-1,'천공', '', '',10)" title="10페이지">10</a> <span class="pageNav_next">다음</span><a class="pageNav_last" href="javascript:CallItemDealList(-1,'천공', '', '',10)">끝목록</a>
+	  </span>
+
+	 </div>
+	 <div id="divItemDealView" style="display:none">
+	 </div>

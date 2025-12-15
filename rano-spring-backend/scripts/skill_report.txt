@@ -1,0 +1,61 @@
+=== 핵심 스킬 DB 조회 ===
+ABC_CHASING_BREAK                   체이싱 브레이크               5200% x7회
+ABC_DEFT_STAB                       데프트 스탭                 5400% x7회
+ABC_ABYSS_SQUARE                    어비스 스퀘어                 980% x5회
+ABC_FROM_THE_ABYSS                  프롬 디 어비스               7350% x5회
+ABC_CHAIN_REACTION_SHOT             체인 리액션 샷               4250% x5회
+ABC_ABYSS_DAGGER                    어비스 대거                 7350% x2회
+ABC_OMEGA_ABYSS_STRIKE              NOT FOUND
+MT_RUSH_STRIKE                      러쉬 스트라이크               3800% x5회
+MT_POWERFUL_SMASH                   NOT FOUND
+SH_CHUL_HO_BATTERING                철호 난무                  2100% x7회
+
+=== 배율 상위 30개 스킬 ===
+AG_ALL_BLOOM                        올 블룸                  85000% x1회
+DK_DRAGONIC_AURA                    드래고닉 오라               29200% x1회
+MT_RUSH_QUAKE                       러쉬 퀘이크                28800% x1회
+EM_ELEMENTAL_BUSTER                 엘레멘탈 버스터              27050% x1회
+EM_SUMMON_ELEMENTAL_ARDOR           서몬 엘레멘탈 아르도르          27050% x1회
+EM_SUMMON_ELEMENTAL_DILUVIO         서몬 엘레멘탈 딜루비오          27050% x1회
+EM_SUMMON_ELEMENTAL_SERPENS         서몬 엘레멘탈 세르펜스          27050% x1회
+EM_SUMMON_ELEMENTAL_PROCELLA        서몬 엘레멘탈 프로첼라          27050% x1회
+EM_SUMMON_ELEMENTAL_TERREMOTUS      서몬 엘레멘탈 테레모투스         27050% x1회
+ABC_ABYSS_STRIKE                    오메가 어비스 스트라이크         26500% x5회
+IQ_EXPOSION_BLASTER                 폭화신탄                  23000% x1회
+BO_DUST_EXPLOSION                   더스트 익스플로전             21500% x5회
+BO_MYSTERY_POWDER                   미스터리 파우더              21500% x5회
+IQ_BLAZING_FLAME_BLAST              열화기탄                  21000% x3회
+IQ_MASSIVE_F_BLASTER                염화멸마신탄                20700% x1회
+IG_JUDGEMENT_CROSS                  저지먼트 크로스              19500% x1회
+EM_PSYCHIC_STREAM                   사이킥 스트림               18500% x1회
+TR_RHYTHMICAL_WAVE                  리드미컬 웨이브              18500% x1회
+SS_KAGEAKUMU                        그림자 - 악몽              18000% x1회
+ABC_HIT_AND_SLIDING                 히트 앤드 슬라이딩            17500% x7회
+WH_WILD_WALK                        와일드 워크                15800% x3회
+SS_HITOUAKUMU                       비도 - 악몽               15500% x1회
+SS_ANKOKURYUUAKUMU                  암흑룡 - 악몽              15500% x1회
+IG_GRAND_JUDGEMENT                  그랜드 저지먼트              15250% x1회
+AG_CLIMAX                           클라이막스                 14850% x1회
+MT_SPARK_BLASTER                    스파크 블래스터              14600% x3회
+AG_DEADLY_PROJECTION                데들리 프로젝션              14000% x1회
+WH_FLAMETRAP                        플레임 트랩                13500% x3회
+AG_CRYSTAL_IMPACT_ATK               토네이도 스톰               12500% x1회
+AG_DESTRUCTIVE_HURRICANE            디스트럭티브 허리케인           12500% x1회
+
+=== 어비스 체이서 스킬 (ABC_*) ===
+ABC_ABYSS_STRIKE                    오메가 어비스 스트라이크         26500% x5회
+ABC_HIT_AND_SLIDING                 히트 앤드 슬라이딩            17500% x7회
+ABC_CHASING_SHOT                    체이싱 샷                 11200% x3회
+ABC_FRENZY_SHOT                     프렌지 샷                  8250% x3회
+ABC_ABYSS_DAGGER                    어비스 대거                 7350% x2회
+ABC_FROM_THE_ABYSS                  프롬 디 어비스               7350% x5회
+ABC_DEFT_STAB                       데프트 스탭                 5400% x7회
+ABC_CHASING_BREAK                   체이싱 브레이크               5200% x7회
+ABC_CHAIN_REACTION_SHOT             체인 리액션 샷               4250% x5회
+ABC_UNLUCKY_RUSH                    언럭키 러쉬                 1700% x1회
+ABC_ABYSS_SQUARE                    어비스 스퀘어                 980% x5회
+ABC_ABYSS_SLAYER                    어비스 슬레이어                100% x1회
+ABC_ABYSS_FLAME                     어비스 플레임                 100% x5회
+ABC_MAGIC_SWORD_M                   매직소드 마스터리               100% x1회
+ABC_STRIP_SHADOW                    스트립 쉐도우                 100% x5회
+ABC_DAGGER_AND_BOW_M                대거&보우 마스터리              100% x1회

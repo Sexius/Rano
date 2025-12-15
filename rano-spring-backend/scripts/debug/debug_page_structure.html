@@ -1,0 +1,142 @@
+
+      <nav>
+        <ul>
+          <li><a href="dealSearch.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_1_on.gif" alt="거래 아이템 조회" /></a></li>
+          <li><a href="quoteSearch.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_2.gif" alt="아이템 시세 조회" /></a></li>
+		  <li class="lastCell"><a href="popularItem.asp"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/nav_tabMenu_3.gif" alt="인기 아이템" /></a></li>
+        </ul>
+      </nav>
+      
+	  <form onsubmit="return false;">
+	  <fieldset class="itemSearch">
+        <legend>거래 아이템 조회</legend>
+        <select id="svrID" name="svrID">
+          <option value="">전체</option>
+		  <option value="129" selected>바포메트</option>
+<option value="229">이그드라실</option>
+<option value="529">다크로드</option>
+<option value="729">이프리트</option>
+
+        </select>
+        <input type="text" id="itemFullName" name="itemFullName" maxlength="50" class="itemDeal" onfocus="ItemFullNameChangeClass('onfocus', 'Deal')" onblur="ItemFullNameChangeClass('onblur', 'Deal')" value="젤로피" alt="아이템 이름을 입력하세요." />
+        <button onclick="CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, '', '', 1)"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/btn_search.gif" alt="검색" /></button>
+		<input type="hidden" value="" id="inclusion" name="inclusion" />
+      </fieldset>
+	  </form>
+	  <!-- /form -->
+
+	  <div id="divItemDealList">
+	  <fieldset class="searchResult">
+        <p id="searchResult">
+	  
+		검색결과 : <strong>8건</strong>
+	  
+		</p>
+		<ul><!-- for와 id 값 교체 시 동일하게 적용 부탁 드립니다. -->
+	      <li  class="choice" ><label for="itemAll">전체</label> <input type="radio" id="itemAll" name="itemInclusion" value="" checked onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	      <li ><label for="itemWeapon">무기</label> <input type="radio" id="itemWeapon" name="itemInclusion" value="W"  onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	      <li ><label for="itemArmor">방어구</label> <input type="radio" id="itemArmor" name="itemInclusion" value="D"  onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	      <li ><label for="itemExpendables">소비 아이템</label> <input type="radio" id="itemExpendables" name="itemInclusion" value="C"  onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	      <li ><label for="itemEtc">기타</label> <input type="radio" id="itemEtc" name="itemInclusion" value="E"  onclick="document.getElementById('inclusion').value=this.value;CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', this.value, 1)" /></li>
+	    </ul>
+      </fieldset>
+	  <table class="listTypeOfDefault dealList">
+        <caption>거래아이템 검색결과 리스트</caption>
+        <thead>
+          <tr>
+            <th class="server">서버</th>
+			<th class="item">아이템</th>
+            <th class="quantity">수량</th>
+			<th class="price">가격<a href="javascript:CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', '', 1)"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/icon_priceUp.gif" alt="높은 가격순으로 정렬" /></a><a href="javascript:CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, '', '', 1)"><img src="https://imgc.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/icon_priceDown.gif" alt="낮은 가격순으로 정렬" /></a></th>
+            <!-- th class="price"><a href="">가격</a>▲</th -->
+            <th class="shop">노점 이름(<span class="sale">판매</span>, <span class="buy">구매</span>)</th>
+          </tr>
+        </thead>
+        <tbody>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7580669555782404017',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/909.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="젤로피" /><span>젤로피</span></a>
+            </td>
+            <td class="quantity">77</td>
+            <td class="price"><span class="priceLv3">1,300</span></td>
+            <td class="shop sale">프론시장3시/독재료.오크증표.페코깃털</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,1213,'7580670870041921780',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/909.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="젤로피" /><span>젤로피</span></a>
+            </td>
+            <td class="quantity">234</td>
+            <td class="price"><span class="priceLv3">1,400</span></td>
+            <td class="shop sale">알데카프라</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7580657396729983271',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/909.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="젤로피" /><span>젤로피</span></a>
+            </td>
+            <td class="quantity">1399</td>
+            <td class="price"><span class="priceLv3">1,450</span></td>
+            <td class="shop sale">6시 149 60</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7580597761109050238',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/909.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="젤로피" /><span>젤로피</span></a>
+            </td>
+            <td class="quantity">1134</td>
+            <td class="price"><span class="priceLv3">1,500</span></td>
+            <td class="shop sale">666</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7580620747774027944',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/909.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="젤로피" /><span>젤로피</span></a>
+            </td>
+            <td class="quantity">1222</td>
+            <td class="price"><span class="priceLv3">2,000</span></td>
+            <td class="shop sale">▶컨버터/젤로피/사탕/카탈로그</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,1056,'7580621658306648746',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/909.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="젤로피" /><span>젤로피</span></a>
+            </td>
+            <td class="quantity">725</td>
+            <td class="price"><span class="priceLv3">2,000</span></td>
+            <td class="shop sale">탄력/곡괭/코볼/젤로/솜털/클로/월드</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7580653196251965903',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/909.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="젤로피" /><span>젤로피</span></a>
+            </td>
+            <td class="quantity">152</td>
+            <td class="price"><span class="priceLv3">2,000</span></td>
+            <td class="shop sale">분수대 11시 사줘잉</td>
+          </tr>
+
+		  <tr>
+            <td>바포메트</td>
+			<td class="item">
+              <a href="#" onclick="javascript:CallItemDealView(129,2023,'7580650975753872806',1)"><img src="https://imgc1.gnjoy.com/games/ro1/object/201306/1000950.png" onError="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" alt="작은 젤로피" /><span>작은 젤로피</span></a>
+            </td>
+            <td class="quantity">69</td>
+            <td class="price"><span class="priceLv3">5,000</span></td>
+            <td class="shop sale">6시 149 64</td>
+          </tr>
+   
+        </tbody>
+      </table>
+
+	 </div>
+	 <div id="divItemDealView" style="display:none">
+	 </div>

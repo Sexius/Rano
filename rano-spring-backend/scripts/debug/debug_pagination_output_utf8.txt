@@ -1,0 +1,68 @@
+--- Potential Pagination Elements ---
+
+--- Searching for 'paging' string ---
+Found 'paging' in HTML
+ class="shop buy">1</td>
+          </tr>
+   
+        </tbody>
+      </table>
+
+	  <span class="pagingNav">
+      <span class="pageNav_first">첫목록</span><span class="pageNav_prev">이전</span><em>1</em> <a href="javascript:CallItemDealList(129,'카드', '', '',2)" title="2페이지">2</a> <a href="javascript:CallItemDealList(129,'카드', '', '',3)" title="3페이지">3</a> <a href="javascript:CallItemDealList(129,'카드', '', '',4)" title="4페이지">4</a> <a href="javascript:CallItemDealList(129,'카드', '', '',5)
+
+--- Searching for Total Count ---
+Found '검색결과' in: <p id="searchResult">
+	  
+		검색결과 : <strong>1,530건</strong>
+</p>
+Full text: 검색결과 : 1,530건
+Found '검색결과' in: <caption>거래아이템 검색결과 리스트</caption>
+Full text: 거래아이템 검색결과 리스트
+
+--- Full Paging Nav ---
+<span class="pagingNav">
+ <span class="pageNav_first">
+  첫목록
+ </span>
+ <span class="pageNav_prev">
+  이전
+ </span>
+ <em>
+  1
+ </em>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',2)" title="2페이지">
+  2
+ </a>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',3)" title="3페이지">
+  3
+ </a>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',4)" title="4페이지">
+  4
+ </a>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',5)" title="5페이지">
+  5
+ </a>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',6)" title="6페이지">
+  6
+ </a>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',7)" title="7페이지">
+  7
+ </a>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',8)" title="8페이지">
+  8
+ </a>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',9)" title="9페이지">
+  9
+ </a>
+ <a href="javascript:CallItemDealList(129,'카드', '', '',10)" title="10페이지">
+  10
+ </a>
+ <a class="pageNav_next" href="javascript:CallItemDealList(129,'카드', '', '',11)">
+  다음
+ </a>
+ <a class="pageNav_last" href="javascript:CallItemDealList(129,'카드', '', '',153)">
+  끝목록
+ </a>
+</span>
+

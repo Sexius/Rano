@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />   
+    <title>라그나로크 아이템 거래현황</title>
+    <script src="https://imgc.gnjoy.com/common/js/html5.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/common_220330.css?v=220330" />
+	<script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="js/itemCommon-script.js?v=220330"></script>
+	<script type="text/javascript" src="js/itemDeal-script.js"></script>
+	<script type="text/javascript">
+
+		//if (top.document.location.href.indexOf('https://ro.gnjoy.com') == '-1') {
+		//	top.document.location.href = document.location.href;
+		//}
+
+		$(document).ready(function() {
+			CallTop5ItemView('https://imgc1.gnjoy.com');	// 인기아이템 Best5 호출
+			CallItemDealList(-1, '','','', 1);	// 거래 아이템 조회 호출
+		});
+
+	</script>
+  </head>
+
+  <body>
+
+    <header class="comHeader">
+	  <h1><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/tit_itemDeal.gif" alt="라그나로크 아이템 거래현황" /></h1>
+      <p><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/txt_msgItemDeal.gif" alt="라그나로크 아이템 거래현황 서비스 이용 시 주의사항을 확인하세요." /></p>
+      <a href="#precautions" onclick="javascript:document.getElementById('precautions').style.display='block'; return false;" !onkeypress="javascript:document.getElementById('precautions').style.display='block'; return false;"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/btn_precautions.gif" alt="주의사항 확인하기" /></a>
+      <section id="precautions">
+        <h1><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/txt_precautions.gif" alt="주의사항" /></h1>
+        <ol>
+          <li>인기 아이템 순위는 매주 목요일 오전 11시에<br />업데이트 됩니다.</li>
+          <li>각 메뉴에서 제공되는 검색은 검색한 단어가 포함된<br />아이템으로 검색됩니다.</li>
+          <li>판매 및 구매 아이템 조회에서 제공되는 정보는<br />게임에서 노점 개설 후 3분 이상 경과된 데이터가<br />출력됩니다.</li>
+          <li>판매 및 구매 중인 개인 노점만 검색되며 위치는<br />게임에서 직접 확인하실 수 있습니다.</li>
+          <li>출력되는 데이터와 게임 내 데이터는 다소 차이가<br />있을 수 있습니다.</li>
+          <li>아이템 시세 조회에서 제공되는 정보는 노점을<br />통해서 거래된 정보로 제공됩니다.</li>
+        </ol>
+        <a href="" onclick="javascript:document.getElementById('precautions').style.display='none'; return false;" !onkeypress="javascript:document.getElementById('precautions').style.display='none'; return false;"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/btn_popupClose.gif" alt="닫기" /></a>
+      </section>
+    </header>	<div id="ranking" class="ranking">
+	  <h1><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/stit_popularityItem.gif" alt="인기 아이템 Best5" /></h1>
+      <span class="date" id="rankingDate">25.12.03 기준 (최근 120일)</span>
+
+	  <div>
+	    <h2><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/stit_weapon.gif" alt="무기" /></h2>
+        <ol id="bestViewW">
+	     <li></li><li></li><li></li><li></li><li></li>
+        </ol>
+  	    <a href="#" class="btnMore" onclick="CallTop30ItemDirectGo('W')"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/btn_more.gif" alt="무기 더보기" /></a>
+	  </div>
+      
+	  <div>
+      <h2><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/stit_armor.gif" alt="방어구" /></h2>
+      <ol id="bestViewD">
+  	  <li></li><li></li><li></li><li></li><li></li>
+      </ol>
+  	    <a href="#" class="btnMore" onclick="CallTop30ItemDirectGo('D')"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/btn_more.gif" alt="방어구 더보기" /></a>
+	  </div>
+      
+	  <div>
+	    <h2><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/stit_consumption.gif" alt="소비" /></h2>
+        <ol id="bestViewC">
+	    <li></li><li></li><li></li><li></li><li></li>
+        </ol>
+  	    <a href="#" class="btnMore" onclick="CallTop30ItemDirectGo('C')"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/btn_more.gif" alt="방어구 더보기" /></a>
+	  </div>
+      
+	  <div>
+        <h2><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/stit_etc.gif" alt="기타" /></h2>
+        <ol id="bestViewE">
+	    <li></li><li></li><li></li><li></li><li></li>
+        </ol>
+  	    <a href="#" class="btnMore" onclick="CallTop30ItemDirectGo('E')"><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/btn_more.gif" alt="방어구 더보기" /></a>
+	  </div>
+    </div>
+    
+    <div id="rankingOutMsg" class="checkOutMsgAside" style="display: none;">
+      <h1><img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/stit_popularityItem.gif" alt="인기 아이템 Best5" /></h1>
+      <span class="date">25.12.03 기준</span>
+      
+      <p>
+        <img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/txt_checkOutMsg_aside.jpg" alt="페이지를 불러올 수 없습니다. 서비스 이용에 불편을 드려 죄송합니다. 다시 접속해 주세요." />
+      </p>
+    </div>
+   
+    <div class="contents" id="itemContents">
+
+	</div>
+
+    <div class="inProgressMsg" id="inProgressMsg" style="display: none">
+      <p>
+        데이터를 불러오는 중입니다.<br />
+        잠시만 기다려 주세요.<br />
+        <img src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/img_preloader.gif" alt="데이터 로딩중" />
+      </p>
+      <div><!-- background layer --></div>
+    </div>
+<!--######	 WebLog 스크립트	 -->
+
+<!--######	 WebLog 스크립트	 -->
+  </body>
+</html>
