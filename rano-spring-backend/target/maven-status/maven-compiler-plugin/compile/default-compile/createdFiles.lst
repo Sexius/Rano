@@ -4,6 +4,7 @@ com\ragnarok\ragspringbackend\controller\ItemController.class
 com\ragnarok\ragspringbackend\controller\SkillController.class
 com\ragnarok\ragspringbackend\service\CalculatorService.class
 com\ragnarok\ragspringbackend\controller\CalculatorController.class
+com\ragnarok\ragspringbackend\dto\DivinePrideSearchResponse.class
 com\ragnarok\ragspringbackend\controller\VendingController.class
 com\ragnarok\ragspringbackend\dto\SkillDto.class
 com\ragnarok\ragspringbackend\dto\VendingPageResponse.class
@@ -11,7 +12,10 @@ com\ragnarok\ragspringbackend\entity\Skill.class
 com\ragnarok\ragspringbackend\repository\SkillRepository.class
 com\ragnarok\ragspringbackend\service\ItemService.class
 com\ragnarok\ragspringbackend\service\SkillService.class
+com\ragnarok\ragspringbackend\dto\DivinePrideItemDto.class
 com\ragnarok\ragspringbackend\util\RagDescriptionUtils.class
+com\ragnarok\ragspringbackend\entity\Item.class
 com\ragnarok\ragspringbackend\service\VendingService.class
 com\ragnarok\ragspringbackend\controller\DivinePrideController.class
+com\ragnarok\ragspringbackend\repository\ItemRepository.class
 com\ragnarok\ragspringbackend\service\DivinePrideService.class
