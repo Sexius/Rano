@@ -1,27 +1,11 @@
 import { MarketItem } from '../types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
-
-interface VendingItemDto {
-    item_id: number;
-    vendor_title: string;
-    server: string;
-    shop_name: string;
-    item_name: string;
-    quantity: number;
-    price: number;
-    location: string;
-    item_type: string;
-    rarity: string;
-    image_url?: string;
-}
-
+// 백엔드 DTO 타입 정의
 interface VendingPageResponse {
-    data: VendingItemDto[];
+    data: any[];
     total: number;
     page: number;
-    size: number;
-    totalPages: number;  // Backend returns camelCase, not snake_case
+    totalPages: number;
 }
 
 export interface VendingSearchResult {
@@ -32,52 +16,59 @@ export interface VendingSearchResult {
 }
 
 // Convert backend DTO to frontend MarketItem
-function convertToMarketItem(dto: VendingItemDto, index: number): MarketItem {
+function convertToMarketItem(dto: any, index: number): MarketItem {
     const now = new Date().toISOString();
-
     return {
-        id: `${dto.item_id}-${index}`,
-        server: dto.server,
-        name: dto.item_name,
-        price: dto.price,
-        amount: dto.quantity,
-        seller: dto.shop_name,
-        shop_title: dto.vendor_title,
+        id: `${dto.item_id || index}-${index}`,
+        server: dto.server || 'Unknown',
+        name: dto.item_name || 'Unknown',
+        price: dto.price || 0,
+        amount: dto.quantity || 1,
+        seller: dto.shop_name || dto.vendor_name || 'Unknown',
+        shop_title: dto.vendor_title || dto.vendor_info || 'Unknown',
         location: dto.location || '알 수 없음',
         created_at: now,
         category: dto.item_type || '기타',
+        image_placeholder: dto.image_url || `https://picsum.photos/seed/${dto.item_id || index}/64/64`,
         refine_level: 0,
         card_slots: 0,
         cards_equipped: [],
         description: '',
-        stats: [],
-        image_placeholder: dto.image_url || `https://picsum.photos/seed/${dto.item_id}/64/64`
+        stats: []
     };
 }
 
 export const searchVendingItems = async (
-    query: string,
+    itemName: string,
     server: string,
     category: string,
     page: number = 1
 ): Promise<VendingSearchResult> => {
-    if (!query) return { items: [], total: 0, page: 1, totalPages: 0 };
-
     try {
-        // Map frontend server names to backend server names
-        const serverMap: { [key: string]: string } = {
-            '바포메트': 'baphomet',
-            '이프리트': 'ifrit',
-            '전체 서버': 'baphomet'
-        };
+        // [수정] ReferenceError 방지를 위해 변수를 함수 내부로 이동
+        const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        // /api가 중복으로 붙지 않도록 처리
+        const baseUrl = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 
-        const backendServer = serverMap[server] || 'baphomet';
+        console.log(`[VendingService] Requesting to: ${baseUrl}/vending`);
 
-        const url = `${API_BASE_URL}/vending?item=${encodeURIComponent(query)}&server=${backendServer}&page=${page}`;
+        // Build Query Parameters
+        const params = new URLSearchParams();
+        if (itemName) params.append('item', itemName);
 
-        console.log('[VendingService] Calling API:', url);
+        // 서버 파라미터 매핑 (한글 -> 영어)
+        let serverParam = server;
+        if (server === '바포메트') serverParam = 'baphomet';
+        else if (server === '이프리트') serverParam = 'ifrit';
+        else if (server === '전체 서버') serverParam = 'baphomet'; // 기본값
 
-        const response = await fetch(url);
+        if (server && server !== '전체 서버') params.append('server', serverParam);
+        if (category && category !== '전체') params.append('category', category);
+
+        params.append('page', page.toString());
+        params.append('size', '10');
+
+        const response = await fetch(`${baseUrl}/vending?${params.toString()}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -85,22 +76,15 @@ export const searchVendingItems = async (
 
         const result: VendingPageResponse = await response.json();
 
-        console.log('[VendingService] Response:', result);
-        console.log('[VendingService] Mapping totalPages:', result.totalPages);
-
-        // Always return pagination info, even if no items
-        const searchResult: VendingSearchResult = {
+        return {
             items: result.data ? result.data.map((dto, index) => convertToMarketItem(dto, index)) : [],
             total: result.total || 0,
             page: result.page || 1,
             totalPages: result.totalPages || 0
         };
 
-        console.log('[VendingService] Returning:', searchResult);
-        return searchResult;
-
     } catch (error) {
-        console.error('[VendingService] Error:', error);
+        console.error('[VendingService] API Error:', error);
         return { items: [], total: 0, page: 1, totalPages: 0 };
     }
 };
