@@ -8,9 +8,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/skills")
-@CrossOrigin(origins = "*")
+// JPA가 비활성화되어 있으므로 이 컨트롤러도 비활성화 (SkillService가 DB 필요)
+// @RestController
+// @RequestMapping("/api/skills")
+// @CrossOrigin(origins = "*")
 public class SkillController {
 
     @Autowired

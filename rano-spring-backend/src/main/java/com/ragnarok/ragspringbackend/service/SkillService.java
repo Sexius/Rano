@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+// JPA가 비활성화되어 있으므로 이 서비스도 비활성화 (DB 필요)
+// @Service
 public class SkillService {
 
     @Autowired
