@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/api/items")
-@CrossOrigin(origins = "*") // 리액트(3000번 포트)에서 요청 오는 것 허용
+// JPA가 비활성화되어 있으므로 이 컨트롤러 비활성화 (ItemRepository 필요)
+// @RestController
+// @RequestMapping("/api/items")
+// @CrossOrigin(origins = "*")
 public class ItemController {
 
     @Autowired
