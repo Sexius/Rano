@@ -45,12 +45,15 @@ export const searchVendingItems = async (
     page: number = 1
 ): Promise<VendingSearchResult> => {
     try {
-        // [수정] ReferenceError 방지를 위해 변수를 함수 내부로 이동
-        const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-        // /api가 중복으로 붙지 않도록 처리
+        // [수정] URL 처리 - /api 중복 방지
+        let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        // trailing slash 제거
+        rawUrl = rawUrl.replace(/\/+$/, '');
+        // /api로 끝나면 그대로 사용, 아니면 /api 추가
         const baseUrl = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 
-        console.log(`[VendingService] Requesting to: ${baseUrl}/vending`);
+        console.log(`[VendingService] VITE_API_URL: ${import.meta.env.VITE_API_URL}`);
+        console.log(`[VendingService] Final baseUrl: ${baseUrl}`);
 
         // Build Query Parameters
         const params = new URLSearchParams();
