@@ -1,5 +1,10 @@
 // Skill API Service
-const API_BASE = 'http://localhost:8080/api/skills';
+const getApiBaseUrl = (): string => {
+    let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    rawUrl = rawUrl.replace(/\/+$/, '');
+    return rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
+};
+const API_BASE = `${getApiBaseUrl()}/skills`;
 
 export interface SkillData {
     engName: string;

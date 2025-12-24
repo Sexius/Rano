@@ -1,5 +1,10 @@
 // MariaDB에서 아이템 정보를 가져오는 서비스
-const API_BASE_URL = 'http://localhost:8080/api';
+const getApiBaseUrl = (): string => {
+    let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    rawUrl = rawUrl.replace(/\/+$/, '');
+    return rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
+};
+const API_BASE_URL = getApiBaseUrl();
 
 export interface DbItem {
     id: number;

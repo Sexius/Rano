@@ -1,6 +1,13 @@
 import { MarketItem, ParsedItemStats, PerRefineBonus, GradeBonus, SetEffect } from '../types';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// API URL - 환경변수 사용 (vendingService처럼)
+const getApiBaseUrl = (): string => {
+    let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    rawUrl = rawUrl.replace(/\/+$/, ''); // trailing slash 제거
+    return rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
+};
+const API_BASE_URL = getApiBaseUrl();
+console.log('[ItemService] API_BASE_URL:', API_BASE_URL);
 
 // Backend response interface
 interface BackendItem {
