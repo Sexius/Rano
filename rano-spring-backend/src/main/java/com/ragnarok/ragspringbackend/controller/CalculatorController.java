@@ -9,7 +9,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000")
 public class CalculatorController {
 
     @Autowired
@@ -28,8 +27,7 @@ public class CalculatorController {
             int monsterDef = (Integer) request.getOrDefault("monster_def", 0);
 
             int finalDamage = calculatorService.calculateDamage(
-                baseLevel, str, dex, luk, weaponAtk, equipAtk, skillPercent, monsterDef
-            );
+                    baseLevel, str, dex, luk, weaponAtk, equipAtk, skillPercent, monsterDef);
 
             return ResponseEntity.ok(Map.of("final_damage", finalDamage));
         } catch (Exception e) {

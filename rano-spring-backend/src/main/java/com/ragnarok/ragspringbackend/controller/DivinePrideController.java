@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/divine")
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class DivinePrideController {
 
     private final DivinePrideService divinePrideService;
