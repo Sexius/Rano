@@ -9,10 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-// JPA가 비활성화되어 있으므로 이 컨트롤러 비활성화 (ItemRepository 필요)
-// @RestController
-// @RequestMapping("/api/items")
-// @CrossOrigin(origins = "*")
+// JPA 활성화됨 - 아이템 검색 API 사용 가능
+@RestController
+@RequestMapping("/api/items")
 public class ItemController {
 
     @Autowired
