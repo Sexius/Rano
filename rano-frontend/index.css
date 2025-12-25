@@ -1,0 +1,6 @@
+/* Global styles for RANO */
+@layer base {
+  body {
+    @apply antialiased text-gray-900;
+  }
+}
