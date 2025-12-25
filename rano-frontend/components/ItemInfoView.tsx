@@ -69,7 +69,8 @@ const ItemInfoView: React.FC = () => {
 
   // Convert DB item to display format
   const convertDbItemToDisplay = (dbItem: DbItem): ItemDbEntry => {
-    const cleanDesc = (text: string) => text.replace(/\^[0-9A-Fa-f]{6}/g, '');
+    // Clean color codes: ^CC3D3D, ^777777, etc.
+    const cleanDesc = (text: string) => (text || '').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n');
 
     return {
       id: dbItem.id,
