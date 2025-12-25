@@ -40,4 +40,18 @@ public class VendingController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @GetMapping("/vending/detail")
+    public ResponseEntity<VendingItemDto> getVendingDetail(
+            @RequestParam String server,
+            @RequestParam String ssi,
+            @RequestParam String mapID) {
+        try {
+            VendingItemDto result = vendingService.getVendingDetail(server, ssi, mapID);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

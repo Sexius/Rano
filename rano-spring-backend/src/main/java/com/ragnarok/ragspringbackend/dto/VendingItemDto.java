@@ -12,6 +12,8 @@ public class VendingItemDto {
     private String category;
     private String rarity;
     private String image_url;
+    private String ssi; // Original site String identifier
+    private String map_id; // Original site Map identifier
 
     // Constructors
     public VendingItemDto() {
@@ -30,6 +32,14 @@ public class VendingItemDto {
         this.vendor_info = vendor_info;
         this.category = category;
         this.rarity = rarity;
+    }
+
+    public VendingItemDto(int id, String vendor_name, String server_name, String coordinates,
+            String item_name, int quantity, long price, String vendor_info,
+            String category, String rarity, String ssi, String map_id) {
+        this(id, vendor_name, server_name, coordinates, item_name, quantity, price, vendor_info, category, rarity);
+        this.ssi = ssi;
+        this.map_id = map_id;
     }
 
     // Getters and Setters
@@ -119,5 +129,21 @@ public class VendingItemDto {
 
     public void setImage_url(String image_url) {
         this.image_url = image_url;
+    }
+
+    public String getSsi() {
+        return ssi;
+    }
+
+    public void setSsi(String ssi) {
+        this.ssi = ssi;
+    }
+
+    public String getMap_id() {
+        return map_id;
+    }
+
+    public void setMap_id(String map_id) {
+        this.map_id = map_id;
     }
 }

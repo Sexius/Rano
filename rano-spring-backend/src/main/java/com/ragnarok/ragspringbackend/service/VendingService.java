@@ -175,9 +175,32 @@ public class VendingService {
                     }
                 }
 
+                String ssi = null;
+                String mapId = null;
+                if (itemNameElement != null) {
+                    Element link = itemNameElement.selectFirst("a");
+                    if (link != null) {
+                        String onclick = link.attr("onclick");
+                        // CallItemDealView('129','2023','7587803212992928559',1)
+                        if (onclick != null && onclick.contains("CallItemDealView")) {
+                            try {
+                                String cleanOnclick = onclick.substring(onclick.indexOf("(") + 1, onclick.indexOf(")"));
+                                String[] params = cleanOnclick.split(",");
+                                if (params.length >= 3) {
+                                    // Index 0: svrId, 1: mapId, 2: ssi
+                                    mapId = params[1].trim().replace("'", "");
+                                    ssi = params[2].trim().replace("'", "");
+                                }
+                            } catch (Exception e) {
+                                System.err.println("[VendingService] Failed to extract IDs from onclick: " + onclick);
+                            }
+                        }
+                    }
+                }
+
                 VendingItemDto item = new VendingItemDto(
                         itemId, shopName, serverName, shopName, itemNameText,
-                        quantity, price, shopName, "Unknown", "Common");
+                        quantity, price, shopName, "Unknown", "Common", ssi, mapId);
 
                 // Set image URL
                 if (imageUrl != null) {
@@ -212,6 +235,47 @@ public class VendingService {
         response.setTotalPages((int) Math.ceil((double) totalItems / safeSize));
 
         return response;
+    }
+
+    public VendingItemDto getVendingDetail(String server, String ssi, String mapId) throws IOException {
+        String svrId = ("ifrit".equalsIgnoreCase(server) || "이프리트".equals(server)) ? "729" : "129";
+        String url = "https://ro.gnjoy.com/itemdeal/itemDealView.asp";
+
+        Document doc = Jsoup.connect(url)
+                .userAgent(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                .header("Referer", "https://ro.gnjoy.com/itemdeal/itemDealList.asp")
+                .data("svrID", svrId)
+                .data("mapID", mapId)
+                .data("ssi", ssi)
+                .data("curpage", "1")
+                .timeout(5000)
+                .get();
+
+        // Seller name is located in a table: <th>노점 이름<br>(판매캐릭터명)</th> <td>Shop Title
+        // (Character Name)</td>
+        Element shopInfoTd = doc.selectFirst("th:contains(노점 이름) + td");
+        String sellerName = "Unknown";
+        String shopTitle = "Unknown";
+
+        if (shopInfoTd != null) {
+            String fullText = shopInfoTd.text().trim(); // e.g., "알아서 팔아요 (상인창고요)"
+            if (fullText.contains("(") && fullText.contains(")")) {
+                shopTitle = fullText.substring(0, fullText.indexOf("(")).trim();
+                sellerName = fullText.substring(fullText.indexOf("(") + 1, fullText.indexOf(")")).trim();
+            } else {
+                shopTitle = fullText;
+                sellerName = fullText;
+            }
+        }
+
+        VendingItemDto detail = new VendingItemDto();
+        detail.setVendor_name(sellerName); // Character name
+        detail.setVendor_info(shopTitle); // Shop title
+        detail.setSsi(ssi);
+        detail.setMap_id(mapId);
+
+        return detail;
     }
 
     private String toServerDisplay(String server) {
