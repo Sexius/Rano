@@ -20,7 +20,7 @@ function convertToMarketItem(dto: any, index: number): MarketItem {
     const now = new Date().toISOString();
     return {
         id: `${dto.item_id || index}-${index}`,
-        server: dto.server || 'Unknown',
+        server: dto.server || dto.server_name || 'Unknown',
         name: dto.item_name || 'Unknown',
         price: dto.price || 0,
         amount: dto.quantity || 1,
@@ -34,7 +34,9 @@ function convertToMarketItem(dto: any, index: number): MarketItem {
         card_slots: 0,
         cards_equipped: [],
         description: '',
-        stats: []
+        stats: [],
+        ssi: dto.ssi,
+        map_id: dto.map_id
     };
 }
 
@@ -89,5 +91,41 @@ export const searchVendingItems = async (
     } catch (error) {
         console.error('[VendingService] API Error:', error);
         return { items: [], total: 0, page: 1, totalPages: 0 };
+    }
+};
+
+export const getVendingItemDetail = async (
+    server: string,
+    ssi: string,
+    mapId: string
+): Promise<Partial<MarketItem> | null> => {
+    try {
+        let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        rawUrl = rawUrl.replace(/\/+$/, '');
+        const baseUrl = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
+
+        // 서버 파라미터 매핑 (한글 -> 영어)
+        let serverParam = server;
+        if (server === '바포메트') serverParam = 'baphomet';
+        else if (server === '이프리트') serverParam = 'ifrit';
+
+        const params = new URLSearchParams();
+        params.append('server', serverParam);
+        params.append('ssi', ssi);
+        params.append('mapID', mapId);
+
+        const response = await fetch(`${baseUrl}/vending/detail?${params.toString()}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return {
+            seller: result.vendor_name,
+            shop_title: result.vendor_info
+        };
+    } catch (error) {
+        console.error('[VendingService] Detail API Error:', error);
+        return null;
     }
 };

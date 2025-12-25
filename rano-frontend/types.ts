@@ -18,6 +18,8 @@ export interface MarketItem {
   image_placeholder?: string;
   parsedStats?: ParsedItemStats;  // Structured parsed item stats
   parsedData?: any;               // Raw DB JSON (or string)
+  ssi?: string;                   // For fetching vending details
+  map_id?: string;                // For fetching vending details
 }
 
 export interface SearchParams {
