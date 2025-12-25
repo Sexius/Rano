@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { MarketItem } from '../types';
-import { X, Store, MapPin, Copy, Shield, Zap, Clock, Info } from 'lucide-react';
+import { X, Store, MapPin, Copy, Shield, Zap, Clock, Info, Loader2 } from 'lucide-react';
 
 interface ItemDetailViewProps {
   item: MarketItem | null;
@@ -12,6 +12,43 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [detailedItem, setDetailedItem] = useState<Partial<MarketItem> | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+
+  // Card tooltip state
+  const [selectedCard, setSelectedCard] = useState<string | null>(null);
+  const [cardInfo, setCardInfo] = useState<{ id: number; name: string; description: string } | null>(null);
+  const [isLoadingCard, setIsLoadingCard] = useState(false);
+
+  // Fetch card info when clicked
+  const fetchCardInfo = async (cardName: string) => {
+    setSelectedCard(cardName);
+    setIsLoadingCard(true);
+    setCardInfo(null);
+
+    try {
+      const apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      const response = await fetch(`${apiBase}/api/items/search?keyword=${encodeURIComponent(cardName)}`);
+      if (response.ok) {
+        const data = await response.json();
+        const match = data.find((item: any) => item.nameKr === cardName) || data[0];
+        if (match) {
+          setCardInfo({
+            id: match.id,
+            name: match.nameKr,
+            description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch card info:', e);
+    } finally {
+      setIsLoadingCard(false);
+    }
+  };
+
+  const closeCardTooltip = () => {
+    setSelectedCard(null);
+    setCardInfo(null);
+  };
 
   useEffect(() => {
     if (item) {
@@ -117,17 +154,59 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
             <Info size={14} className="text-kafra-500" /> 아이템 상세
           </h3>
 
-          {/* Cards */}
+          {/* Cards - Clickable with Tooltip */}
           {item.cards_equipped && item.cards_equipped.length > 0 && (
-            <div className="mb-3">
+            <div className="mb-3 relative">
               <div className="flex flex-wrap gap-2">
                 {item.cards_equipped.map((card, i) => (
-                  <div key={i} className="flex items-center gap-2 bg-white border border-yellow-200 shadow-sm px-3 py-2 rounded-lg text-sm font-bold text-gray-700">
+                  <button
+                    key={i}
+                    onClick={() => fetchCardInfo(card)}
+                    className="flex items-center gap-2 bg-white border border-yellow-200 shadow-sm px-3 py-2 rounded-lg text-sm font-bold text-gray-700 hover:bg-yellow-50 hover:border-yellow-400 transition-all cursor-pointer"
+                  >
                     <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
                     {card}
-                  </div>
+                    <span className="text-xs text-kafra-500 ml-1">ⓘ</span>
+                  </button>
                 ))}
               </div>
+
+              {/* Card Info Tooltip/Popup */}
+              {selectedCard && (
+                <div className="absolute z-50 top-full left-0 mt-2 w-full max-w-md bg-white rounded-xl border border-gray-200 shadow-2xl p-4 animate-fade-in">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      {cardInfo && (
+                        <img
+                          src={`https://static.divine-pride.net/images/items/collection/${cardInfo.id}.png`}
+                          alt={cardInfo.name}
+                          className="w-10 h-10 object-contain"
+                          onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
+                        />
+                      )}
+                      <div>
+                        <h4 className="font-bold text-gray-900">{selectedCard}</h4>
+                        {cardInfo && <span className="text-xs text-gray-400">ID: {cardInfo.id}</span>}
+                      </div>
+                    </div>
+                    <button onClick={closeCardTooltip} className="text-gray-400 hover:text-gray-600">
+                      <X size={16} />
+                    </button>
+                  </div>
+
+                  {isLoadingCard ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-kafra-500" />
+                    </div>
+                  ) : cardInfo ? (
+                    <div className="bg-yellow-50/50 border border-yellow-100 rounded-lg p-3 text-sm text-gray-700">
+                      <p className="whitespace-pre-wrap leading-relaxed">{cardInfo.description}</p>
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-sm">카드 정보를 찾을 수 없습니다</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
