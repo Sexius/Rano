@@ -38,7 +38,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
     return (
       <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 border-dashed">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-50 mb-3">
-            <Package className="h-6 w-6 text-gray-300" />
+          <Package className="h-6 w-6 text-gray-300" />
         </div>
         <h3 className="text-base font-bold text-gray-900">검색 결과가 없습니다</h3>
         <p className="mt-1 text-xs text-gray-500">필터를 변경하거나 검색어를 확인해주세요.</p>
@@ -47,18 +47,18 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
   }
 
   return (
-    <div className="flex flex-col gap-2 pb-20 md:pb-0">
+    <div className="flex flex-col gap-2 pb-20 md:pb-0 overflow-x-hidden">
       {items.map((item) => {
         const isSelected = selectedItemId === item.id;
-        
+
         return (
-          <div 
+          <div
             key={item.id}
             onClick={() => onItemClick(item)}
             className={`
               relative group flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200
-              ${isSelected 
-                ? 'bg-kafra-50/50 border-kafra-500 ring-1 ring-kafra-500 shadow-sm z-10' 
+              ${isSelected
+                ? 'bg-kafra-50/50 border-kafra-500 ring-1 ring-kafra-500 shadow-sm z-10'
                 : 'bg-white border-gray-100 hover:border-kafra-300 hover:shadow-card'
               }
             `}
@@ -75,25 +75,25 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
                 </div>
                 {item.card_slots > 0 && (
-                   <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-[9px] font-bold px-1 rounded-md border border-white">
-                     {item.card_slots}
-                   </div>
+                  <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-[9px] font-bold px-1 rounded-md border border-white">
+                    {item.card_slots}
+                  </div>
                 )}
               </div>
 
               {/* Item Text Info */}
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                   <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}>
-                      {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
-                      {item.name}
-                   </h4>
-                   {/* Card Badges (Mobile: Hidden, PC: Show up to 2) */}
-                   <div className="hidden sm:flex items-center gap-1">
-                      {item.cards_equipped?.slice(0, 2).map((c, i) => (
-                        <span key={i} className="w-1.5 h-1.5 rounded-full bg-yellow-400" title={c}></span>
-                      ))}
-                   </div>
+                  <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}>
+                    {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
+                    {item.name}
+                  </h4>
+                  {/* Card Badges (Mobile: Hidden, PC: Show up to 2) */}
+                  <div className="hidden sm:flex items-center gap-1">
+                    {item.cards_equipped?.slice(0, 2).map((c, i) => (
+                      <span key={i} className="w-1.5 h-1.5 rounded-full bg-yellow-400" title={c}></span>
+                    ))}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span className="font-medium text-gray-600">{item.server}</span>
@@ -119,7 +119,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
             {/* Arrow for mobile hint */}
             <div className="ml-2 md:hidden text-gray-300">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </div>
           </div>
         );

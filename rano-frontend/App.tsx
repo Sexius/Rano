@@ -205,8 +205,8 @@ const App: React.FC = () => {
                               <button
                                 onClick={() => handlePageChange(pageNum)}
                                 className={`w-8 h-8 flex items-center justify-center rounded-lg font-medium text-sm transition-all ${pageNum === currentPage
-                                    ? 'bg-kafra-600 text-white shadow-md shadow-kafra-500/20 transform scale-105'
-                                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                                  ? 'bg-kafra-600 text-white shadow-md shadow-kafra-500/20 transform scale-105'
+                                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                                   }`}
                               >
                                 {pageNum}
@@ -287,7 +287,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-gray-50/50 font-sans">
+    <div className="min-h-full flex flex-col bg-gray-50/50 font-sans overflow-x-hidden">
       <Header
         user={user}
         onOpenAuth={openAuthModal}

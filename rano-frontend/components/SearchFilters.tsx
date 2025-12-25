@@ -14,7 +14,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
   const [server, setServer] = useState(SERVERS[0]);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [placeholder] = useState(DEFAULT_SEARCH_PLACEHOLDERS[Math.floor(Math.random() * DEFAULT_SEARCH_PLACEHOLDERS.length)]);
-  
+
   // Recent Search State
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [showRecent, setShowRecent] = useState(false);
@@ -75,11 +75,11 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
 
   return (
     <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-5 md:p-7 mb-8 relative overflow-visible">
-      {/* Decorative background blob */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-kafra-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+      {/* Decorative background blob - hidden on mobile to prevent overflow/wobble */}
+      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-kafra-50 rounded-full blur-3xl opacity-60 pointer-events-none hidden md:block"></div>
 
       <form onSubmit={handleSubmit} className="relative space-y-5">
-        
+
         {/* Top Row: Search Input */}
         <div className="relative group" ref={searchContainerRef}>
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
@@ -93,14 +93,14 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setShowRecent(true)}
           />
-          
+
           {/* Recent Searches Dropdown */}
           {showRecent && recentSearches.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in">
               <div className="px-4 py-2 bg-gray-50 text-xs font-bold text-gray-500 border-b border-gray-100">최근 검색어</div>
               {recentSearches.map((term, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className="px-4 py-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between group/item"
                   onClick={() => handleRecentClick(term)}
                 >
@@ -108,7 +108,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
                     <Clock size={14} className="text-gray-400" />
                     <span>{term}</span>
                   </div>
-                  <button 
+                  <button
                     type="button"
                     onClick={(e) => removeRecentSearch(e, term)}
                     className="text-gray-300 hover:text-red-500 p-1 rounded-full hover:bg-red-50 opacity-0 group-hover/item:opacity-100 transition-all"
@@ -175,22 +175,22 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
                 ))}
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
           </div>
-          
+
           <div className="flex-grow flex items-end justify-end gap-2 mt-2 md:mt-0">
-             <button 
-               type="button" 
-               onClick={handleReset}
-               className="text-sm text-gray-500 font-medium hover:text-gray-800 flex items-center gap-1.5 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
-             >
-               <RotateCcw size={14} /> 초기화
-             </button>
-             <button type="button" className="text-sm text-kafra-600 font-bold hover:text-kafra-700 flex items-center gap-1.5 px-4 py-2.5 bg-kafra-50/50 border border-kafra-100 rounded-lg hover:bg-kafra-100 hover:border-kafra-200 transition-all">
-               <Filter size={14} /> 필터 설정
-             </button>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-sm text-gray-500 font-medium hover:text-gray-800 flex items-center gap-1.5 px-4 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <RotateCcw size={14} /> 초기화
+            </button>
+            <button type="button" className="text-sm text-kafra-600 font-bold hover:text-kafra-700 flex items-center gap-1.5 px-4 py-2.5 bg-kafra-50/50 border border-kafra-100 rounded-lg hover:bg-kafra-100 hover:border-kafra-200 transition-all">
+              <Filter size={14} /> 필터 설정
+            </button>
           </div>
         </div>
 
