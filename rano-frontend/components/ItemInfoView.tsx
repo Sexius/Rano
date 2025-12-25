@@ -97,7 +97,14 @@ const ItemInfoView: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:8080/api/items/search?keyword=${encodeURIComponent(searchQuery)}`);
+      // API URL - 환경변수 사용
+      const getApiBaseUrl = (): string => {
+        const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        const baseUrl = rawUrl.replace(/\/+$/, ''); // trailing slash 제거
+        return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+      };
+      const apiBase = getApiBaseUrl();
+      const response = await fetch(`${apiBase}/items/search?keyword=${encodeURIComponent(searchQuery)}`);
 
       if (!response.ok) {
         throw new Error('검색 실패');
