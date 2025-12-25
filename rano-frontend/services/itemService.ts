@@ -2,9 +2,9 @@ import { MarketItem, ParsedItemStats, PerRefineBonus, GradeBonus, SetEffect } fr
 
 // API URL - 환경변수 사용 (vendingService처럼)
 const getApiBaseUrl = (): string => {
-    let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-    rawUrl = rawUrl.replace(/\/+$/, ''); // trailing slash 제거
-    return rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
+    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    const baseUrl = rawUrl.replace(/\/+$/, ''); // trailing slash 제거
+    return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
 };
 const API_BASE_URL = getApiBaseUrl();
 console.log('[ItemService] API_BASE_URL:', API_BASE_URL);
