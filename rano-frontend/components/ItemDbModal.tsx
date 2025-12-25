@@ -80,10 +80,37 @@ const ItemDbModal: React.FC<ItemDbModalProps> = ({ item, onClose }) => {
                             </div>
                         )}
                         <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-center">
-                            <div className="text-xs text-gray-400 font-bold mb-1 flex items-center justify-center gap-1"><Coins size={12} /> 판매가</div>
-                            <div className="font-bold text-gray-900">{item.npcPrice.sell ? `${item.npcPrice.sell.toLocaleString()}z` : '불가'}</div>
+                            <div className="text-xs text-gray-400 font-bold mb-1 flex items-center justify-center gap-1"><Coins size={12} /> 슬롯</div>
+                            <div className="font-bold text-gray-900">{item.slots}</div>
                         </div>
                     </div>
+
+                    {/* NPC Price Section */}
+                    {(item.npcPrice.buy || item.npcPrice.sell) && (
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                                <Coins size={16} className="text-kafra-500" /> NPC 상점 가격
+                            </h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <div className="bg-blue-50 p-3 rounded-xl border border-blue-100 text-center">
+                                    <div className="text-[10px] text-blue-500 font-bold mb-1">상점 구매가</div>
+                                    <div className="font-bold text-blue-700">{item.npcPrice.buy ? `${item.npcPrice.buy.toLocaleString()}z` : '-'}</div>
+                                </div>
+                                <div className="bg-green-50 p-3 rounded-xl border border-green-100 text-center">
+                                    <div className="text-[10px] text-green-600 font-bold mb-1">디스카운트 구매가</div>
+                                    <div className="font-bold text-green-700">{item.npcPrice.buy ? `${Math.floor(item.npcPrice.buy * 0.76).toLocaleString()}z` : '-'}</div>
+                                </div>
+                                <div className="bg-amber-50 p-3 rounded-xl border border-amber-100 text-center">
+                                    <div className="text-[10px] text-amber-600 font-bold mb-1">상점 판매가</div>
+                                    <div className="font-bold text-amber-700">{item.npcPrice.sell ? `${item.npcPrice.sell.toLocaleString()}z` : '-'}</div>
+                                </div>
+                                <div className="bg-purple-50 p-3 rounded-xl border border-purple-100 text-center">
+                                    <div className="text-[10px] text-purple-600 font-bold mb-1">오버차지 판매가</div>
+                                    <div className="font-bold text-purple-700">{item.npcPrice.sell ? `${Math.floor(item.npcPrice.sell * 1.24).toLocaleString()}z` : '-'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Description Box */}
                     <div className="space-y-2">

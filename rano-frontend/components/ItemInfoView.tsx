@@ -10,6 +10,8 @@ interface DbItem {
   slots: number;
   rawData?: string;
   updatedAt?: string;
+  buyPrice?: number;
+  sellPrice?: number;
 }
 
 const CATEGORIES = [
@@ -83,7 +85,7 @@ const ItemInfoView: React.FC = () => {
       reqLevel: 1,
       jobs: '전직업',
       jobTags: ['전직업'],
-      npcPrice: {}
+      npcPrice: { buy: dbItem.buyPrice, sell: dbItem.sellPrice }
     };
   };
 
