@@ -2,6 +2,7 @@
 import React from 'react';
 import { MarketItem } from '../types';
 import { Package, Clock, Star, Zap } from 'lucide-react';
+import { getZenyStyle, formatZeny } from '../utils/zenyStyle';
 
 interface ResultsTableProps {
   items: MarketItem[];
@@ -11,9 +12,6 @@ interface ResultsTableProps {
 }
 
 const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedItemId, onItemClick }) => {
-  const formatZeny = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR').format(amount);
-  };
 
   if (isLoading) {
     return (
@@ -108,7 +106,10 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
             {/* Price Column */}
             <div className="text-right pl-3">
-              <div className={`text-base font-extrabold whitespace-nowrap ${item.price >= 100000000 ? 'text-red-500' : 'text-gray-900'}`}>
+              <div
+                className="text-base font-extrabold whitespace-nowrap"
+                style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
+              >
                 {formatZeny(item.price)}
                 <span className="text-[10px] text-gray-400 font-normal ml-0.5">Z</span>
               </div>
