@@ -6,8 +6,8 @@ def check():
         r = requests.get(url, timeout=10)
         data = r.json()
         print(f"Items found: {len(data)}")
-        for item in data[:3]:
-            print(f"ID: {item.get('id')}, Name: {item.get('nameKr')}")
+        for i, item in enumerate(data[:15]):
+            print(f"Index: {i}, ID: {item.get('id')}, Name: {item.get('nameKr')}")
             desc = item.get('description')
             print(f"Description: {'[NULL]' if desc is None else f'[Length: {len(desc)}]'}")
             if desc:

@@ -43,10 +43,11 @@ public class ItemController {
     public List<Item> searchItems(@RequestParam String keyword) {
         List<Item> items = itemRepository.findByNameKrContaining(keyword);
 
-        // Lazy fill missing descriptions for top 5 items (to avoid excessive API calls)
+        // Lazy fill missing descriptions for top 20 items (to avoid excessive API
+        // calls)
         items.stream()
                 .filter(this::isDescriptionMissing)
-                .limit(5)
+                .limit(20)
                 .forEach(this::fillItemDescription);
 
         return items;
