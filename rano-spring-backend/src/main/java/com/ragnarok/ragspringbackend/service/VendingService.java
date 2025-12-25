@@ -8,6 +8,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import org.springframework.cache.annotation.Cacheable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ public class VendingService {
         return paginateResults(allItems, page, size);
     }
 
+    @Cacheable(value = "vendingSearch", key = "#itemName + #server + #page + #size")
     public VendingPageResponse<VendingItemDto> searchVendingByItem(String itemName, String server, int page, int size) {
         System.out.println("[VendingService] SEARCH REQUEST RECEIVED: " + itemName);
         try {

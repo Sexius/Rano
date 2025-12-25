@@ -14,5 +14,6 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     // - delete(Item item): 아이템 삭제
 
     // [추가] 이름에 특정 단어가 포함되어 있으면 다 찾아줘! (LIKE 검색)
+    @org.springframework.cache.annotation.Cacheable(value = "itemSearch", key = "#keyword")
     List<Item> findByNameKrContaining(String keyword);
 }
