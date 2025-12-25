@@ -24,6 +24,12 @@ public class Item {
     @Column(name = "parsed_data", columnDefinition = "text") // 파싱된 스탯 정보 (DB는 text)
     private String parsedData;
 
+    @Column(name = "buy_price")
+    private Integer buyPrice;
+
+    @Column(name = "sell_price")
+    private Integer sellPrice;
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -82,5 +88,21 @@ public class Item {
 
     public void setParsedData(String parsedData) {
         this.parsedData = parsedData;
+    }
+
+    public Integer getBuyPrice() {
+        return buyPrice;
+    }
+
+    public void setBuyPrice(Integer buyPrice) {
+        this.buyPrice = buyPrice;
+    }
+
+    public Integer getSellPrice() {
+        return sellPrice;
+    }
+
+    public void setSellPrice(Integer sellPrice) {
+        this.sellPrice = sellPrice;
     }
 }
