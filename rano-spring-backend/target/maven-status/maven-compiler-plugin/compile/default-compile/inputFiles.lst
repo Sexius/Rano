@@ -17,5 +17,6 @@ E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\C
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\dto\VendingPageResponse.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\VendingController.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\dto\SkillDto.java
+E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\config\CorsConfig.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\repository\ItemRepository.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\repository\SkillRepository.java

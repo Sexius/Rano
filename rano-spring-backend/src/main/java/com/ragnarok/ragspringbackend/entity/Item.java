@@ -18,10 +18,10 @@ public class Item {
 
     private Integer slots;
 
-    @Column(name = "raw_data", columnDefinition = "json") // JSON 데이터 처리
+    @Column(name = "raw_data", columnDefinition = "text") // JSON 데이터 처리 (DB는 text)
     private String rawData;
 
-    @Column(name = "parsed_data", columnDefinition = "json") // 파싱된 스탯 정보 (JSON)
+    @Column(name = "parsed_data", columnDefinition = "text") // 파싱된 스탯 정보 (DB는 text)
     private String parsedData;
 
     @Column(name = "updated_at")
