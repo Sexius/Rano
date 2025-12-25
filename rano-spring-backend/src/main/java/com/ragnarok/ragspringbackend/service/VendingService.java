@@ -269,11 +269,41 @@ public class VendingService {
             }
         }
 
+        // Parse slot info (cards/enchants)
+        // HTML structure: <th>슬롯정보</th> <td>오염된 배회하는 자 카드<br>심연의기사 카드</td>
+        List<String> cardsEquipped = new ArrayList<>();
+        Element slotInfoTd = doc.selectFirst("th:contains(슬롯정보) + td");
+        if (slotInfoTd != null) {
+            // Get all text nodes separated by <br>
+            String html = slotInfoTd.html();
+            String[] parts = html.split("<br\\s*/?>"); // Split by <br> or <br/>
+            for (String part : parts) {
+                String cardName = Jsoup.parse(part).text().trim();
+                if (!cardName.isEmpty() && !cardName.equals("-")) {
+                    cardsEquipped.add(cardName);
+                }
+            }
+        }
+
+        // Also check for 랜덤옵션 (random options/enchants)
+        Element randomOptTd = doc.selectFirst("th:contains(랜덤옵션) + td");
+        if (randomOptTd != null) {
+            String html = randomOptTd.html();
+            String[] parts = html.split("<br\\s*/?>");
+            for (String part : parts) {
+                String optName = Jsoup.parse(part).text().trim();
+                if (!optName.isEmpty() && !optName.equals("-")) {
+                    cardsEquipped.add("[옵션] " + optName);
+                }
+            }
+        }
+
         VendingItemDto detail = new VendingItemDto();
         detail.setVendor_name(sellerName); // Character name
         detail.setVendor_info(shopTitle); // Shop title
         detail.setSsi(ssi);
         detail.setMap_id(mapId);
+        detail.setCards_equipped(cardsEquipped);
 
         return detail;
     }

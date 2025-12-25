@@ -1,5 +1,8 @@
 package com.ragnarok.ragspringbackend.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class VendingItemDto {
     private int id;
     private String vendor_name;
@@ -14,6 +17,7 @@ public class VendingItemDto {
     private String image_url;
     private String ssi; // Original site String identifier
     private String map_id; // Original site Map identifier
+    private List<String> cards_equipped = new ArrayList<>(); // Cards and enchants
 
     // Constructors
     public VendingItemDto() {
@@ -145,5 +149,13 @@ public class VendingItemDto {
 
     public void setMap_id(String map_id) {
         this.map_id = map_id;
+    }
+
+    public List<String> getCards_equipped() {
+        return cards_equipped;
+    }
+
+    public void setCards_equipped(List<String> cards_equipped) {
+        this.cards_equipped = cards_equipped;
     }
 }
