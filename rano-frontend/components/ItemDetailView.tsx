@@ -76,6 +76,9 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
   // Use detailed information if available
   const displaySeller = detailedItem?.seller || item.seller;
   const displayShopTitle = detailedItem?.shop_title || item.shop_title;
+  const displayCards = (detailedItem?.cards_equipped && detailedItem.cards_equipped.length > 0)
+    ? detailedItem.cards_equipped
+    : item.cards_equipped;
 
   const formatZeny = (amount: number) => new Intl.NumberFormat('ko-KR').format(amount);
 
@@ -155,10 +158,10 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
           </h3>
 
           {/* Cards - Clickable with Tooltip */}
-          {item.cards_equipped && item.cards_equipped.length > 0 && (
+          {displayCards && displayCards.length > 0 && (
             <div className="mb-3 relative">
               <div className="flex flex-wrap gap-2">
-                {item.cards_equipped.map((card, i) => (
+                {displayCards.map((card, i) => (
                   <button
                     key={i}
                     onClick={() => fetchCardInfo(card)}
