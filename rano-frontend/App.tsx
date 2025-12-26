@@ -118,10 +118,9 @@ const App: React.FC = () => {
               <SearchFilters onSearch={handleSearch} isLoading={isLoading} />
             </div>
 
-            {/* Split View */}
-            <div className="flex flex-col lg:flex-row items-start relative mt-8">
-              {/* Left: List */}
-              <div className={`w-full transition-all duration-300 ${selectedItem ? 'lg:w-[calc(100%-424px)]' : 'lg:w-full max-w-5xl mx-auto'}`}>
+            {/* List - Always Full Width */}
+            <div className="flex flex-col gap-2 relative mt-8">
+              <div className="w-full max-w-5xl mx-auto">
                 <div className="flex items-center justify-between mb-4 pl-1">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                     {lastQuery ? `"${lastQuery}" 검색 결과` : '실시간 인기 매물'}
@@ -238,13 +237,15 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Right: Detail */}
+            {/* Item Detail Popup Modal */}
+            {selectedItem && (
               <ItemDetailView
                 item={selectedItem}
                 onClose={() => setSelectedItem(null)}
               />
-            </div>
+            )}
           </>
         );
 

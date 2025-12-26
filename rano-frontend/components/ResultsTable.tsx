@@ -87,13 +87,26 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
                     {item.name}
                   </h4>
-                  {/* Card Badges (Mobile: Hidden, PC: Show up to 2) */}
-                  <div className="hidden sm:flex items-center gap-1">
-                    {item.cards_equipped?.slice(0, 2).map((c, i) => (
-                      <span key={i} className="w-1.5 h-1.5 rounded-full bg-yellow-400" title={c}></span>
-                    ))}
-                  </div>
                 </div>
+                {/* Card/Enchant Badges */}
+                {item.cards_equipped && item.cards_equipped.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1 mb-1">
+                    {item.cards_equipped.slice(0, 3).map((card, i) => (
+                      <span
+                        key={i}
+                        className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${card.startsWith('[옵션]')
+                            ? 'bg-purple-50 text-purple-600 border border-purple-200'
+                            : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                          }`}
+                      >
+                        {card.replace('[옵션] ', '').slice(0, 12)}{card.length > 12 ? '…' : ''}
+                      </span>
+                    ))}
+                    {item.cards_equipped.length > 3 && (
+                      <span className="text-[10px] text-gray-400">+{item.cards_equipped.length - 3}</span>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   <span className="font-medium text-gray-600">{item.server}</span>
                   <span className="w-0.5 h-2.5 bg-gray-200"></span>

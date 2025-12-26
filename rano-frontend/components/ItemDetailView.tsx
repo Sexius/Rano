@@ -248,44 +248,33 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
   );
 
   return (
-    <>
-      {/* 1. Desktop Side Panel (Hidden on Mobile) */}
-      <div className="hidden lg:block w-[400px] h-[calc(100vh-80px)] sticky top-24 bg-white rounded-2xl shadow-xl border border-gray-100 ml-6 overflow-hidden">
-        <div className="absolute top-4 right-4 z-10">
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-        <DetailContent />
-      </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className={`absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
+        onClick={onClose}
+      />
 
-      {/* 2. Mobile Bottom Sheet (Hidden on Desktop) */}
-      <div className="lg:hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center pointer-events-none">
-        {/* Backdrop */}
-        <div
-          className={`absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity pointer-events-auto ${isAnimating ? 'opacity-100' : 'opacity-0'}`}
+      {/* Modal */}
+      <div className={`
+        relative w-full max-w-md bg-white rounded-2xl shadow-2xl max-h-[85vh] overflow-hidden flex flex-col
+        transition-all duration-300 ease-out transform
+        ${isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}
+      `}>
+        {/* Close Button */}
+        <button
           onClick={onClose}
-        ></div>
+          className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <X size={20} />
+        </button>
 
-        {/* Sheet */}
-        <div className={`
-           pointer-events-auto w-full sm:w-[480px] bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl h-[85vh] sm:h-[80vh] flex flex-col relative
-           transition-transform duration-300 ease-out transform
-           ${isAnimating ? 'translate-y-0' : 'translate-y-full'}
-        `}>
-          {/* Drag Handle for mobile feel */}
-          <div className="w-full flex justify-center pt-3 pb-1" onClick={onClose}>
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
-          </div>
-
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full z-10 bg-white/50">
-            <X size={24} />
-          </button>
-
+        {/* Content */}
+        <div className="overflow-y-auto">
           <DetailContent />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
