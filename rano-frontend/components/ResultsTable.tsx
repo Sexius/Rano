@@ -33,12 +33,25 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
     setItemInfo(null);
 
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
-      // Extract base item name (remove refine, slots, etc.)
-      const baseName = itemName.replace(/^\+\d+\s*/, '').replace(/\[\d+\]$/, '').replace(/^\[UNIQUE\]/, '').trim();
-      const response = await fetch(`${apiBase}/api/items/search?keyword=${encodeURIComponent(baseName)}`);
+      // Construct proper API URL
+      let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      apiBase = apiBase.replace(/\/+$/, ''); // Remove trailing slashes
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+
+      // Extract base item name (remove [UNIQUE], refine, slots, etc.)
+      // Example: "[UNIQUE]+12천공의 룬 크라운[1]" -> "천공의 룬 크라운"
+      const baseName = itemName
+        .replace(/^\[UNIQUE\]\s*/i, '')  // Remove [UNIQUE] prefix
+        .replace(/^\+\d+\s*/, '')         // Remove +12 refine
+        .replace(/\[\d+\]$/, '')          // Remove [1] slots
+        .trim();
+
+      console.log('[ItemPopover] Searching for:', baseName);
+
+      const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(baseName)}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('[ItemPopover] API returned:', data.length, 'items');
         const match = data.find((item: any) => item.nameKr === baseName) || data[0];
         if (match) {
           setItemInfo({

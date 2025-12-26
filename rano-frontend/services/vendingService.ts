@@ -120,6 +120,10 @@ export const getVendingItemDetail = async (
         }
 
         const result = await response.json();
+        console.log('[VendingService] Detail API response:', {
+            seller: result.vendor_name,
+            cards: result.cards_equipped
+        });
         return {
             seller: result.vendor_name,
             shop_title: result.vendor_info,

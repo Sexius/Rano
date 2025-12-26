@@ -25,11 +25,21 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
     setCardInfo(null);
 
     try {
-      const apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
-      const response = await fetch(`${apiBase}/api/items/search?keyword=${encodeURIComponent(cardName)}`);
+      // Construct proper API URL
+      let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      apiBase = apiBase.replace(/\/+$/, ''); // Remove trailing slashes
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+
+      // Clean card name (remove [옵션] prefix for enchants)
+      const cleanName = cardName.replace(/^\[옵션\]\s*/, '').trim();
+
+      console.log('[CardTooltip] Searching for:', cleanName);
+
+      const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(cleanName)}`);
       if (response.ok) {
         const data = await response.json();
-        const match = data.find((item: any) => item.nameKr === cardName) || data[0];
+        console.log('[CardTooltip] API returned:', data.length, 'items');
+        const match = data.find((item: any) => item.nameKr === cleanName) || data[0];
         if (match) {
           setCardInfo({
             id: match.id,
