@@ -244,22 +244,6 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
         </div>
 
       </div>
-
-      {/* Floating Action Button for Copy */}
-      <div className="p-4 border-t border-gray-100 bg-white">
-        <button
-          onClick={() => {
-            const text = `/w ${displaySeller}`;
-            navigator.clipboard.writeText(text);
-            alert('명령어가 복사되었습니다: ' + text);
-          }}
-          className="w-full bg-gray-900 hover:bg-black text-white font-bold py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95 disabled:opacity-50"
-          disabled={isLoadingDetail}
-        >
-          <Copy size={18} />
-          <span>판매자에게 귓속말 복사</span>
-        </button>
-      </div>
     </div>
   );
 
