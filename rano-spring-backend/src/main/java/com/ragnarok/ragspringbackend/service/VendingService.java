@@ -270,17 +270,29 @@ public class VendingService {
         }
 
         // Parse slot info (cards/enchants)
-        // HTML structure: <th>슬롯정보</th> <td>오염된 배회하는 자 카드<br>심연의기사 카드</td>
+        // HTML structure: <th>슬롯정보</th> <td><ul><li>카드1</li><li>카드2</li></ul></td>
+        // Or fallback: <th>슬롯정보</th> <td>카드1<br>카드2</td>
         List<String> cardsEquipped = new ArrayList<>();
         Element slotInfoTd = doc.selectFirst("th:contains(슬롯정보) + td");
         if (slotInfoTd != null) {
-            // Get all text nodes separated by <br>
-            String html = slotInfoTd.html();
-            String[] parts = html.split("<br\\s*/?>"); // Split by <br> or <br/>
-            for (String part : parts) {
-                String cardName = Jsoup.parse(part).text().trim();
-                if (!cardName.isEmpty() && !cardName.equals("-")) {
-                    cardsEquipped.add(cardName);
+            // First try: Look for li elements (new structure)
+            Elements liElements = slotInfoTd.select("li");
+            if (!liElements.isEmpty()) {
+                for (Element li : liElements) {
+                    String cardName = li.text().trim();
+                    if (!cardName.isEmpty() && !cardName.equals("-")) {
+                        cardsEquipped.add(cardName);
+                    }
+                }
+            } else {
+                // Fallback: Split by br tags (old structure)
+                String html = slotInfoTd.html();
+                String[] parts = html.split("<br\\s*/?>");
+                for (String part : parts) {
+                    String cardName = Jsoup.parse(part).text().trim();
+                    if (!cardName.isEmpty() && !cardName.equals("-")) {
+                        cardsEquipped.add(cardName);
+                    }
                 }
             }
         }
@@ -288,12 +300,24 @@ public class VendingService {
         // Also check for 랜덤옵션 (random options/enchants)
         Element randomOptTd = doc.selectFirst("th:contains(랜덤옵션) + td");
         if (randomOptTd != null) {
-            String html = randomOptTd.html();
-            String[] parts = html.split("<br\\s*/?>");
-            for (String part : parts) {
-                String optName = Jsoup.parse(part).text().trim();
-                if (!optName.isEmpty() && !optName.equals("-")) {
-                    cardsEquipped.add("[옵션] " + optName);
+            // First try: Look for li elements
+            Elements liElements = randomOptTd.select("li");
+            if (!liElements.isEmpty()) {
+                for (Element li : liElements) {
+                    String optName = li.text().trim();
+                    if (!optName.isEmpty() && !optName.equals("-")) {
+                        cardsEquipped.add("[옵션] " + optName);
+                    }
+                }
+            } else {
+                // Fallback: Split by br tags
+                String html = randomOptTd.html();
+                String[] parts = html.split("<br\\s*/?>");
+                for (String part : parts) {
+                    String optName = Jsoup.parse(part).text().trim();
+                    if (!optName.isEmpty() && !optName.equals("-")) {
+                        cardsEquipped.add("[옵션] " + optName);
+                    }
                 }
             }
         }
