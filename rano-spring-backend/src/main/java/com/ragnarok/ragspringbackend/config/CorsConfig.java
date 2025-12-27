@@ -24,7 +24,8 @@ public class CorsConfig implements WebMvcConfigurer {
         System.out.println("[CorsConfig] Allowed Origins: " + Arrays.toString(origins));
 
         registry.addMapping("/api/**")
-                .allowedOrigins(origins)
+                .allowedOriginPatterns(origins) // Use allowedOriginPatterns instead of allowedOrigins to support "*"
+                                                // with credentials
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
