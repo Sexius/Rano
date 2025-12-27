@@ -81,8 +81,14 @@ export const searchVendingItems = async (
 
         const result: VendingPageResponse = await response.json();
 
+        // Convert to MarketItem
+        const items = result.data ? result.data.map((dto, index) => convertToMarketItem(dto, index)) : [];
+
+        // Auto-fetch card details for each item (in parallel, with limit)
+        const enrichedItems = await enrichWithCardDetails(items);
+
         return {
-            items: result.data ? result.data.map((dto, index) => convertToMarketItem(dto, index)) : [],
+            items: enrichedItems,
             total: result.total || 0,
             page: result.page || 1,
             totalPages: result.totalPages || 0
@@ -93,6 +99,71 @@ export const searchVendingItems = async (
         return { items: [], total: 0, page: 1, totalPages: 0 };
     }
 };
+
+// Fetch card details for each item in parallel
+async function enrichWithCardDetails(items: MarketItem[]): Promise<MarketItem[]> {
+    // Process in batches to avoid overwhelming the server
+    const batchSize = 5;
+    const enrichedItems = [...items];
+
+    for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const promises = batch.map(async (item, batchIndex) => {
+            if (item.ssi && item.map_id) {
+                try {
+                    const detail = await getVendingItemDetailInternal(item.server, item.ssi, item.map_id);
+                    if (detail && detail.cards_equipped && detail.cards_equipped.length > 0) {
+                        enrichedItems[i + batchIndex] = {
+                            ...enrichedItems[i + batchIndex],
+                            cards_equipped: detail.cards_equipped,
+                            seller: detail.seller || enrichedItems[i + batchIndex].seller,
+                            shop_title: detail.shop_title || enrichedItems[i + batchIndex].shop_title
+                        };
+                    }
+                } catch (e) {
+                    // Silently fail for individual items
+                }
+            }
+        });
+        await Promise.all(promises);
+    }
+
+    return enrichedItems;
+}
+
+// Internal function to get item detail (to avoid circular dependency)
+async function getVendingItemDetailInternal(
+    server: string,
+    ssi: string,
+    mapId: string
+): Promise<{ seller?: string; shop_title?: string; cards_equipped?: string[] } | null> {
+    try {
+        let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        rawUrl = rawUrl.replace(/\/+$/, '');
+        const baseUrl = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
+
+        let serverParam = server;
+        if (server === '바포메트') serverParam = 'baphomet';
+        else if (server === '이프리트') serverParam = 'ifrit';
+
+        const params = new URLSearchParams();
+        params.append('server', serverParam);
+        params.append('ssi', ssi);
+        params.append('mapID', mapId);
+
+        const response = await fetch(`${baseUrl}/vending/detail?${params.toString()}`);
+        if (!response.ok) return null;
+
+        const result = await response.json();
+        return {
+            seller: result.vendor_name,
+            shop_title: result.vendor_info,
+            cards_equipped: result.cards_equipped || []
+        };
+    } catch {
+        return null;
+    }
+}
 
 export const getVendingItemDetail = async (
     server: string,
