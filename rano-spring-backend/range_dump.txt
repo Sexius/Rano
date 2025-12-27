@@ -1,0 +1,3 @@
+ID: 400496, Name: 의상 흰여우 귀, HasDesc: NO
+ID: 400502, Name: 의상 링, HasDesc: NO
+ID: 400504, Name: 의상 가을 한 조각, HasDesc: NO

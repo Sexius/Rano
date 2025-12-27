@@ -12,7 +12,6 @@ import java.time.format.DateTimeFormatter;
  */
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*")
 public class HealthController {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");

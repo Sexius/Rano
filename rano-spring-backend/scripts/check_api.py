@@ -1,7 +1,7 @@
 import requests
 
 def check():
-    url = "https://rano.onrender.com/api/items/search?keyword=천공"
+    url = "https://rano.onrender.com/api/items/search?keyword=진노"
     try:
         r = requests.get(url, timeout=10)
         data = r.json()

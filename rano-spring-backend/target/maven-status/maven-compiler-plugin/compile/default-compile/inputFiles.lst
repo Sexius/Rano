@@ -15,6 +15,7 @@ E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\V
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\entity\Item.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\CalculatorService.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\dto\VendingPageResponse.java
+E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\HealthController.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\VendingController.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\dto\SkillDto.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\config\CorsConfig.java
