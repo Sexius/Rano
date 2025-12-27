@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { MarketItem } from '../types';
-import { Package, Clock, X, Loader2, Info } from 'lucide-react';
+import { Package, Clock, X, Loader2, Info, CreditCard } from 'lucide-react';
 import { getZenyStyle, formatZeny } from '../utils/zenyStyle';
 
 interface ItemDbInfo {
@@ -69,60 +69,60 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
     setItemInfo(null);
   };
 
-  // Card hover tooltip state
-  const [cardTooltip, setCardTooltip] = useState<{ cardName: string; position: { x: number; y: number } } | null>(null);
-  const [cardInfo, setCardInfo] = useState<{ id: number; name: string; description: string } | null>(null);
-  const [isLoadingCard, setIsLoadingCard] = useState(false);
-  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  // Card modal state
+  const [cardModalItem, setCardModalItem] = useState<MarketItem | null>(null);
+  const [cardDetails, setCardDetails] = useState<{ id: number; name: string; description: string }[]>([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(false);
 
-  // Fetch card info on hover
-  const fetchCardInfo = async (cardName: string, event: React.MouseEvent) => {
-    const rect = (event.target as HTMLElement).getBoundingClientRect();
-    setCardTooltip({ cardName, position: { x: rect.left, y: rect.bottom + 8 } });
-    setIsLoadingCard(true);
-    setCardInfo(null);
+  // Open card modal and fetch all card details
+  const openCardModal = async (item: MarketItem, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setCardModalItem(item);
+    setCardDetails([]);
+    setIsLoadingCards(true);
 
     try {
       let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
-      // Clean card name (remove [옵션] prefix)
-      const cleanName = cardName.replace(/^\[옵션\]\s*/, '').trim();
+      const details: { id: number; name: string; description: string }[] = [];
 
-      const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(cleanName)}`);
-      if (response.ok) {
-        const data = await response.json();
-        const match = data.find((item: any) => item.nameKr === cleanName) || data[0];
-        if (match) {
-          setCardInfo({
-            id: match.id,
-            name: match.nameKr,
-            description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
-          });
+      for (const cardName of item.cards_equipped || []) {
+        const cleanName = cardName.replace(/^\[옵션\]\s*/, '').trim();
+        try {
+          const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(cleanName)}`);
+          if (response.ok) {
+            const data = await response.json();
+            const match = data.find((item: any) => item.nameKr === cleanName) || data[0];
+            if (match) {
+              details.push({
+                id: match.id,
+                name: match.nameKr,
+                description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
+              });
+            } else {
+              details.push({ id: 0, name: cleanName, description: '정보를 찾을 수 없습니다' });
+            }
+          }
+        } catch {
+          details.push({ id: 0, name: cleanName, description: '정보를 찾을 수 없습니다' });
         }
       }
+      setCardDetails(details);
     } catch (e) {
-      console.error('Failed to fetch card info:', e);
+      console.error('Failed to fetch card details:', e);
     } finally {
-      setIsLoadingCard(false);
+      setIsLoadingCards(false);
     }
   };
 
-  const handleCardMouseEnter = (cardName: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    hoverTimeoutRef.current = setTimeout(() => {
-      fetchCardInfo(cardName, event);
-    }, 300); // 300ms delay to prevent accidental triggers
+  const closeCardModal = () => {
+    setCardModalItem(null);
+    setCardDetails([]);
   };
 
-  const handleCardMouseLeave = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    setCardTooltip(null);
-    setCardInfo(null);
-  };
+  // Note: Old hover-based card tooltip functions removed - now using click-based card modal
 
 
   if (isLoading) {
@@ -208,22 +208,25 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                       <Info size={14} />
                     </button>
                   </div>
-                  {/* Card/Enchant Badges */}
+                  {/* Card/Enchant Badges - Simple Display */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
                     <div className="flex flex-wrap items-center gap-1 mb-1">
-                      {item.cards_equipped.slice(0, 3).map((card, i) => (
-                        <span
-                          key={i}
-                          onMouseEnter={(e) => handleCardMouseEnter(card, e)}
-                          onMouseLeave={handleCardMouseLeave}
-                          className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium cursor-pointer hover:ring-2 hover:ring-offset-1 transition-all ${card.startsWith('[옵션]')
-                            ? 'bg-purple-50 text-purple-600 border border-purple-200 hover:ring-purple-300'
-                            : 'bg-yellow-50 text-yellow-700 border border-yellow-200 hover:ring-yellow-300'
-                            }`}
-                        >
-                          {card.replace('[옵션] ', '').slice(0, 12)}{card.length > 12 ? '…' : ''}
-                        </span>
-                      ))}
+                      {item.cards_equipped.slice(0, 3).map((card, i) => {
+                        const isEnchant = card.startsWith('[옵션]');
+                        const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
+                        return (
+                          <span
+                            key={i}
+                            className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium
+                              ${isEnchant
+                                ? 'bg-purple-50 text-purple-600 border border-purple-200'
+                                : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                              }`}
+                          >
+                            {displayName.slice(0, 12)}{displayName.length > 12 ? '…' : ''}
+                          </span>
+                        );
+                      })}
                       {item.cards_equipped.length > 3 && (
                         <span className="text-[10px] text-gray-400">+{item.cards_equipped.length - 3}</span>
                       )}
@@ -240,17 +243,34 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
               </div>
 
-              {/* Price Column */}
-              <div className="text-right pl-3">
-                <div
-                  className="text-base font-extrabold whitespace-nowrap"
-                  style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
-                >
-                  {formatZeny(item.price)}
-                  <span className="text-[10px] text-gray-400 font-normal ml-0.5">Z</span>
-                </div>
-                <div className="text-[10px] font-medium text-gray-400 bg-gray-50 inline-block px-1.5 rounded-sm">
-                  {item.amount}개
+              {/* Price + Card Button Column */}
+              <div className="flex items-center gap-2">
+                {/* Card Info Button - Only show if item has cards */}
+                {item.cards_equipped && item.cards_equipped.length > 0 && (
+                  <button
+                    onClick={(e) => openCardModal(item, e)}
+                    className="flex items-center gap-1 px-2 py-1.5 bg-gradient-to-r from-amber-100 to-yellow-100 
+                      border border-amber-300 rounded-lg text-amber-700 hover:from-amber-200 hover:to-yellow-200 
+                      hover:border-amber-400 transition-all shadow-sm hover:shadow group"
+                    title="카드 정보 보기"
+                  >
+                    <CreditCard size={14} className="group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-bold">{item.cards_equipped.length}</span>
+                  </button>
+                )}
+
+                {/* Price */}
+                <div className="text-right pl-2">
+                  <div
+                    className="text-base font-extrabold whitespace-nowrap"
+                    style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
+                  >
+                    {formatZeny(item.price)}
+                    <span className="text-[10px] text-gray-400 font-normal ml-0.5">Z</span>
+                  </div>
+                  <div className="text-[10px] font-medium text-gray-400 bg-gray-50 inline-block px-1.5 rounded-sm">
+                    {item.amount}개
+                  </div>
                 </div>
               </div>
 
@@ -308,44 +328,57 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         )
       }
 
-      {/* Card Hover Tooltip */}
-      {cardTooltip && (
-        <div
-          className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl p-3 max-w-sm w-[90vw] sm:w-[320px] animate-fade-in"
-          style={{
-            left: Math.min(cardTooltip.position.x, window.innerWidth - 340),
-            top: Math.min(cardTooltip.position.y, window.innerHeight - 200)
-          }}
-          onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); }}
-          onMouseLeave={handleCardMouseLeave}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            {cardInfo && (
-              <img
-                src={`https://static.divine-pride.net/images/items/collection/${cardInfo.id}.png`}
-                alt={cardInfo.name}
-                className="w-8 h-8 object-contain bg-gray-50 rounded-lg border border-gray-100 p-1"
-                onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
-              />
-            )}
-            <div>
-              <h4 className="font-bold text-gray-900 text-sm">{cardInfo?.name || cardTooltip.cardName}</h4>
-              {cardInfo && <span className="text-xs text-gray-400">ID: {cardInfo.id}</span>}
+      {/* Card Modal */}
+      {cardModalItem && (
+        <>
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeCardModal} />
+          <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+            bg-white rounded-2xl border border-gray-200 shadow-2xl p-5 
+            max-w-md w-[95vw] max-h-[80vh] overflow-y-auto animate-fade-in">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-bold text-lg text-gray-900">카드/인챈트 정보</h3>
+                <p className="text-sm text-gray-500">{cardModalItem.name}</p>
+              </div>
+              <button onClick={closeCardModal} className="text-gray-400 hover:text-gray-600 p-1">
+                <X size={20} />
+              </button>
             </div>
-          </div>
 
-          {isLoadingCard ? (
-            <div className="flex items-center justify-center py-3">
-              <Loader2 className="w-4 h-4 animate-spin text-kafra-500" />
-            </div>
-          ) : cardInfo ? (
-            <div className="bg-gray-50 rounded-lg p-2 text-xs text-gray-700 max-h-32 overflow-y-auto">
-              <p className="whitespace-pre-wrap leading-relaxed">{cardInfo.description}</p>
-            </div>
-          ) : (
-            <p className="text-gray-400 text-xs py-2 text-center">카드 정보를 찾을 수 없습니다</p>
-          )}
-        </div>
+            {isLoadingCards ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-kafra-500" />
+                <span className="ml-2 text-gray-500">카드 정보 로딩 중...</span>
+              </div>
+            ) : cardDetails.length > 0 ? (
+              <div className="space-y-3">
+                {cardDetails.map((card, idx) => (
+                  <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div className="flex items-start gap-3">
+                      {card.id > 0 && (
+                        <img
+                          src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
+                          alt={card.name}
+                          className="w-12 h-12 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
+                          onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-900 text-sm">{card.name}</h4>
+                        {card.id > 0 && <span className="text-xs text-gray-400">ID: {card.id}</span>}
+                        <p className="mt-2 text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
+                          {card.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm py-4 text-center">카드 정보를 찾을 수 없습니다</p>
+            )}
+          </div>
+        </>
       )}
 
       {/* Backdrop to close popup */}
