@@ -69,6 +69,61 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
     setItemInfo(null);
   };
 
+  // Card hover tooltip state
+  const [cardTooltip, setCardTooltip] = useState<{ cardName: string; position: { x: number; y: number } } | null>(null);
+  const [cardInfo, setCardInfo] = useState<{ id: number; name: string; description: string } | null>(null);
+  const [isLoadingCard, setIsLoadingCard] = useState(false);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch card info on hover
+  const fetchCardInfo = async (cardName: string, event: React.MouseEvent) => {
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    setCardTooltip({ cardName, position: { x: rect.left, y: rect.bottom + 8 } });
+    setIsLoadingCard(true);
+    setCardInfo(null);
+
+    try {
+      let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      apiBase = apiBase.replace(/\/+$/, '');
+      const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
+
+      // Clean card name (remove [옵션] prefix)
+      const cleanName = cardName.replace(/^\[옵션\]\s*/, '').trim();
+
+      const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(cleanName)}`);
+      if (response.ok) {
+        const data = await response.json();
+        const match = data.find((item: any) => item.nameKr === cleanName) || data[0];
+        if (match) {
+          setCardInfo({
+            id: match.id,
+            name: match.nameKr,
+            description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch card info:', e);
+    } finally {
+      setIsLoadingCard(false);
+    }
+  };
+
+  const handleCardMouseEnter = (cardName: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    hoverTimeoutRef.current = setTimeout(() => {
+      fetchCardInfo(cardName, event);
+    }, 300); // 300ms delay to prevent accidental triggers
+  };
+
+  const handleCardMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setCardTooltip(null);
+    setCardInfo(null);
+  };
+
 
   if (isLoading) {
     return (
@@ -159,9 +214,11 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                       {item.cards_equipped.slice(0, 3).map((card, i) => (
                         <span
                           key={i}
-                          className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${card.startsWith('[옵션]')
-                            ? 'bg-purple-50 text-purple-600 border border-purple-200'
-                            : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                          onMouseEnter={(e) => handleCardMouseEnter(card, e)}
+                          onMouseLeave={handleCardMouseLeave}
+                          className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium cursor-pointer hover:ring-2 hover:ring-offset-1 transition-all ${card.startsWith('[옵션]')
+                            ? 'bg-purple-50 text-purple-600 border border-purple-200 hover:ring-purple-300'
+                            : 'bg-yellow-50 text-yellow-700 border border-yellow-200 hover:ring-yellow-300'
                             }`}
                         >
                           {card.replace('[옵션] ', '').slice(0, 12)}{card.length > 12 ? '…' : ''}
@@ -250,6 +307,46 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
           </div>
         )
       }
+
+      {/* Card Hover Tooltip */}
+      {cardTooltip && (
+        <div
+          className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl p-3 max-w-sm w-[90vw] sm:w-[320px] animate-fade-in"
+          style={{
+            left: Math.min(cardTooltip.position.x, window.innerWidth - 340),
+            top: Math.min(cardTooltip.position.y, window.innerHeight - 200)
+          }}
+          onMouseEnter={() => { if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); }}
+          onMouseLeave={handleCardMouseLeave}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            {cardInfo && (
+              <img
+                src={`https://static.divine-pride.net/images/items/collection/${cardInfo.id}.png`}
+                alt={cardInfo.name}
+                className="w-8 h-8 object-contain bg-gray-50 rounded-lg border border-gray-100 p-1"
+                onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
+              />
+            )}
+            <div>
+              <h4 className="font-bold text-gray-900 text-sm">{cardInfo?.name || cardTooltip.cardName}</h4>
+              {cardInfo && <span className="text-xs text-gray-400">ID: {cardInfo.id}</span>}
+            </div>
+          </div>
+
+          {isLoadingCard ? (
+            <div className="flex items-center justify-center py-3">
+              <Loader2 className="w-4 h-4 animate-spin text-kafra-500" />
+            </div>
+          ) : cardInfo ? (
+            <div className="bg-gray-50 rounded-lg p-2 text-xs text-gray-700 max-h-32 overflow-y-auto">
+              <p className="whitespace-pre-wrap leading-relaxed">{cardInfo.description}</p>
+            </div>
+          ) : (
+            <p className="text-gray-400 text-xs py-2 text-center">카드 정보를 찾을 수 없습니다</p>
+          )}
+        </div>
+      )}
 
       {/* Backdrop to close popup */}
       {
