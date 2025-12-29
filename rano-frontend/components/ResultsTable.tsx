@@ -220,10 +220,10 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   )}
                 </div>
 
-                {/* Item Text Info */}
-                <div className="min-w-0">
+                {/* Item Text Info - Expanded to show more name */}
+                <div className="min-w-0 max-w-[50%] sm:max-w-[60%]">
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <h4 className={`text-sm font-bold truncate ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}>
+                    <h4 className={`text-sm font-bold ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}>
                       {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
                       {item.name}
                     </h4>
@@ -317,8 +317,10 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
           <div
             className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl w-[90vw] sm:w-[450px] animate-fade-in select-none"
             style={{
-              left: itemPopover.position.x,
-              top: itemPopover.position.y,
+              left: Math.min(itemPopover.position.x, window.innerWidth - 470),
+              top: Math.min(itemPopover.position.y, window.innerHeight - 300),
+              maxHeight: 'calc(100vh - 40px)',
+              overflowY: 'auto',
               cursor: isDragging ? 'grabbing' : 'default'
             }}
             onMouseMove={handleMouseMove}
