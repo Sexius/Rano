@@ -17,35 +17,63 @@ interface ResultsTableProps {
   onItemClick: (item: MarketItem) => void;
 }
 
+// Panel type for multi-panel system
+interface Panel {
+  id: string;
+  type: 'item' | 'card';
+  itemId: string;
+  itemName: string;
+  position: { x: number; y: number };
+  data: ItemDbInfo | { cards: { id: number; name: string; description: string }[] } | null;
+  isLoading: boolean;
+}
+
 const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedItemId, onItemClick }) => {
-  // Item popup state - now with dragging support
-  const [itemPopover, setItemPopover] = useState<{ itemId: string; position: { x: number; y: number } } | null>(null);
-  const [itemInfo, setItemInfo] = useState<ItemDbInfo | null>(null);
-  const [isLoadingInfo, setIsLoadingInfo] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  // Multi-panel state
+  const [panels, setPanels] = useState<Panel[]>([]);
+  const [draggingPanelId, setDraggingPanelId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  // Fetch item info from DB when clicking item name
-  const fetchItemInfo = async (itemName: string, itemId: string, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent row click
+  // Clamp position to viewport
+  const clampPosition = (x: number, y: number, width: number = 450, height: number = 300) => {
+    return {
+      x: Math.max(10, Math.min(x, window.innerWidth - width - 10)),
+      y: Math.max(10, Math.min(y, window.innerHeight - height - 10))
+    };
+  };
+
+  // Open item info panel
+  const openItemPanel = async (itemName: string, itemId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+
+    // Check if panel already exists
+    if (panels.some(p => p.id === `item-${itemId}`)) return;
 
     const rect = (event.target as HTMLElement).getBoundingClientRect();
-    setItemPopover({ itemId, position: { x: rect.left, y: rect.bottom + 8 } });
-    setIsLoadingInfo(true);
-    setItemInfo(null);
+    const pos = clampPosition(rect.left, rect.bottom + 8);
+
+    const newPanel: Panel = {
+      id: `item-${itemId}`,
+      type: 'item',
+      itemId,
+      itemName,
+      position: pos,
+      data: null,
+      isLoading: true
+    };
+
+    setPanels(prev => [...prev, newPanel]);
 
     try {
-      // Construct proper API URL
       let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
-      // Extract base item name - handle various formats like "[UNIQUE]+10천공의 체이싱 대거[2]"
       const baseName = itemName
-        .replace(/^\[UNIQUE\]\s*/i, '')  // Remove [UNIQUE] prefix
-        .replace(/^\+\d+/, '')           // Remove +number (no space required after)
-        .replace(/\[\d+\]$/, '')         // Remove [number] suffix (slot count)
-        .replace(/\.\.\.$/, '')          // Remove trailing ... (truncated names)
+        .replace(/^\[UNIQUE\]\s*/i, '')
+        .replace(/^\+\d+/, '')
+        .replace(/\[\d+\]$/, '')
+        .replace(/\.\.\.$/, '')
         .trim();
 
       const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(baseName)}`);
@@ -53,105 +81,118 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         const data = await response.json();
         const match = data.find((item: any) => item.nameKr === baseName) || data[0];
         if (match) {
-          setItemInfo({
-            id: match.id,
-            name: match.nameKr,
-            description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
-          });
+          setPanels(prev => prev.map(p => p.id === `item-${itemId}` ? {
+            ...p,
+            data: {
+              id: match.id,
+              name: match.nameKr,
+              description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
+            },
+            isLoading: false
+          } : p));
+          return;
         }
       }
+      setPanels(prev => prev.map(p => p.id === `item-${itemId}` ? { ...p, isLoading: false } : p));
     } catch (e) {
       console.error('Failed to fetch item info:', e);
-    } finally {
-      setIsLoadingInfo(false);
+      setPanels(prev => prev.map(p => p.id === `item-${itemId}` ? { ...p, isLoading: false } : p));
     }
   };
 
-  const closeItemPopover = () => {
-    setItemPopover(null);
-    setItemInfo(null);
-    setIsDragging(false);
-  };
-
-  // Drag handlers for item popup
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!itemPopover) return;
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - itemPopover.position.x,
-      y: e.clientY - itemPopover.position.y
-    });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !itemPopover) return;
-    setItemPopover({
-      ...itemPopover,
-      position: {
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y
-      }
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  // Card modal state
-  const [cardModalItem, setCardModalItem] = useState<MarketItem | null>(null);
-  const [cardDetails, setCardDetails] = useState<{ id: number; name: string; description: string }[]>([]);
-  const [isLoadingCards, setIsLoadingCards] = useState(false);
-
-  // Open card modal and fetch all card details
-  const openCardModal = async (item: MarketItem, event: React.MouseEvent) => {
+  // Open card info panel
+  const openCardPanel = async (item: MarketItem, event: React.MouseEvent) => {
     event.stopPropagation();
-    setCardModalItem(item);
-    setCardDetails([]);
-    setIsLoadingCards(true);
+
+    const panelId = `card-${item.id}`;
+    if (panels.some(p => p.id === panelId)) return;
+
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    const pos = clampPosition(rect.left, rect.bottom + 8);
+
+    const newPanel: Panel = {
+      id: panelId,
+      type: 'card',
+      itemId: item.id,
+      itemName: item.name,
+      position: pos,
+      data: null,
+      isLoading: true
+    };
+
+    setPanels(prev => [...prev, newPanel]);
 
     try {
       let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
-      const details: { id: number; name: string; description: string }[] = [];
-
+      const cards: { id: number; name: string; description: string }[] = [];
       for (const cardName of item.cards_equipped || []) {
         const cleanName = cardName.replace(/^\[옵션\]\s*/, '').trim();
         try {
           const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(cleanName)}`);
           if (response.ok) {
             const data = await response.json();
-            const match = data.find((item: any) => item.nameKr === cleanName) || data[0];
+            const match = data.find((i: any) => i.nameKr === cleanName) || data[0];
             if (match) {
-              details.push({
+              cards.push({
                 id: match.id,
                 name: match.nameKr,
                 description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
               });
             } else {
-              details.push({ id: 0, name: cleanName, description: '정보를 찾을 수 없습니다' });
+              cards.push({ id: 0, name: cleanName, description: '정보를 찾을 수 없습니다' });
             }
           }
         } catch {
-          details.push({ id: 0, name: cleanName, description: '정보를 찾을 수 없습니다' });
+          cards.push({ id: 0, name: cleanName, description: '정보를 찾을 수 없습니다' });
         }
       }
-      setCardDetails(details);
+      setPanels(prev => prev.map(p => p.id === panelId ? { ...p, data: { cards }, isLoading: false } : p));
     } catch (e) {
       console.error('Failed to fetch card details:', e);
-    } finally {
-      setIsLoadingCards(false);
+      setPanels(prev => prev.map(p => p.id === panelId ? { ...p, isLoading: false } : p));
     }
   };
 
-  const closeCardModal = () => {
-    setCardModalItem(null);
-    setCardDetails([]);
+  // Close panel
+  const closePanel = (panelId: string) => {
+    setPanels(prev => prev.filter(p => p.id !== panelId));
   };
 
-  // Note: Old hover-based card tooltip functions removed - now using click-based card modal
+  // Bring panel to front
+  const bringToFront = (panelId: string) => {
+    setPanels(prev => {
+      const panel = prev.find(p => p.id === panelId);
+      if (!panel) return prev;
+      return [...prev.filter(p => p.id !== panelId), panel];
+    });
+  };
+
+  // Drag handlers
+  const handlePanelMouseDown = (panelId: string, e: React.MouseEvent) => {
+    const panel = panels.find(p => p.id === panelId);
+    if (!panel) return;
+    setDraggingPanelId(panelId);
+    setDragOffset({
+      x: e.clientX - panel.position.x,
+      y: e.clientY - panel.position.y
+    });
+    bringToFront(panelId);
+  };
+
+  const handlePanelMouseMove = (e: React.MouseEvent) => {
+    if (!draggingPanelId) return;
+    const newPos = clampPosition(e.clientX - dragOffset.x, e.clientY - dragOffset.y);
+    setPanels(prev => prev.map(p => p.id === draggingPanelId ? { ...p, position: newPos } : p));
+  };
+
+  const handlePanelMouseUp = () => {
+    setDraggingPanelId(null);
+  };
+
+  // Note: Old card modal code removed - now using multi-panel system (openCardPanel)
 
 
   if (isLoading) {
@@ -232,7 +273,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     </h4>
                     {/* Item Info Button */}
                     <button
-                      onClick={(e) => fetchItemInfo(item.name, item.id, e)}
+                      onClick={(e) => openItemPanel(item.name, item.id, e)}
                       className="flex-shrink-0 p-0.5 text-kafra-400 hover:text-kafra-600 hover:bg-kafra-50 rounded transition-colors mt-0.5"
                       title="아이템 정보"
                     >
@@ -244,7 +285,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
                     <div
                       className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1 cursor-pointer group"
-                      onClick={(e) => openCardModal(item, e)}
+                      onClick={(e) => openCardPanel(item, e)}
                     >
                       {item.cards_equipped.map((card, i) => {
                         const isEnchant = card.startsWith('[옵션]');
@@ -302,101 +343,72 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         })}
       </div>
 
-      {/* Item Info Popup - Draggable & Expanded */}
-      {
-        itemPopover && (
+      {/* Multi-Panel Rendering - Draggable Panels */}
+      {panels.map((panel, index) => (
+        <div
+          key={panel.id}
+          className="fixed bg-white rounded-xl border border-gray-200 shadow-2xl w-[90vw] sm:w-[450px] animate-fade-in select-none"
+          style={{
+            left: panel.position.x,
+            top: panel.position.y,
+            zIndex: 50 + index,
+            maxHeight: 'calc(100vh - 40px)',
+            overflowY: 'auto',
+            cursor: draggingPanelId === panel.id ? 'grabbing' : 'default'
+          }}
+          onMouseMove={handlePanelMouseMove}
+          onMouseUp={handlePanelMouseUp}
+          onMouseLeave={handlePanelMouseUp}
+          onClick={() => bringToFront(panel.id)}
+        >
+          {/* Draggable Header */}
           <div
-            className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl w-[90vw] sm:w-[450px] animate-fade-in select-none"
-            style={{
-              left: Math.min(Math.max(10, itemPopover.position.x), window.innerWidth - 470),
-              // If popup would overflow bottom, position it above the click point
-              top: itemPopover.position.y + 350 > window.innerHeight
-                ? Math.max(20, window.innerHeight - 400)  // Move up to fit
-                : itemPopover.position.y,
-              maxHeight: 'calc(100vh - 40px)',
-              overflowY: 'auto',
-              cursor: isDragging ? 'grabbing' : 'default'
-            }}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+            className="flex justify-between items-start p-4 pb-2 cursor-grab active:cursor-grabbing border-b border-gray-100"
+            onMouseDown={(e) => handlePanelMouseDown(panel.id, e)}
           >
-            {/* Draggable Header */}
-            <div
-              className="flex justify-between items-start p-4 pb-2 cursor-grab active:cursor-grabbing border-b border-gray-100"
-              onMouseDown={handleMouseDown}
-            >
-              <div className="flex items-center gap-3">
-                {itemInfo && (
-                  <img
-                    src={`https://static.divine-pride.net/images/items/collection/${itemInfo.id}.png`}
-                    alt={itemInfo.name}
-                    className="w-12 h-12 object-contain bg-gray-50 rounded-lg border border-gray-100 p-1"
-                    onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/909.png'}
-                  />
-                )}
-                <div>
-                  <h4 className="font-bold text-gray-900 text-base">{itemInfo?.name || '로딩중...'}</h4>
-                  {itemInfo && <span className="text-xs text-gray-400">ID: {itemInfo.id}</span>}
-                </div>
+            <div className="flex items-center gap-3">
+              {panel.type === 'item' && panel.data && 'id' in panel.data && panel.data.id && (
+                <img
+                  src={`https://static.divine-pride.net/images/items/collection/${panel.data.id}.png`}
+                  alt={panel.data.name}
+                  className="w-12 h-12 object-contain bg-gray-50 rounded-lg border border-gray-100 p-1"
+                  onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/909.png'}
+                />
+              )}
+              <div>
+                <h4 className="font-bold text-gray-900 text-base">
+                  {panel.type === 'item' ? (panel.data && 'name' in panel.data ? panel.data.name : '로딩중...') : '카드/인챈트 정보'}
+                </h4>
+                <span className="text-xs text-gray-400">
+                  {panel.type === 'item' && panel.data && 'id' in panel.data ? `ID: ${panel.data.id}` : panel.itemName}
+                </span>
               </div>
-              <button onClick={closeItemPopover} className="text-gray-400 hover:text-gray-600 p-1 -mt-1 -mr-1">
-                <X size={18} />
-              </button>
             </div>
+            <button onClick={() => closePanel(panel.id)} className="text-gray-400 hover:text-gray-600 p-1 -mt-1 -mr-1">
+              <X size={18} />
+            </button>
+          </div>
 
-            {/* Content - No height limit */}
-            <div className="p-4 pt-3">
-              {isLoadingInfo ? (
-                <div className="flex items-center justify-center py-6">
-                  <Loader2 className="w-5 h-5 animate-spin text-kafra-500" />
-                </div>
-              ) : itemInfo ? (
+          {/* Content */}
+          <div className="p-4 pt-3">
+            {panel.isLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="w-5 h-5 animate-spin text-kafra-500" />
+              </div>
+            ) : panel.type === 'item' ? (
+              // Item Panel Content
+              panel.data && 'description' in panel.data ? (
                 <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
-                  <p className="whitespace-pre-wrap leading-relaxed">{itemInfo.description}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{panel.data.description}</p>
                 </div>
               ) : (
                 <p className="text-gray-400 text-sm py-4 text-center">아이템 정보를 찾을 수 없습니다</p>
-              )}
-            </div>
-          </div>
-        )
-      }
-
-      {/* Card Popup - Same style as Item Info Popup */}
-      {
-        cardModalItem && (
-          <div
-            className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl w-[90vw] sm:w-[450px] animate-fade-in select-none"
-            style={{
-              left: Math.min(Math.max(10, window.innerWidth / 2 - 225), window.innerWidth - 470),
-              top: Math.max(20, window.innerHeight / 2 - 200),
-              maxHeight: 'calc(100vh - 40px)',
-              overflowY: 'auto'
-            }}
-          >
-            {/* Header */}
-            <div className="flex justify-between items-start p-4 pb-2 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div>
-                  <h4 className="font-bold text-gray-900 text-base">카드/인챈트 정보</h4>
-                  <span className="text-xs text-gray-400">{cardModalItem.name}</span>
-                </div>
-              </div>
-              <button onClick={closeCardModal} className="text-gray-400 hover:text-gray-600 p-1 -mt-1 -mr-1">
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-4 pt-3">
-              {isLoadingCards ? (
-                <div className="flex items-center justify-center py-6">
-                  <Loader2 className="w-5 h-5 animate-spin text-kafra-500" />
-                </div>
-              ) : cardDetails.length > 0 ? (
+              )
+            ) : (
+              // Card Panel Content
+              panel.data && 'cards' in panel.data && panel.data.cards.length > 0 ? (
                 <div className="space-y-3">
-                  {cardDetails.map((card, idx) => (
+                  {panel.data.cards.map((card, idx) => (
                     <div key={idx} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                       <div className="flex items-start gap-3">
                         {card.id > 0 && (
@@ -420,78 +432,11 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
               ) : (
                 <p className="text-gray-400 text-sm py-4 text-center">카드 정보를 찾을 수 없습니다</p>
-              )}
-            </div>
-          </div>
-        )
-      }
-
-      {/* Backdrop for Card Popup */}
-      {
-        cardModalItem && (
-          <div className="fixed inset-0 z-40" onClick={closeCardModal} />
-        )
-      }
-
-      {/* ===== COMMENTED OUT: Original Card Modal (for future use) =====
-      {cardModalItem && (
-        <>
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeCardModal} />
-          <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-            bg-white rounded-2xl border border-gray-200 shadow-2xl p-5 
-            max-w-md w-[95vw] max-h-[80vh] overflow-y-auto animate-fade-in">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="font-bold text-lg text-gray-900">카드/인챈트 정보</h3>
-                <p className="text-sm text-gray-500">{cardModalItem.name}</p>
-              </div>
-              <button onClick={closeCardModal} className="text-gray-400 hover:text-gray-600 p-1">
-                <X size={20} />
-              </button>
-            </div>
-            {isLoadingCards ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-kafra-500" />
-                <span className="ml-2 text-gray-500">카드 정보 로딩 중...</span>
-              </div>
-            ) : cardDetails.length > 0 ? (
-              <div className="space-y-3">
-                {cardDetails.map((card, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <div className="flex items-start gap-3">
-                      {card.id > 0 && (
-                        <img
-                          src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
-                          alt={card.name}
-                          className="w-12 h-12 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
-                          onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-gray-900 text-sm">{card.name}</h4>
-                        {card.id > 0 && <span className="text-xs text-gray-400">ID: {card.id}</span>}
-                        <p className="mt-2 text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
-                          {card.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm py-4 text-center">카드 정보를 찾을 수 없습니다</p>
+              )
             )}
           </div>
-        </>
-      )}
-      ===== END COMMENTED OUT ===== */}
-
-      {/* Backdrop to close popup */}
-      {
-        itemPopover && (
-          <div className="fixed inset-0 z-40" onClick={closeItemPopover} />
-        )
-      }
+        </div>
+      ))}
     </>
   );
 };
