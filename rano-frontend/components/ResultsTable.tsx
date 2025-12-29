@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MarketItem } from '../types';
 import { Package, Clock, Info } from 'lucide-react';
 import { getZenyStyle, formatZeny } from '../utils/zenyStyle';
-import { usePanelManager, ItemInfo, CardInfo } from '../hooks/usePanelManager';
+import { usePanelManager, CardInfo } from '../hooks/usePanelManager';
 import FloatingPanel from './FloatingPanel';
 import MobileDrawer from './MobileDrawer';
 
@@ -25,6 +25,15 @@ const useIsMobile = () => {
   }, []);
 
   return isMobile;
+};
+
+// Build full item name for tooltip
+const getFullItemName = (item: MarketItem): string => {
+  let name = '';
+  if (item.refine_level > 0) name += `+${item.refine_level} `;
+  name += item.name;
+  if (item.card_slots > 0) name += ` [${item.card_slots}]`;
+  return name;
 };
 
 const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedItemId, onItemClick }) => {
@@ -147,6 +156,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
       <div className="flex flex-col gap-2 pb-20 md:pb-0 overflow-x-hidden">
         {items.map((item) => {
           const isSelected = selectedItemId === item.id;
+          const fullName = getFullItemName(item);
 
           return (
             <div
@@ -180,9 +190,19 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
                 {/* Item Text Info */}
                 <div className="min-w-0 flex-1 pr-2">
-                  {/* Item Name */}
+                  {/* Item Name - 2 line clamp with tooltip */}
                   <div className="flex items-start gap-1.5 mb-1">
-                    <h4 className={`text-sm font-bold leading-tight break-words ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}>
+                    <h4
+                      className={`text-sm font-bold leading-tight ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}
+                      title={fullName}
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        wordBreak: 'break-word'
+                      }}
+                    >
                       {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
                       {item.name}
                       {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
@@ -191,7 +211,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     <button
                       onClick={(e) => handleItemInfoClick(item.name, item.id, e)}
                       className="flex-shrink-0 p-0.5 text-kafra-400 hover:text-kafra-600 hover:bg-kafra-50 rounded transition-colors mt-0.5"
-                      title="아이템 정보"
+                      title={`${fullName} 정보 보기`}
                     >
                       <Info size={14} />
                     </button>
@@ -258,29 +278,26 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         })}
       </div>
 
-      {/* Desktop: Floating Panels */}
-      {!isMobile && panelManager.getAllPanels().map((panel) => (
+      {/* Desktop: Floating Panel (Inspector only) */}
+      {!isMobile && panelManager.inspectorPanel && (
         <FloatingPanel
-          key={panel.id}
-          panel={panel}
-          onClose={() => panelManager.closePanel(panel.id)}
-          onPin={!panel.pinned ? panelManager.pinCurrentPanel : undefined}
-          onMouseDown={(e) => panelManager.startDrag(panel.id, e)}
+          panel={panelManager.inspectorPanel}
+          onClose={panelManager.closeInspector}
+          onMouseDown={(e) => panelManager.startDrag(panelManager.inspectorPanel!.id, e)}
           onMouseMove={panelManager.onDrag}
           onMouseUp={panelManager.endDrag}
-          onClick={() => panelManager.bringToFront(panel.id)}
-          isDragging={panelManager.draggingPanelId === panel.id}
+          isDragging={panelManager.isDragging}
         />
-      ))}
+      )}
 
-      {/* Mobile: Bottom Drawer */}
-      {isMobile && (panelManager.inspectorPanel || panelManager.pinnedPanels.length > 0) && (
+      {/* Mobile: Bottom Drawer (Inspector only) */}
+      {isMobile && panelManager.inspectorPanel && (
         <MobileDrawer
           inspectorPanel={panelManager.inspectorPanel}
-          pinnedPanels={panelManager.pinnedPanels}
-          onClose={(id) => panelManager.closePanel(id)}
-          onPin={panelManager.pinCurrentPanel}
-          onSelectPinned={(id) => panelManager.bringToFront(id)}
+          pinnedPanels={[]}
+          onClose={() => panelManager.closeInspector()}
+          onPin={() => { }}
+          onSelectPinned={() => { }}
         />
       )}
     </>

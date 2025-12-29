@@ -1,26 +1,22 @@
 import React from 'react';
-import { X, Pin, PinOff, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { PanelState, ItemInfo, CardInfo } from '../hooks/usePanelManager';
 
 interface FloatingPanelProps {
     panel: PanelState;
     onClose: () => void;
-    onPin?: () => void;
     onMouseDown: (e: React.MouseEvent) => void;
     onMouseMove: (e: React.MouseEvent) => void;
     onMouseUp: () => void;
-    onClick: () => void;
     isDragging: boolean;
 }
 
 const FloatingPanel: React.FC<FloatingPanelProps> = ({
     panel,
     onClose,
-    onPin,
     onMouseDown,
     onMouseMove,
     onMouseUp,
-    onClick,
     isDragging
 }) => {
     const isItemPanel = panel.type === 'item';
@@ -40,7 +36,6 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseUp}
-            onClick={onClick}
         >
             {/* Draggable Header */}
             <div
@@ -56,45 +51,35 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
                             onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/909.png'}
                         />
                     )}
-                    <div className="min-w-0">
-                        <h4 className="font-bold text-gray-900 text-base truncate">
+                    <div className="min-w-0 flex-1">
+                        {/* Title - No truncation, allow word-break */}
+                        <h4
+                            className="font-bold text-gray-900 text-base"
+                            style={{
+                                whiteSpace: 'normal',
+                                overflow: 'visible',
+                                textOverflow: 'unset',
+                                wordBreak: 'break-word'
+                            }}
+                        >
                             {isItemPanel
                                 ? (itemData?.name || panel.itemName || '로딩중...')
                                 : '카드/인챈트 정보'}
                         </h4>
-                        <span className="text-xs text-gray-400 truncate block">
+                        <span className="text-xs text-gray-400 block">
                             {isItemPanel && itemData?.id ? `ID: ${itemData.id}` : panel.itemName}
                         </span>
                     </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-1 flex-shrink-0">
-                    {/* Pin/Unpin Button - only show for Inspector */}
-                    {!panel.pinned && onPin && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onPin(); }}
-                            className="p-1.5 text-gray-400 hover:text-kafra-600 hover:bg-kafra-50 rounded-lg transition-colors"
-                            title="패널 고정 (Pin)"
-                        >
-                            <Pin size={16} />
-                        </button>
-                    )}
-                    {panel.pinned && (
-                        <span className="p-1.5 text-kafra-500" title="고정됨">
-                            <PinOff size={16} />
-                        </span>
-                    )}
-
-                    {/* Close Button */}
-                    <button
-                        onClick={(e) => { e.stopPropagation(); onClose(); }}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        title="닫기"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
+                {/* Close Button Only */}
+                <button
+                    onClick={(e) => { e.stopPropagation(); onClose(); }}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                    title="닫기 (ESC)"
+                >
+                    <X size={16} />
+                </button>
             </div>
 
             {/* Content with scroll */}
@@ -145,11 +130,11 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
                 )}
             </div>
 
-            {/* Footer - Panel Type Indicator */}
+            {/* Footer */}
             <div className="px-4 py-2 border-t border-gray-100 bg-gray-50/30 rounded-b-xl">
                 <div className="flex items-center justify-between text-xs text-gray-400">
-                    <span>{panel.pinned ? '📌 고정됨' : '🔍 Inspector'}</span>
-                    <span className="text-[10px]">드래그하여 이동</span>
+                    <span>🔍 Inspector</span>
+                    <span className="text-[10px]">드래그하여 이동 · ESC로 닫기</span>
                 </div>
             </div>
         </div>
