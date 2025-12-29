@@ -191,26 +191,31 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 {/* Item Text Info */}
                 <div className="min-w-0 flex-1 pr-2">
                   {/* Item Name - 2 line clamp with tooltip */}
-                  <div className="flex items-start gap-1.5 mb-1">
-                    <h4
-                      className={`text-sm font-bold leading-tight ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}
-                      title={fullName}
-                      style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        wordBreak: 'break-word'
-                      }}
-                    >
-                      {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
-                      {item.name}
-                      {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
-                    </h4>
-                    {/* Item Info Button */}
+                  <div className="flex items-start gap-1.5 mb-1" style={{ minWidth: 0 }}>
+                    {/* Title wrapper needs min-width: 0 for flex child clamp */}
+                    <div className="min-w-0 flex-1">
+                      <span
+                        className={`text-sm font-bold leading-tight ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}
+                        title={fullName}
+                        style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical' as const,
+                          overflow: 'hidden',
+                          whiteSpace: 'normal',
+                          wordBreak: 'break-word',
+                          textOverflow: 'clip'
+                        }}
+                      >
+                        {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
+                        {item.name}
+                        {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
+                      </span>
+                    </div>
+                    {/* Item Info Button - outside clamp container */}
                     <button
                       onClick={(e) => handleItemInfoClick(item.name, item.id, e)}
-                      className="flex-shrink-0 p-0.5 text-kafra-400 hover:text-kafra-600 hover:bg-kafra-50 rounded transition-colors mt-0.5"
+                      className="flex-shrink-0 p-0.5 text-kafra-400 hover:text-kafra-600 hover:bg-kafra-50 rounded transition-colors"
                       title={`${fullName} 정보 보기`}
                     >
                       <Info size={14} />
