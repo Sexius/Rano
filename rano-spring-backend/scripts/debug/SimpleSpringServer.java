@@ -376,7 +376,20 @@ public class SimpleSpringServer {
                     Elements columns = row.select("td");
                     if (columns.size() >= 5) { // At least 5 columns
                         String vendorName = columns.get(0).text();
-                        String itemNameText = columns.get(1).text();
+
+                        // Extract item name from img alt attribute (full name) instead of span
+                        // (truncated)
+                        Element itemColumn = columns.get(1);
+                        Element imgElement = itemColumn.selectFirst("img");
+                        String itemNameText;
+                        if (imgElement != null && imgElement.hasAttr("alt") && !imgElement.attr("alt").isEmpty()) {
+                            // Use img alt for full item name
+                            itemNameText = imgElement.attr("alt");
+                        } else {
+                            // Fallback to span text (may be truncated)
+                            itemNameText = itemColumn.text();
+                        }
+
                         String quantity = columns.get(2).text();
                         String price = columns.get(3).text().replace(",", "").replace(" ", "");
                         String location = columns.get(4).text();

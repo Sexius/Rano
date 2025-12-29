@@ -130,7 +130,18 @@ public class VendingService {
                 String shopName = columns.get(4).text();
 
                 Element itemNameElement = columns.get(1);
-                String itemNameText = itemNameElement.text();
+
+                // Extract item name from img alt attribute (full name) instead of span text
+                // (truncated)
+                Element imgForName = itemNameElement.selectFirst("img");
+                String itemNameText;
+                if (imgForName != null && imgForName.hasAttr("alt") && !imgForName.attr("alt").isEmpty()) {
+                    // Use img alt for full item name
+                    itemNameText = imgForName.attr("alt");
+                } else {
+                    // Fallback to text (may be truncated with "...")
+                    itemNameText = itemNameElement.text();
+                }
 
                 // Skip header rows if they get caught
                 if (serverName.contains("상인명") || itemNameText.contains("아이템명"))
