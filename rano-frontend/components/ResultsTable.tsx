@@ -204,6 +204,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical' as const,
                       overflow: 'hidden',
+                      whiteSpace: 'normal',
                       wordBreak: 'break-word'
                     }}
                   >
