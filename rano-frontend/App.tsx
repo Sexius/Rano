@@ -236,13 +236,15 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Item Detail Popup Modal */}
+            {/* ===== COMMENTED OUT: Original Item Detail Popup Modal =====
+               Now using Inspector panel in ResultsTable instead
             {selectedItem && (
               <ItemDetailView
                 item={selectedItem}
                 onClose={() => setSelectedItem(null)}
               />
             )}
+            ===== END COMMENTED OUT ===== */}
           </>
         );
 

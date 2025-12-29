@@ -161,7 +161,10 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
           return (
             <div
               key={item.id}
-              onClick={() => onItemClick(item)}
+              onClick={(e) => {
+                onItemClick(item); // Keep selection state
+                handleItemInfoClick(item.name, item.id, e); // Open Inspector panel
+              }}
               className={`
               relative group flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200
               ${isSelected
