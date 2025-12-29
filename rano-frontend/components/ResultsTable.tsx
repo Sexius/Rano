@@ -40,11 +40,12 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
-      // Extract base item name
+      // Extract base item name - handle various formats like "[UNIQUE]+10천공의 체이싱 대거[2]"
       const baseName = itemName
-        .replace(/^\[UNIQUE\]\s*/i, '')
-        .replace(/^\+\d+\s*/, '')
-        .replace(/\[\d+\]$/, '')
+        .replace(/^\[UNIQUE\]\s*/i, '')  // Remove [UNIQUE] prefix
+        .replace(/^\+\d+/, '')           // Remove +number (no space required after)
+        .replace(/\[\d+\]$/, '')         // Remove [number] suffix (slot count)
+        .replace(/\.\.\.$/, '')          // Remove trailing ... (truncated names)
         .trim();
 
       const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(baseName)}`);
