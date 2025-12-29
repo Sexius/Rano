@@ -174,15 +174,9 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 <div className="absolute left-0 top-3 bottom-3 w-1 bg-kafra-500 rounded-r-full"></div>
               )}
 
-              {/* Clickable Area: Image + Text Only */}
-              <div
-                className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
-                onClick={(e) => {
-                  onItemClick(item);
-                  handleItemInfoClick(item.name, item.id, e);
-                }}
-              >
-                {/* Image Thumbnail */}
+              {/* Non-clickable container - only specific elements are clickable */}
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Image Thumbnail - NOT clickable */}
                 <div className="relative shrink-0">
                   <div className={`h-11 w-11 rounded-lg overflow-hidden border ${isSelected ? 'border-kafra-200' : 'border-gray-100'} bg-gray-50`}>
                     <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
@@ -195,37 +189,42 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
 
                 {/* Item Text Info */}
-                <div className="min-w-0 flex-1 pr-2">
-                  {/* Item Name - 2 line clamp with tooltip */}
-                  <div className="flex items-start gap-1.5 mb-1" style={{ minWidth: 0 }}>
-                    {/* Title wrapper needs min-width: 0 for flex child clamp */}
-                    <div className="min-w-0 flex-1">
-                      <span
-                        className={`text-sm font-bold leading-tight ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}
-                        title={fullName}
-                        style={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical' as const,
-                          overflow: 'hidden',
-                          whiteSpace: 'normal',
-                          wordBreak: 'break-word',
-                          textOverflow: 'clip'
-                        }}
-                      >
-                        {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
-                        {item.name}
-                        {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
-                      </span>
-                    </div>
-                    {/* Info button removed - clicking item row now opens Inspector panel */}
+                <div className="min-w-0 flex-1 pr-2" style={{ minWidth: 0 }}>
+                  {/* Item Name - CLICKABLE, 2 line clamp with tooltip */}
+                  <div className="mb-1" style={{ minWidth: 0 }}>
+                    <span
+                      className={`text-sm font-bold leading-tight cursor-pointer hover:underline ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}
+                      title={fullName}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onItemClick(item);
+                        handleItemInfoClick(item.name, item.id, e);
+                      }}
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical' as const,
+                        overflow: 'hidden',
+                        whiteSpace: 'normal',
+                        wordBreak: 'break-word',
+                        textOverflow: 'clip',
+                        lineClamp: 2
+                      }}
+                    >
+                      {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
+                      {item.name}
+                      {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
+                    </span>
                   </div>
 
-                  {/* Card/Enchant - Clickable Text */}
+                  {/* Card/Enchant - Separate Clickable Text */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
                     <div
                       className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1 cursor-pointer group"
-                      onClick={(e) => handleCardClick(item, e)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCardClick(item, e);
+                      }}
                     >
                       {item.cards_equipped.map((card, i) => {
                         const isEnchant = card.startsWith('[옵션]');
