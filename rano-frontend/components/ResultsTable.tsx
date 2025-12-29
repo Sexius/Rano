@@ -318,8 +318,11 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
           <div
             className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl w-[90vw] sm:w-[450px] animate-fade-in select-none"
             style={{
-              left: Math.min(itemPopover.position.x, window.innerWidth - 470),
-              top: Math.min(itemPopover.position.y, window.innerHeight - 300),
+              left: Math.min(Math.max(10, itemPopover.position.x), window.innerWidth - 470),
+              // If popup would overflow bottom, position it above the click point
+              top: itemPopover.position.y + 350 > window.innerHeight
+                ? Math.max(20, window.innerHeight - 400)  // Move up to fit
+                : itemPopover.position.y,
               maxHeight: 'calc(100vh - 40px)',
               overflowY: 'auto',
               cursor: isDragging ? 'grabbing' : 'default'
