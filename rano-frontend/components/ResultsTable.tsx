@@ -215,14 +215,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                         {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
                       </span>
                     </div>
-                    {/* Item Info Button - outside clamp container */}
-                    <button
-                      onClick={(e) => handleItemInfoClick(item.name, item.id, e)}
-                      className="flex-shrink-0 p-0.5 text-kafra-400 hover:text-kafra-600 hover:bg-kafra-50 rounded transition-colors"
-                      title={`${fullName} 정보 보기`}
-                    >
-                      <Info size={14} />
-                    </button>
+                    {/* Info button removed - clicking item row now opens Inspector panel */}
                   </div>
 
                   {/* Card/Enchant - Clickable Text */}
