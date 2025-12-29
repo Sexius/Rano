@@ -363,46 +363,54 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         )
       }
 
-      {/* Card Modal */}
+      {/* Card Popup - Same style as Item Info Popup */}
       {
         cardModalItem && (
-          <>
-            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeCardModal} />
-            <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-            bg-white rounded-2xl border border-gray-200 shadow-2xl p-5 
-            max-w-md w-[95vw] max-h-[80vh] overflow-y-auto animate-fade-in">
-              <div className="flex justify-between items-start mb-4">
+          <div
+            className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl w-[90vw] sm:w-[450px] animate-fade-in select-none"
+            style={{
+              left: Math.min(Math.max(10, window.innerWidth / 2 - 225), window.innerWidth - 470),
+              top: Math.max(20, window.innerHeight / 2 - 200),
+              maxHeight: 'calc(100vh - 40px)',
+              overflowY: 'auto'
+            }}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-start p-4 pb-2 border-b border-gray-100">
+              <div className="flex items-center gap-3">
                 <div>
-                  <h3 className="font-bold text-lg text-gray-900">카드/인챈트 정보</h3>
-                  <p className="text-sm text-gray-500">{cardModalItem.name}</p>
+                  <h4 className="font-bold text-gray-900 text-base">카드/인챈트 정보</h4>
+                  <span className="text-xs text-gray-400">{cardModalItem.name}</span>
                 </div>
-                <button onClick={closeCardModal} className="text-gray-400 hover:text-gray-600 p-1">
-                  <X size={20} />
-                </button>
               </div>
+              <button onClick={closeCardModal} className="text-gray-400 hover:text-gray-600 p-1 -mt-1 -mr-1">
+                <X size={18} />
+              </button>
+            </div>
 
+            {/* Content */}
+            <div className="p-4 pt-3">
               {isLoadingCards ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-kafra-500" />
-                  <span className="ml-2 text-gray-500">카드 정보 로딩 중...</span>
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-5 h-5 animate-spin text-kafra-500" />
                 </div>
               ) : cardDetails.length > 0 ? (
                 <div className="space-y-3">
                   {cardDetails.map((card, idx) => (
-                    <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div key={idx} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                       <div className="flex items-start gap-3">
                         {card.id > 0 && (
                           <img
                             src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
                             alt={card.name}
-                            className="w-12 h-12 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
+                            className="w-10 h-10 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
                             onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
                           />
                         )}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-gray-900 text-sm">{card.name}</h4>
                           {card.id > 0 && <span className="text-xs text-gray-400">ID: {card.id}</span>}
-                          <p className="mt-2 text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
+                          <p className="mt-1 text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
                             {card.description}
                           </p>
                         </div>
@@ -414,9 +422,69 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 <p className="text-gray-400 text-sm py-4 text-center">카드 정보를 찾을 수 없습니다</p>
               )}
             </div>
-          </>
+          </div>
         )
       }
+
+      {/* Backdrop for Card Popup */}
+      {
+        cardModalItem && (
+          <div className="fixed inset-0 z-40" onClick={closeCardModal} />
+        )
+      }
+
+      {/* ===== COMMENTED OUT: Original Card Modal (for future use) =====
+      {cardModalItem && (
+        <>
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeCardModal} />
+          <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+            bg-white rounded-2xl border border-gray-200 shadow-2xl p-5 
+            max-w-md w-[95vw] max-h-[80vh] overflow-y-auto animate-fade-in">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="font-bold text-lg text-gray-900">카드/인챈트 정보</h3>
+                <p className="text-sm text-gray-500">{cardModalItem.name}</p>
+              </div>
+              <button onClick={closeCardModal} className="text-gray-400 hover:text-gray-600 p-1">
+                <X size={20} />
+              </button>
+            </div>
+            {isLoadingCards ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-kafra-500" />
+                <span className="ml-2 text-gray-500">카드 정보 로딩 중...</span>
+              </div>
+            ) : cardDetails.length > 0 ? (
+              <div className="space-y-3">
+                {cardDetails.map((card, idx) => (
+                  <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div className="flex items-start gap-3">
+                      {card.id > 0 && (
+                        <img
+                          src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
+                          alt={card.name}
+                          className="w-12 h-12 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
+                          onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-900 text-sm">{card.name}</h4>
+                        {card.id > 0 && <span className="text-xs text-gray-400">ID: {card.id}</span>}
+                        <p className="mt-2 text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
+                          {card.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm py-4 text-center">카드 정보를 찾을 수 없습니다</p>
+            )}
+          </div>
+        </>
+      )}
+      ===== END COMMENTED OUT ===== */}
 
       {/* Backdrop to close popup */}
       {
