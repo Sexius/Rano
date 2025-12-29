@@ -18,10 +18,12 @@ interface ResultsTableProps {
 }
 
 const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedItemId, onItemClick }) => {
-  // Small popup state for item DB info
+  // Item popup state - now with dragging support
   const [itemPopover, setItemPopover] = useState<{ itemId: string; position: { x: number; y: number } } | null>(null);
   const [itemInfo, setItemInfo] = useState<ItemDbInfo | null>(null);
   const [isLoadingInfo, setIsLoadingInfo] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Fetch item info from DB when clicking item name
   const fetchItemInfo = async (itemName: string, itemId: string, event: React.MouseEvent) => {
@@ -67,6 +69,32 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
   const closeItemPopover = () => {
     setItemPopover(null);
     setItemInfo(null);
+    setIsDragging(false);
+  };
+
+  // Drag handlers for item popup
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!itemPopover) return;
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - itemPopover.position.x,
+      y: e.clientY - itemPopover.position.y
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !itemPopover) return;
+    setItemPopover({
+      ...itemPopover,
+      position: {
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      }
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   // Card modal state
@@ -283,47 +311,58 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         })}
       </div>
 
-      {/* Small Item Info Popup */}
+      {/* Item Info Popup - Draggable & Expanded */}
       {
         itemPopover && (
           <div
-            className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl p-4 max-w-sm w-[90vw] sm:w-[350px] animate-fade-in"
+            className="fixed z-50 bg-white rounded-xl border border-gray-200 shadow-2xl w-[90vw] sm:w-[450px] animate-fade-in select-none"
             style={{
-              left: Math.min(itemPopover.position.x, window.innerWidth - 370),
-              top: Math.min(itemPopover.position.y, window.innerHeight - 250)
+              left: itemPopover.position.x,
+              top: itemPopover.position.y,
+              cursor: isDragging ? 'grabbing' : 'default'
             }}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex items-center gap-2">
+            {/* Draggable Header */}
+            <div
+              className="flex justify-between items-start p-4 pb-2 cursor-grab active:cursor-grabbing border-b border-gray-100"
+              onMouseDown={handleMouseDown}
+            >
+              <div className="flex items-center gap-3">
                 {itemInfo && (
                   <img
                     src={`https://static.divine-pride.net/images/items/collection/${itemInfo.id}.png`}
                     alt={itemInfo.name}
-                    className="w-10 h-10 object-contain bg-gray-50 rounded-lg border border-gray-100 p-1"
+                    className="w-12 h-12 object-contain bg-gray-50 rounded-lg border border-gray-100 p-1"
                     onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/909.png'}
                   />
                 )}
                 <div>
-                  <h4 className="font-bold text-gray-900 text-sm">{itemInfo?.name || '로딩중...'}</h4>
+                  <h4 className="font-bold text-gray-900 text-base">{itemInfo?.name || '로딩중...'}</h4>
                   {itemInfo && <span className="text-xs text-gray-400">ID: {itemInfo.id}</span>}
                 </div>
               </div>
-              <button onClick={closeItemPopover} className="text-gray-400 hover:text-gray-600 p-1">
-                <X size={16} />
+              <button onClick={closeItemPopover} className="text-gray-400 hover:text-gray-600 p-1 -mt-1 -mr-1">
+                <X size={18} />
               </button>
             </div>
 
-            {isLoadingInfo ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-kafra-500" />
-              </div>
-            ) : itemInfo ? (
-              <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-700 max-h-40 overflow-y-auto">
-                <p className="whitespace-pre-wrap leading-relaxed">{itemInfo.description}</p>
-              </div>
-            ) : (
-              <p className="text-gray-400 text-xs py-3 text-center">아이템 정보를 찾을 수 없습니다</p>
-            )}
+            {/* Content - No height limit */}
+            <div className="p-4 pt-3">
+              {isLoadingInfo ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-5 h-5 animate-spin text-kafra-500" />
+                </div>
+              ) : itemInfo ? (
+                <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
+                  <p className="whitespace-pre-wrap leading-relaxed">{itemInfo.description}</p>
+                </div>
+              ) : (
+                <p className="text-gray-400 text-sm py-4 text-center">아이템 정보를 찾을 수 없습니다</p>
+              )}
+            </div>
           </div>
         )
       }

@@ -126,9 +126,6 @@ const App: React.FC = () => {
                     {lastQuery ? `"${lastQuery}" 검색 결과` : '실시간 인기 매물'}
                     {totalResults > 0 && <span className="text-sm font-normal text-gray-500">({totalResults}건)</span>}
                   </h2>
-                  <span className="text-[10px] text-gray-400 border border-gray-200 bg-white px-2 py-1 rounded-full flex items-center gap-1">
-                    실시간 크롤링
-                  </span>
                 </div>
 
                 <ResultsTable
