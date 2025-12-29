@@ -1,14 +1,10 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MarketItem } from '../types';
-import { Package, Clock, X, Loader2, Info, CreditCard } from 'lucide-react';
+import { Package, Clock, Info } from 'lucide-react';
 import { getZenyStyle, formatZeny } from '../utils/zenyStyle';
-
-interface ItemDbInfo {
-  id: number;
-  name: string;
-  description: string;
-}
+import { usePanelManager, ItemInfo, CardInfo } from '../hooks/usePanelManager';
+import FloatingPanel from './FloatingPanel';
+import MobileDrawer from './MobileDrawer';
 
 interface ResultsTableProps {
   items: MarketItem[];
@@ -17,55 +13,33 @@ interface ResultsTableProps {
   onItemClick: (item: MarketItem) => void;
 }
 
-// Panel type for multi-panel system
-interface Panel {
-  id: string;
-  type: 'item' | 'card';
-  itemId: string;
-  itemName: string;
-  position: { x: number; y: number };
-  data: ItemDbInfo | { cards: { id: number; name: string; description: string }[] } | null;
-  isLoading: boolean;
-}
+// Hook to detect mobile viewport
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
 
 const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedItemId, onItemClick }) => {
-  // Multi-panel state
-  const [panels, setPanels] = useState<Panel[]>([]);
-  const [draggingPanelId, setDraggingPanelId] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const isMobile = useIsMobile();
+  const panelManager = usePanelManager();
 
-  // Clamp position to viewport
-  const clampPosition = (x: number, y: number, width: number = 450, height: number = 300) => {
-    return {
-      x: Math.max(10, Math.min(x, window.innerWidth - width - 10)),
-      y: Math.max(10, Math.min(y, window.innerHeight - height - 10))
-    };
-  };
-
-  // Open item info panel
-  const openItemPanel = async (itemName: string, itemId: string, event: React.MouseEvent) => {
+  // Fetch item info and update panel
+  const handleItemInfoClick = async (itemName: string, itemId: string, event: React.MouseEvent) => {
     event.stopPropagation();
 
-    // Check if panel already exists
-    if (panels.some(p => p.id === `item-${itemId}`)) return;
-
     const rect = (event.target as HTMLElement).getBoundingClientRect();
-    const pos = clampPosition(rect.left, rect.bottom + 8);
-
-    const newPanel: Panel = {
-      id: `item-${itemId}`,
-      type: 'item',
-      itemId,
-      itemName,
-      position: pos,
-      data: null,
-      isLoading: true
-    };
-
-    setPanels(prev => [...prev, newPanel]);
+    const panelId = panelManager.openInspector('item', itemId, itemName, { x: rect.left, y: rect.bottom });
 
     try {
-      let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      let apiBase = (import.meta as any).env?.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
@@ -81,53 +55,34 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         const data = await response.json();
         const match = data.find((item: any) => item.nameKr === baseName) || data[0];
         if (match) {
-          setPanels(prev => prev.map(p => p.id === `item-${itemId}` ? {
-            ...p,
-            data: {
-              id: match.id,
-              name: match.nameKr,
-              description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
-            },
-            isLoading: false
-          } : p));
+          panelManager.updatePanelData(panelId, {
+            id: match.id,
+            name: match.nameKr,
+            description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
+          });
           return;
         }
       }
-      setPanels(prev => prev.map(p => p.id === `item-${itemId}` ? { ...p, isLoading: false } : p));
+      panelManager.updatePanelData(panelId, null);
     } catch (e) {
       console.error('Failed to fetch item info:', e);
-      setPanels(prev => prev.map(p => p.id === `item-${itemId}` ? { ...p, isLoading: false } : p));
+      panelManager.updatePanelData(panelId, null);
     }
   };
 
-  // Open card info panel
-  const openCardPanel = async (item: MarketItem, event: React.MouseEvent) => {
+  // Fetch card info and update panel
+  const handleCardClick = async (item: MarketItem, event: React.MouseEvent) => {
     event.stopPropagation();
 
-    const panelId = `card-${item.id}`;
-    if (panels.some(p => p.id === panelId)) return;
-
     const rect = (event.target as HTMLElement).getBoundingClientRect();
-    const pos = clampPosition(rect.left, rect.bottom + 8);
-
-    const newPanel: Panel = {
-      id: panelId,
-      type: 'card',
-      itemId: item.id,
-      itemName: item.name,
-      position: pos,
-      data: null,
-      isLoading: true
-    };
-
-    setPanels(prev => [...prev, newPanel]);
+    const panelId = panelManager.openInspector('card', item.id, item.name, { x: rect.left, y: rect.bottom });
 
     try {
-      let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      let apiBase = (import.meta as any).env?.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
-      const cards: { id: number; name: string; description: string }[] = [];
+      const cards: CardInfo[] = [];
       for (const cardName of item.cards_equipped || []) {
         const cleanName = cardName.replace(/^\[옵션\]\s*/, '').trim();
         try {
@@ -149,51 +104,12 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
           cards.push({ id: 0, name: cleanName, description: '정보를 찾을 수 없습니다' });
         }
       }
-      setPanels(prev => prev.map(p => p.id === panelId ? { ...p, data: { cards }, isLoading: false } : p));
+      panelManager.updatePanelData(panelId, { cards });
     } catch (e) {
       console.error('Failed to fetch card details:', e);
-      setPanels(prev => prev.map(p => p.id === panelId ? { ...p, isLoading: false } : p));
+      panelManager.updatePanelData(panelId, null);
     }
   };
-
-  // Close panel
-  const closePanel = (panelId: string) => {
-    setPanels(prev => prev.filter(p => p.id !== panelId));
-  };
-
-  // Bring panel to front
-  const bringToFront = (panelId: string) => {
-    setPanels(prev => {
-      const panel = prev.find(p => p.id === panelId);
-      if (!panel) return prev;
-      return [...prev.filter(p => p.id !== panelId), panel];
-    });
-  };
-
-  // Drag handlers
-  const handlePanelMouseDown = (panelId: string, e: React.MouseEvent) => {
-    const panel = panels.find(p => p.id === panelId);
-    if (!panel) return;
-    setDraggingPanelId(panelId);
-    setDragOffset({
-      x: e.clientX - panel.position.x,
-      y: e.clientY - panel.position.y
-    });
-    bringToFront(panelId);
-  };
-
-  const handlePanelMouseMove = (e: React.MouseEvent) => {
-    if (!draggingPanelId) return;
-    const newPos = clampPosition(e.clientX - dragOffset.x, e.clientY - dragOffset.y);
-    setPanels(prev => prev.map(p => p.id === draggingPanelId ? { ...p, position: newPos } : p));
-  };
-
-  const handlePanelMouseUp = () => {
-    setDraggingPanelId(null);
-  };
-
-  // Note: Old card modal code removed - now using multi-panel system (openCardPanel)
-
 
   if (isLoading) {
     return (
@@ -262,9 +178,9 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   )}
                 </div>
 
-                {/* Item Text Info - Kafra Style: Full name + Card text */}
+                {/* Item Text Info */}
                 <div className="min-w-0 flex-1 pr-2">
-                  {/* Item Name - Full Display */}
+                  {/* Item Name */}
                   <div className="flex items-start gap-1.5 mb-1">
                     <h4 className={`text-sm font-bold leading-tight break-words ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}>
                       {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
@@ -273,7 +189,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     </h4>
                     {/* Item Info Button */}
                     <button
-                      onClick={(e) => openItemPanel(item.name, item.id, e)}
+                      onClick={(e) => handleItemInfoClick(item.name, item.id, e)}
                       className="flex-shrink-0 p-0.5 text-kafra-400 hover:text-kafra-600 hover:bg-kafra-50 rounded transition-colors mt-0.5"
                       title="아이템 정보"
                     >
@@ -281,11 +197,11 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     </button>
                   </div>
 
-                  {/* Card/Enchant - Kafra Style: Clickable Text */}
+                  {/* Card/Enchant - Clickable Text */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
                     <div
                       className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1 cursor-pointer group"
-                      onClick={(e) => openCardPanel(item, e)}
+                      onClick={(e) => handleCardClick(item, e)}
                     >
                       {item.cards_equipped.map((card, i) => {
                         const isEnchant = card.startsWith('[옵션]');
@@ -318,9 +234,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
               </div>
 
-              {/* Price Column - Simplified */}
+              {/* Price Column */}
               <div className="flex items-center gap-2">
-                {/* Price */}
                 <div className="text-right">
                   <div
                     className="text-base font-extrabold whitespace-nowrap"
@@ -343,100 +258,31 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         })}
       </div>
 
-      {/* Multi-Panel Rendering - Draggable Panels */}
-      {panels.map((panel, index) => (
-        <div
+      {/* Desktop: Floating Panels */}
+      {!isMobile && panelManager.getAllPanels().map((panel) => (
+        <FloatingPanel
           key={panel.id}
-          className="fixed bg-white rounded-xl border border-gray-200 shadow-2xl w-[90vw] sm:w-[450px] animate-fade-in select-none"
-          style={{
-            left: panel.position.x,
-            top: panel.position.y,
-            zIndex: 50 + index,
-            maxHeight: 'calc(100vh - 40px)',
-            overflowY: 'auto',
-            cursor: draggingPanelId === panel.id ? 'grabbing' : 'default'
-          }}
-          onMouseMove={handlePanelMouseMove}
-          onMouseUp={handlePanelMouseUp}
-          onMouseLeave={handlePanelMouseUp}
-          onClick={() => bringToFront(panel.id)}
-        >
-          {/* Draggable Header */}
-          <div
-            className="flex justify-between items-start p-4 pb-2 cursor-grab active:cursor-grabbing border-b border-gray-100"
-            onMouseDown={(e) => handlePanelMouseDown(panel.id, e)}
-          >
-            <div className="flex items-center gap-3">
-              {panel.type === 'item' && panel.data && 'id' in panel.data && panel.data.id && (
-                <img
-                  src={`https://static.divine-pride.net/images/items/collection/${panel.data.id}.png`}
-                  alt={panel.data.name}
-                  className="w-12 h-12 object-contain bg-gray-50 rounded-lg border border-gray-100 p-1"
-                  onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/909.png'}
-                />
-              )}
-              <div>
-                <h4 className="font-bold text-gray-900 text-base">
-                  {panel.type === 'item' ? (panel.data && 'name' in panel.data ? panel.data.name : '로딩중...') : '카드/인챈트 정보'}
-                </h4>
-                <span className="text-xs text-gray-400">
-                  {panel.type === 'item' && panel.data && 'id' in panel.data ? `ID: ${panel.data.id}` : panel.itemName}
-                </span>
-              </div>
-            </div>
-            <button onClick={() => closePanel(panel.id)} className="text-gray-400 hover:text-gray-600 p-1 -mt-1 -mr-1">
-              <X size={18} />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-4 pt-3">
-            {panel.isLoading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="w-5 h-5 animate-spin text-kafra-500" />
-              </div>
-            ) : panel.type === 'item' ? (
-              // Item Panel Content
-              panel.data && 'description' in panel.data ? (
-                <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-700">
-                  <p className="whitespace-pre-wrap leading-relaxed">{panel.data.description}</p>
-                </div>
-              ) : (
-                <p className="text-gray-400 text-sm py-4 text-center">아이템 정보를 찾을 수 없습니다</p>
-              )
-            ) : (
-              // Card Panel Content
-              panel.data && 'cards' in panel.data && panel.data.cards.length > 0 ? (
-                <div className="space-y-3">
-                  {panel.data.cards.map((card, idx) => (
-                    <div key={idx} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                      <div className="flex items-start gap-3">
-                        {card.id > 0 && (
-                          <img
-                            src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
-                            alt={card.name}
-                            className="w-10 h-10 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
-                            onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-gray-900 text-sm">{card.name}</h4>
-                          {card.id > 0 && <span className="text-xs text-gray-400">ID: {card.id}</span>}
-                          <p className="mt-1 text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
-                            {card.description}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-400 text-sm py-4 text-center">카드 정보를 찾을 수 없습니다</p>
-              )
-            )}
-          </div>
-        </div>
+          panel={panel}
+          onClose={() => panelManager.closePanel(panel.id)}
+          onPin={!panel.pinned ? panelManager.pinCurrentPanel : undefined}
+          onMouseDown={(e) => panelManager.startDrag(panel.id, e)}
+          onMouseMove={panelManager.onDrag}
+          onMouseUp={panelManager.endDrag}
+          onClick={() => panelManager.bringToFront(panel.id)}
+          isDragging={panelManager.draggingPanelId === panel.id}
+        />
       ))}
+
+      {/* Mobile: Bottom Drawer */}
+      {isMobile && (panelManager.inspectorPanel || panelManager.pinnedPanels.length > 0) && (
+        <MobileDrawer
+          inspectorPanel={panelManager.inspectorPanel}
+          pinnedPanels={panelManager.pinnedPanels}
+          onClose={(id) => panelManager.closePanel(id)}
+          onPin={panelManager.pinCurrentPanel}
+          onSelectPinned={(id) => panelManager.bringToFront(id)}
+        />
+      )}
     </>
   );
 };
