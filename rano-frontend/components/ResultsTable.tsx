@@ -161,12 +161,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
           return (
             <div
               key={item.id}
-              onClick={(e) => {
-                onItemClick(item); // Keep selection state
-                handleItemInfoClick(item.name, item.id, e); // Open Inspector panel
-              }}
               className={`
-              relative group flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all duration-200
+              relative group flex items-center justify-between p-3 rounded-xl border transition-all duration-200
               ${isSelected
                   ? 'bg-kafra-50/50 border-kafra-500 ring-1 ring-kafra-500 shadow-sm z-10'
                   : 'bg-white border-gray-100 hover:border-kafra-300 hover:shadow-card'
@@ -178,7 +174,14 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 <div className="absolute left-0 top-3 bottom-3 w-1 bg-kafra-500 rounded-r-full"></div>
               )}
 
-              <div className="flex items-center gap-3 min-w-0 flex-1">
+              {/* Clickable Area: Image + Text Only */}
+              <div
+                className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+                onClick={(e) => {
+                  onItemClick(item);
+                  handleItemInfoClick(item.name, item.id, e);
+                }}
+              >
                 {/* Image Thumbnail */}
                 <div className="relative shrink-0">
                   <div className={`h-11 w-11 rounded-lg overflow-hidden border ${isSelected ? 'border-kafra-200' : 'border-gray-100'} bg-gray-50`}>
