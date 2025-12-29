@@ -221,50 +221,55 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   )}
                 </div>
 
-                {/* Item Text Info - Expanded to show more name */}
-                <div className="min-w-0 max-w-[50%] sm:max-w-[60%]">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <h4 className={`text-sm font-bold ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}>
+                {/* Item Text Info - Kafra Style: Full name + Card text */}
+                <div className="min-w-0 flex-1 pr-2">
+                  {/* Item Name - Full Display */}
+                  <div className="flex items-start gap-1.5 mb-1">
+                    <h4 className={`text-sm font-bold leading-tight break-words ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}>
                       {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
                       {item.name}
+                      {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
                     </h4>
                     {/* Item Info Button */}
                     <button
                       onClick={(e) => fetchItemInfo(item.name, item.id, e)}
-                      className="flex-shrink-0 p-0.5 text-kafra-400 hover:text-kafra-600 hover:bg-kafra-50 rounded transition-colors"
+                      className="flex-shrink-0 p-0.5 text-kafra-400 hover:text-kafra-600 hover:bg-kafra-50 rounded transition-colors mt-0.5"
                       title="아이템 정보"
                     >
                       <Info size={14} />
                     </button>
                   </div>
-                  {/* Card/Enchant Badges - Simple Display */}
+
+                  {/* Card/Enchant - Kafra Style: Clickable Text */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1 mb-1">
-                      {item.cards_equipped.slice(0, 3).map((card, i) => {
+                    <div
+                      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1 cursor-pointer group"
+                      onClick={(e) => openCardModal(item, e)}
+                    >
+                      {item.cards_equipped.map((card, i) => {
                         const isEnchant = card.startsWith('[옵션]');
                         const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
                         return (
                           <span
                             key={i}
-                            className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium
+                            className={`text-xs font-medium transition-colors
                               ${isEnchant
-                                ? 'bg-purple-50 text-purple-600 border border-purple-200'
-                                : 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                                ? 'text-purple-600 group-hover:text-purple-800'
+                                : 'text-amber-600 group-hover:text-amber-800'
                               }`}
                           >
-                            {displayName.slice(0, 12)}{displayName.length > 12 ? '…' : ''}
+                            {isEnchant ? '✦' : '◆'} {displayName}
                           </span>
                         );
                       })}
-                      {item.cards_equipped.length > 3 && (
-                        <span className="text-[10px] text-gray-400">+{item.cards_equipped.length - 3}</span>
-                      )}
                     </div>
                   )}
+
+                  {/* Server & Seller Info */}
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span className="font-medium text-gray-600">{item.server}</span>
                     <span className="w-0.5 h-2.5 bg-gray-200"></span>
-                    <span className="truncate max-w-[100px]">{item.seller}</span>
+                    <span className="truncate max-w-[120px]">{item.seller}</span>
                     <span className="hidden sm:flex items-center gap-0.5 text-gray-400">
                       <Clock size={10} /> {item.created_at}
                     </span>
@@ -272,24 +277,10 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
               </div>
 
-              {/* Price + Card Button Column */}
+              {/* Price Column - Simplified */}
               <div className="flex items-center gap-2">
-                {/* Card Info Button - Only show if item has cards */}
-                {item.cards_equipped && item.cards_equipped.length > 0 && (
-                  <button
-                    onClick={(e) => openCardModal(item, e)}
-                    className="flex items-center gap-1 px-2 py-1.5 bg-gradient-to-r from-amber-100 to-yellow-100 
-                      border border-amber-300 rounded-lg text-amber-700 hover:from-amber-200 hover:to-yellow-200 
-                      hover:border-amber-400 transition-all shadow-sm hover:shadow group"
-                    title="카드 정보 보기"
-                  >
-                    <CreditCard size={14} className="group-hover:scale-110 transition-transform" />
-                    <span className="text-xs font-bold">{item.cards_equipped.length}</span>
-                  </button>
-                )}
-
                 {/* Price */}
-                <div className="text-right pl-2">
+                <div className="text-right">
                   <div
                     className="text-base font-extrabold whitespace-nowrap"
                     style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
@@ -302,7 +293,6 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   </div>
                 </div>
               </div>
-
               {/* Arrow for mobile hint */}
               <div className="ml-2 md:hidden text-gray-300">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -374,57 +364,59 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
       }
 
       {/* Card Modal */}
-      {cardModalItem && (
-        <>
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeCardModal} />
-          <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+      {
+        cardModalItem && (
+          <>
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeCardModal} />
+            <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
             bg-white rounded-2xl border border-gray-200 shadow-2xl p-5 
             max-w-md w-[95vw] max-h-[80vh] overflow-y-auto animate-fade-in">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="font-bold text-lg text-gray-900">카드/인챈트 정보</h3>
-                <p className="text-sm text-gray-500">{cardModalItem.name}</p>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-900">카드/인챈트 정보</h3>
+                  <p className="text-sm text-gray-500">{cardModalItem.name}</p>
+                </div>
+                <button onClick={closeCardModal} className="text-gray-400 hover:text-gray-600 p-1">
+                  <X size={20} />
+                </button>
               </div>
-              <button onClick={closeCardModal} className="text-gray-400 hover:text-gray-600 p-1">
-                <X size={20} />
-              </button>
-            </div>
 
-            {isLoadingCards ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-kafra-500" />
-                <span className="ml-2 text-gray-500">카드 정보 로딩 중...</span>
-              </div>
-            ) : cardDetails.length > 0 ? (
-              <div className="space-y-3">
-                {cardDetails.map((card, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <div className="flex items-start gap-3">
-                      {card.id > 0 && (
-                        <img
-                          src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
-                          alt={card.name}
-                          className="w-12 h-12 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
-                          onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-gray-900 text-sm">{card.name}</h4>
-                        {card.id > 0 && <span className="text-xs text-gray-400">ID: {card.id}</span>}
-                        <p className="mt-2 text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
-                          {card.description}
-                        </p>
+              {isLoadingCards ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-kafra-500" />
+                  <span className="ml-2 text-gray-500">카드 정보 로딩 중...</span>
+                </div>
+              ) : cardDetails.length > 0 ? (
+                <div className="space-y-3">
+                  {cardDetails.map((card, idx) => (
+                    <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                      <div className="flex items-start gap-3">
+                        {card.id > 0 && (
+                          <img
+                            src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
+                            alt={card.name}
+                            className="w-12 h-12 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
+                            onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-gray-900 text-sm">{card.name}</h4>
+                          {card.id > 0 && <span className="text-xs text-gray-400">ID: {card.id}</span>}
+                          <p className="mt-2 text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
+                            {card.description}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-400 text-sm py-4 text-center">카드 정보를 찾을 수 없습니다</p>
-            )}
-          </div>
-        </>
-      )}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-sm py-4 text-center">카드 정보를 찾을 수 없습니다</p>
+              )}
+            </div>
+          </>
+        )
+      }
 
       {/* Backdrop to close popup */}
       {
