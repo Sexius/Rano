@@ -63,9 +63,17 @@ public class VendingService {
                 .data("itemfullname", itemName) // Parameter name: itemfullname
                 .data("curpage", String.valueOf(page))
                 .data("svrID", svrId)
-                .timeout(15000)
                 .method(org.jsoup.Connection.Method.POST)
                 .post();
+
+        // [Diagnostic Logging] Added per user request to identify zero-result root
+        // cause
+        System.out.println("[VendingService] HTML length=" + doc.outerHtml().length() +
+                ", title=" + doc.title());
+        System.out.println("[VendingService] tables=" + doc.select("table.listTypeOfDefault.dealList").size() +
+                ", searchResultStrong="
+                + (doc.selectFirst("#searchResult strong") != null ? doc.selectFirst("#searchResult strong").text()
+                        : "null"));
 
         // Parse Total Count specifically from the strong tag inside #searchResult
         Element totalElement = doc.selectFirst("#searchResult strong");
