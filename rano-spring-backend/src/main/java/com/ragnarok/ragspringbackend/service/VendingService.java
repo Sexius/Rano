@@ -49,22 +49,28 @@ public class VendingService {
             svrId = "1";
         }
 
-        // Correct endpoint: dealSearch.asp
-        String url = "https://ro.gnjoy.com/itemdeal/dealSearch.asp";
+        // Correct endpoint: itemDealList.asp (per Chromium DevTools Ground Truth)
+        String url = "https://ro.gnjoy.com/itemdeal/itemDealList.asp";
 
         System.out.println(
-                "[VendingService] Connecting (POST) to URL: " + url + " with item: " + itemName + ", server: " + svrId);
+                "[VendingService] Connecting (GET) to URL: " + url + " | item: " + itemName + ", server: " + svrId);
 
         Document doc = Jsoup.connect(url)
                 .userAgent(
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
                 .header("Referer", "https://ro.gnjoy.com/")
                 .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
-                .data("itemfullname", itemName) // Parameter name: itemfullname
-                .data("curpage", String.valueOf(page))
                 .data("svrID", svrId)
-                .method(org.jsoup.Connection.Method.POST)
-                .post();
+                .data("itemFullName", itemName) // Parameter name: itemFullName (case-sensitive)
+                .data("itemOrder", "")
+                .data("inclusion", "")
+                .data("curpage", String.valueOf(page))
+                .timeout(15000)
+                .method(org.jsoup.Connection.Method.GET)
+                .get();
+
+        // Log final URL with parameters (Ground Truth Verification)
+        System.out.println("[VendingService] Final Crawl URL: " + doc.location());
 
         // [Diagnostic Logging] Added per user request to identify zero-result root
         // cause
