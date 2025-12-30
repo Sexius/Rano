@@ -344,13 +344,15 @@ public class SimpleSpringServer {
 
         try {
             if (itemName != null && !itemName.trim().isEmpty()) {
-                String baseUrl = "https://ro.gnjoy.com/itemdeal/itemDealList.asp";
+                // Changed from itemDealList.asp to dealSearch.asp - correct endpoint
+                String baseUrl = "https://ro.gnjoy.com/itemdeal/dealSearch.asp";
                 String svrId = "baphomet".equals(server) ? "129" : "729";
 
                 // IMPORTANT: ro.gnjoy.com uses Korean encoding (EUC-KR)
                 String encodedItemName = java.net.URLEncoder.encode(itemName, "EUC-KR");
 
-                String url = baseUrl + "?itemFullName=" + encodedItemName
+                // Changed from itemFullName to itemfullname (lowercase)
+                String url = baseUrl + "?itemfullname=" + encodedItemName
                         + "&curpage=" + page + "&svrID=" + svrId;
                 System.out.println("Crawl URL: " + url);
 

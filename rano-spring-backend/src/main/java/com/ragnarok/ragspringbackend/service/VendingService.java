@@ -43,7 +43,9 @@ public class VendingService {
         int totalItems = 0;
 
         String svrId = ("ifrit".equalsIgnoreCase(server) || "이프리트".equals(server)) ? "729" : "129";
-        String url = "https://ro.gnjoy.com/itemDeal/itemDealList.asp";
+        // Changed from itemDealList.asp to dealSearch.asp - this is the correct
+        // endpoint
+        String url = "https://ro.gnjoy.com/itemdeal/dealSearch.asp";
 
         System.out.println(
                 "[VendingService] Connecting to URL: " + url + " with item: " + itemName + ", server: " + svrId);
@@ -53,7 +55,7 @@ public class VendingService {
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
                 .header("Referer", "https://ro.gnjoy.com/")
                 .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
-                .data("itemFullName", itemName)
+                .data("itemfullname", itemName) // Changed from itemFullName to itemfullname (lowercase)
                 .data("curpage", String.valueOf(page))
                 .data("svrID", svrId)
                 .timeout(10000)
