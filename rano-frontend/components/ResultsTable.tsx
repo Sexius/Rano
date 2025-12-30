@@ -188,29 +188,33 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   )}
                 </div>
 
-                {/* Item Text Info - all parents need min-w-0 for clamp to work */}
-                <div className="min-w-0 flex-1 overflow-hidden">
+                {/* Item Text Info */}
+                <div className="min-w-0 flex-1 pr-2" style={{ minWidth: 0 }}>
                   {/* Item Name - CLICKABLE, 2 line clamp with tooltip */}
-                  <div
-                    className={`text-sm font-bold leading-snug cursor-pointer hover:underline ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}
-                    title={fullName}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onItemClick(item);
-                      handleItemInfoClick(item.name, item.id, e);
-                    }}
-                    style={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical' as const,
-                      overflow: 'hidden',
-                      whiteSpace: 'normal',
-                      wordBreak: 'break-word'
-                    }}
-                  >
-                    {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
-                    {item.name}
-                    {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
+                  <div className="mb-1" style={{ minWidth: 0 }}>
+                    <span
+                      className={`text-sm font-bold leading-tight cursor-pointer hover:underline ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}
+                      title={fullName}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onItemClick(item);
+                        handleItemInfoClick(item.name, item.id, e);
+                      }}
+                      style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical' as const,
+                        overflow: 'hidden',
+                        whiteSpace: 'normal',
+                        wordBreak: 'break-word',
+                        textOverflow: 'clip',
+                        lineClamp: 2
+                      }}
+                    >
+                      {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
+                      {item.name}
+                      {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
+                    </span>
                   </div>
 
                   {/* Card/Enchant - Separate Clickable Text */}
