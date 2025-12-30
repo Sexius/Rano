@@ -85,39 +85,29 @@ public class VendingService {
             }
         }
 
-        Elements tables = doc.select("table.dealList");
+        // Updated selector for dealSearch.asp page structure
+        Elements tables = doc.select("table.listTypeOfDefault.dealList");
         Element targetTable = null;
 
         System.out.println("[VendingService] Candidate tables for '" + itemName + "': " + tables.size());
 
-        // First pass: Look for table with "Search Results" caption
-        for (Element tbl : tables) {
-            String caption = tbl.select("caption").text();
-            if (caption.contains("검색결과")) {
-                targetTable = tbl;
-                System.out.println("[VendingService] Found target table by CAPTION: " + caption);
-                break;
-            }
-        }
-
-        // Second pass: If not found, look for table with correct Headers (fallback)
-        if (targetTable == null) {
-            for (Element tbl : tables) {
-                if (!tbl.select("th.server").isEmpty() && !tbl.select("th.item").isEmpty()) {
-                    targetTable = tbl;
-                    System.out.println("[VendingService] Found target table by HEADERS (Caption mismatch or missing).");
-                    break;
-                }
-            }
-        }
-
-        // Fallback if no specific table found (or only one table exists)
-        if (targetTable == null && !tables.isEmpty()) {
-            System.out.println("[VendingService] No specific table matched, using first one.");
+        // dealSearch.asp has a single main table, just use the first one
+        if (!tables.isEmpty()) {
             targetTable = tables.first();
+            System.out.println("[VendingService] Found target table with class 'listTypeOfDefault dealList'");
         }
 
-        Elements rows = (targetTable != null) ? targetTable.select("tbody tr") : new Elements();
+        // Fallback: try the old selector if new one doesn't work
+        if (targetTable == null) {
+            tables = doc.select("table.dealList");
+            if (!tables.isEmpty()) {
+                targetTable = tables.first();
+                System.out.println("[VendingService] Fallback: found table with class 'dealList'");
+            }
+        }
+
+        // Get all tr elements (skip first header row later in the loop)
+        Elements rows = (targetTable != null) ? targetTable.select("tr") : new Elements();
         int idStart = (page - 1) * size + 1;
 
         System.out.println("[VendingService] Searching for: " + itemName + " | Tables found: " + tables.size()
