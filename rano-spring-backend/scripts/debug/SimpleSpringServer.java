@@ -344,14 +344,14 @@ public class SimpleSpringServer {
 
         try {
             if (itemName != null && !itemName.trim().isEmpty()) {
-                // Changed from itemDealList.asp to dealSearch.asp - correct endpoint
+                // Correct endpoint: dealSearch.asp
                 String baseUrl = "https://ro.gnjoy.com/itemdeal/dealSearch.asp";
                 String svrId = "baphomet".equals(server) ? "129" : "729";
 
                 // IMPORTANT: ro.gnjoy.com uses Korean encoding (EUC-KR)
                 String encodedItemName = java.net.URLEncoder.encode(itemName, "EUC-KR");
 
-                // Changed from itemFullName to itemfullname (lowercase)
+                // Parameter name: itemfullname
                 String url = baseUrl + "?itemfullname=" + encodedItemName
                         + "&curpage=" + page + "&svrID=" + svrId;
                 System.out.println("Crawl URL: " + url);
@@ -378,20 +378,7 @@ public class SimpleSpringServer {
                     Elements columns = row.select("td");
                     if (columns.size() >= 5) { // At least 5 columns
                         String vendorName = columns.get(0).text();
-
-                        // Extract item name from img alt attribute (full name) instead of span
-                        // (truncated)
-                        Element itemColumn = columns.get(1);
-                        Element imgElement = itemColumn.selectFirst("img");
-                        String itemNameText;
-                        if (imgElement != null && imgElement.hasAttr("alt") && !imgElement.attr("alt").isEmpty()) {
-                            // Use img alt for full item name
-                            itemNameText = imgElement.attr("alt");
-                        } else {
-                            // Fallback to span text (may be truncated)
-                            itemNameText = itemColumn.text();
-                        }
-
+                        String itemNameText = columns.get(1).text();
                         String quantity = columns.get(2).text();
                         String price = columns.get(3).text().replace(",", "").replace(" ", "");
                         String location = columns.get(4).text();

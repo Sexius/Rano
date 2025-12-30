@@ -43,8 +43,7 @@ public class VendingService {
         int totalItems = 0;
 
         String svrId = ("ifrit".equalsIgnoreCase(server) || "이프리트".equals(server)) ? "729" : "129";
-        // Changed from itemDealList.asp to dealSearch.asp - this is the correct
-        // endpoint
+        // Correct endpoint: dealSearch.asp
         String url = "https://ro.gnjoy.com/itemdeal/dealSearch.asp";
 
         System.out.println(
@@ -55,7 +54,7 @@ public class VendingService {
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
                 .header("Referer", "https://ro.gnjoy.com/")
                 .header("Accept-Language", "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7")
-                .data("itemfullname", itemName) // Changed from itemFullName to itemfullname (lowercase)
+                .data("itemfullname", itemName) // Parameter name: itemfullname
                 .data("curpage", String.valueOf(page))
                 .data("svrID", svrId)
                 .timeout(10000)
@@ -70,40 +69,12 @@ public class VendingService {
             }
         }
 
-        // If specific strong tag fails, try the parent p tag
-        if (totalItems == 0) {
-            Element totalP = doc.selectFirst("#searchResult");
-            if (totalP != null) {
-                String totalText = totalP.text().replaceAll("[^0-9]", "");
-                if (!totalText.isEmpty()) {
-                    try {
-                        totalItems = Integer.parseInt(totalText);
-                    } catch (NumberFormatException e) {
-                        // ignore
-                    }
-                }
-            }
-        }
-
         // Updated selector for dealSearch.asp page structure
         Elements tables = doc.select("table.listTypeOfDefault.dealList");
         Element targetTable = null;
 
-        System.out.println("[VendingService] Candidate tables for '" + itemName + "': " + tables.size());
-
-        // dealSearch.asp has a single main table, just use the first one
         if (!tables.isEmpty()) {
             targetTable = tables.first();
-            System.out.println("[VendingService] Found target table with class 'listTypeOfDefault dealList'");
-        }
-
-        // Fallback: try the old selector if new one doesn't work
-        if (targetTable == null) {
-            tables = doc.select("table.dealList");
-            if (!tables.isEmpty()) {
-                targetTable = tables.first();
-                System.out.println("[VendingService] Fallback: found table with class 'dealList'");
-            }
         }
 
         // Get all tr elements (skip first header row in the loop)
@@ -130,20 +101,16 @@ public class VendingService {
 
                 Element itemNameElement = columns.get(1);
 
-                // Extract item name from img alt attribute (full name) instead of span text
-                // (truncated)
+                // Extract item name from img alt attribute (full name)
                 Element imgForName = itemNameElement.selectFirst("img");
                 String itemNameText;
                 if (imgForName != null && imgForName.hasAttr("alt") && !imgForName.attr("alt").isEmpty()) {
-                    // Use img alt for full item name
                     itemNameText = imgForName.attr("alt");
                 } else {
-                    // Fallback to text (may be truncated with "...")
                     itemNameText = itemNameElement.text();
                 }
 
-                // Additional safety check (already skipped first row, but check content just in
-                // case)
+                // Skip header rows if they get caught
                 if (serverName.contains("상인명") || itemNameText.contains("아이템명"))
                     continue;
 
