@@ -42,12 +42,18 @@ public class VendingService {
         List<VendingItemDto> items = new ArrayList<>();
         int totalItems = 0;
 
-        String svrId = ("ifrit".equalsIgnoreCase(server) || "이프리트".equals(server)) ? "729" : "129";
+        String svrId = "1"; // Default to Baphomet
+        if ("ifrit".equalsIgnoreCase(server) || "이프리트".equals(server)) {
+            svrId = "729";
+        } else if ("baphomet".equalsIgnoreCase(server) || "바포메트".equals(server)) {
+            svrId = "1";
+        }
+
         // Correct endpoint: dealSearch.asp
         String url = "https://ro.gnjoy.com/itemdeal/dealSearch.asp";
 
         System.out.println(
-                "[VendingService] Connecting to URL: " + url + " with item: " + itemName + ", server: " + svrId);
+                "[VendingService] Connecting (POST) to URL: " + url + " with item: " + itemName + ", server: " + svrId);
 
         Document doc = Jsoup.connect(url)
                 .userAgent(
@@ -57,8 +63,9 @@ public class VendingService {
                 .data("itemfullname", itemName) // Parameter name: itemfullname
                 .data("curpage", String.valueOf(page))
                 .data("svrID", svrId)
-                .timeout(10000)
-                .get();
+                .timeout(15000)
+                .method(org.jsoup.Connection.Method.POST)
+                .post();
 
         // Parse Total Count specifically from the strong tag inside #searchResult
         Element totalElement = doc.selectFirst("#searchResult strong");
