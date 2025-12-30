@@ -48,7 +48,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
     const panelId = panelManager.openInspector('item', itemId, itemName, { x: rect.left, y: rect.bottom });
 
     try {
-      let apiBase = (import.meta as any).env?.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      let apiBase = (import.meta as any).env?.VITE_API_URL || 'https://rano.onrender.com';
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
@@ -87,7 +87,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
     const panelId = panelManager.openInspector('card', item.id, item.name, { x: rect.left, y: rect.bottom });
 
     try {
-      let apiBase = (import.meta as any).env?.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      let apiBase = (import.meta as any).env?.VITE_API_URL || 'https://rano.onrender.com';
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 

@@ -48,7 +48,7 @@ export const searchVendingItems = async (
 ): Promise<VendingSearchResult> => {
     try {
         // [수정] URL 처리 - /api 중복 방지
-        let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        let rawUrl = import.meta.env.VITE_API_URL || 'https://rano.onrender.com';
         // trailing slash 제거
         rawUrl = rawUrl.replace(/\/+$/, '');
         // /api로 끝나면 그대로 사용, 아니면 /api 추가
@@ -138,7 +138,7 @@ async function getVendingItemDetailInternal(
     mapId: string
 ): Promise<{ seller?: string; shop_title?: string; cards_equipped?: string[] } | null> {
     try {
-        let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        let rawUrl = import.meta.env.VITE_API_URL || 'https://rano.onrender.com';
         rawUrl = rawUrl.replace(/\/+$/, '');
         const baseUrl = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 
@@ -171,7 +171,7 @@ export const getVendingItemDetail = async (
     mapId: string
 ): Promise<Partial<MarketItem> | null> => {
     try {
-        let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        let rawUrl = import.meta.env.VITE_API_URL || 'https://rano.onrender.com';
         rawUrl = rawUrl.replace(/\/+$/, '');
         const baseUrl = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 

@@ -26,7 +26,7 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
 
     try {
       // Construct proper API URL
-      let apiBase = import.meta.env.VITE_API_URL || 'https://rag-spring-backend.onrender.com';
+      let apiBase = import.meta.env.VITE_API_URL || 'https://rano.onrender.com';
       apiBase = apiBase.replace(/\/+$/, ''); // Remove trailing slashes
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 

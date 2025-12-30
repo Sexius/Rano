@@ -1,6 +1,6 @@
 // MariaDB에서 아이템 정보를 가져오는 서비스
 const getApiBaseUrl = (): string => {
-    let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    let rawUrl = import.meta.env.VITE_API_URL || 'https://rano.onrender.com';
     rawUrl = rawUrl.replace(/\/+$/, '');
     return rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 };

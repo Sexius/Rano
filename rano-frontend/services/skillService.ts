@@ -1,6 +1,6 @@
 // Skill API Service
 const getApiBaseUrl = (): string => {
-    let rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    let rawUrl = import.meta.env.VITE_API_URL || 'https://rano.onrender.com';
     rawUrl = rawUrl.replace(/\/+$/, '');
     return rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 };

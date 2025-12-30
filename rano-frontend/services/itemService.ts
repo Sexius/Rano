@@ -2,7 +2,7 @@ import { MarketItem, ParsedItemStats, PerRefineBonus, GradeBonus, SetEffect } fr
 
 // API URL - 환경변수 사용 (vendingService처럼)
 const getApiBaseUrl = (): string => {
-    const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+    const rawUrl = import.meta.env.VITE_API_URL || 'https://rano.onrender.com';
     const baseUrl = rawUrl.replace(/\/+$/, ''); // trailing slash 제거
     return baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
 };
