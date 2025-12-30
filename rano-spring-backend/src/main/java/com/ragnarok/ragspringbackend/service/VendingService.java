@@ -106,17 +106,24 @@ public class VendingService {
             }
         }
 
-        // Get all tr elements (skip first header row later in the loop)
+        // Get all tr elements (skip first header row in the loop)
         Elements rows = (targetTable != null) ? targetTable.select("tr") : new Elements();
         int idStart = (page - 1) * size + 1;
 
         System.out.println("[VendingService] Searching for: " + itemName + " | Tables found: " + tables.size()
                 + " | Final Rows mapped: " + rows.size());
 
+        boolean isFirstRow = true;
         for (Element row : rows) {
+            // Explicitly skip the first row which is the header
+            if (isFirstRow) {
+                isFirstRow = false;
+                continue;
+            }
+
             Elements columns = row.select("td");
             // Vending table usually has 5 columns: Server, Item, Qty, Price, ShopName
-            if (columns.size() == 5) {
+            if (columns.size() >= 5) {
                 String serverName = columns.get(0).text();
                 // Column 4 is "Shop Name" (Vendor title)
                 String shopName = columns.get(4).text();
@@ -135,7 +142,8 @@ public class VendingService {
                     itemNameText = itemNameElement.text();
                 }
 
-                // Skip header rows if they get caught
+                // Additional safety check (already skipped first row, but check content just in
+                // case)
                 if (serverName.contains("상인명") || itemNameText.contains("아이템명"))
                     continue;
 
