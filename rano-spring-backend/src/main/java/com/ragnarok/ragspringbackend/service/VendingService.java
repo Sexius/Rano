@@ -239,6 +239,11 @@ public class VendingService {
         int safeSize = size > 0 ? size : 10;
         response.setTotalPages((int) Math.ceil((double) totalItems / safeSize));
 
+        // Diagnostic fields for cache analysis
+        response.setFetchedAt(java.time.Instant.now().toString());
+        response.setCacheHit(false); // This is a fresh fetch, not cached
+        System.out.println("[CACHE] fetchedAt=" + response.getFetchedAt() + ", cacheHit=false (fresh fetch)");
+
         return response;
     }
 

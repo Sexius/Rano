@@ -9,20 +9,66 @@ public class VendingPageResponse<T> {
     private int size;
     private int totalPages;
 
-    public VendingPageResponse() {}
+    // Diagnostic fields for cache analysis
+    private String fetchedAt;
+    private boolean cacheHit;
 
-    public List<T> getData() { return data; }
-    public void setData(List<T> data) { this.data = data; }
+    public VendingPageResponse() {
+    }
 
-    public int getTotal() { return total; }
-    public void setTotal(int total) { this.total = total; }
+    public List<T> getData() {
+        return data;
+    }
 
-    public int getPage() { return page; }
-    public void setPage(int page) { this.page = page; }
+    public void setData(List<T> data) {
+        this.data = data;
+    }
 
-    public int getSize() { return size; }
-    public void setSize(int size) { this.size = size; }
+    public int getTotal() {
+        return total;
+    }
 
-    public int getTotalPages() { return totalPages; }
-    public void setTotalPages(int totalPages) { this.totalPages = totalPages; }
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    public int getPage() {
+        return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public int getTotalPages() {
+        return totalPages;
+    }
+
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public String getFetchedAt() {
+        return fetchedAt;
+    }
+
+    public void setFetchedAt(String fetchedAt) {
+        this.fetchedAt = fetchedAt;
+    }
+
+    public boolean isCacheHit() {
+        return cacheHit;
+    }
+
+    public void setCacheHit(boolean cacheHit) {
+        this.cacheHit = cacheHit;
+    }
 }
