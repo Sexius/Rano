@@ -206,16 +206,23 @@ public class VendingService {
                     item.setImage_url(imageUrl);
                 }
 
-                // Client-side filtering
-                if (matchesQuery(itemNameText, itemName)) {
-                    System.out.println("[VendingService] ADDING item: " + itemNameText + " [Query: " + itemName + "]");
-                    items.add(item);
-                } else {
-                    System.out.println("[VendingService] SKIPPING item (No Match): " + itemNameText + " [Query: "
-                            + itemName + "]");
-                }
+                // [DEBUG] Temporarily bypass matchesQuery filter to isolate failure point
+                // Old: if (matchesQuery(itemNameText, itemName)) { ... }
+                // NEW: Always add item, log match result for diagnosis
+                boolean matches = matchesQuery(itemNameText, itemName);
+                System.out.println("[VendingService] PARSED item: " + itemNameText + " | matchesQuery=" + matches);
+
+                // HOTFIX: Bypass filter temporarily - add all items
+                items.add(item);
+                System.out.println("[VendingService] ADDING item (filter bypassed): " + itemNameText);
             }
         }
+
+        // [DEBUG] Final counts
+        System.out.println("[VendingService] ============ DIAGNOSTIC SUMMARY ============");
+        System.out.println("[VendingService] Total rows parsed (excl header): " + (rows.size() - 1));
+        System.out.println("[VendingService] Items after filter bypass: " + items.size());
+        System.out.println("[VendingService] ============================================");
 
         if (totalItems == 0 && !items.isEmpty()) {
             totalItems = items.size();
