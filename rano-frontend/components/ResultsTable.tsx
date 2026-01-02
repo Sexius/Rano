@@ -52,6 +52,28 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
+      // 1차 핫픽스: itemId 기반 조회 우선
+      const numericId = parseInt(itemId, 10);
+      if (!isNaN(numericId) && numericId > 0) {
+        try {
+          const idResponse = await fetch(`${apiUrl}/items/${numericId}`);
+          if (idResponse.ok) {
+            const match = await idResponse.json();
+            if (match && match.id) {
+              panelManager.updatePanelData(panelId, {
+                id: match.id,
+                name: match.nameKr || match.name || itemName,
+                description: (match.description || '설명 없음').replace(/\^[0-9A-Fa-f]{6}/g, '').replace(/\\n/g, '\n')
+              });
+              return; // 성공 시 즉시 리턴, fallback 방지
+            }
+          }
+        } catch (idError) {
+          console.warn('[Hotfix] ID-based lookup failed, falling back to name search:', idError);
+        }
+      }
+
+      // Fallback: 기존 이름 기반 검색 (itemId 없거나 404일 때)
       const baseName = itemName
         .replace(/^\[UNIQUE\]\s*/i, '')
         .replace(/^\+\d+/, '')
