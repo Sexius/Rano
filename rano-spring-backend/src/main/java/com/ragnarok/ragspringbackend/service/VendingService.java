@@ -220,11 +220,51 @@ public class VendingService {
             }
         }
 
-        // ========== ICON LOOKUP: Map item_name to DB item_id ==========
+        // ========== ICON LOOKUP: Batch query to eliminate N+1 ==========
+        long iconLookupStart = System.currentTimeMillis();
+        
+        // Step 1: Collect normalized names
+        java.util.Set<String> normalizedNames = new java.util.HashSet<>();
+        java.util.Map<String, String> rawToNormalizedMap = new java.util.HashMap<>();
         for (VendingItemDto item : items) {
-            String iconUrl = lookupItemIconUrl(item.getItem_name());
-            item.setItem_icon_url(iconUrl);
+            String raw = item.getItem_name();
+            String normalized = normalizeItemName(raw);
+            if (!normalized.isEmpty()) {
+                normalizedNames.add(normalized);
+                rawToNormalizedMap.put(raw, normalized);
+            }
         }
+        
+        // Step 2: Batch query (1 query instead of N)
+        java.util.Map<String, Integer> nameToIdMap = new java.util.HashMap<>();
+        if (!normalizedNames.isEmpty()) {
+            List<Item> matchedItems = itemRepository.findByNameKrIn(normalizedNames);
+            for (Item dbItem : matchedItems) {
+                nameToIdMap.put(dbItem.getNameKr(), dbItem.getId());
+            }
+            System.out.println("[VendingService] BATCH LOOKUP: " + normalizedNames.size() + " names → " + matchedItems.size() + " matched (1 query)");
+        }
+        
+        // Step 3: Apply iconUrl using map (no DB call)
+        int iconMatched = 0;
+        int iconMissed = 0;
+        for (VendingItemDto item : items) {
+            String normalized = rawToNormalizedMap.get(item.getItem_name());
+            if (normalized != null && nameToIdMap.containsKey(normalized)) {
+                Integer itemId = nameToIdMap.get(normalized);
+                item.setItem_icon_url("https://static.divine-pride.net/images/items/item/" + itemId + ".png");
+                iconMatched++;
+            } else {
+                // Fallback: prefix search (single query, only for misses)
+                String iconUrl = lookupItemIconUrlFallback(normalized);
+                item.setItem_icon_url(iconUrl);
+                if (iconUrl != null) iconMatched++;
+                else iconMissed++;
+            }
+        }
+        
+        long iconLookupTime = System.currentTimeMillis() - iconLookupStart;
+        System.out.println("[VendingService] ICON LOOKUP: matched=" + iconMatched + " missed=" + iconMissed + " time=" + iconLookupTime + "ms");
 
         // Concise summary log for matchesQuery analysis (next PR will restore filter)
         System.out.println("[VendingService] preCount=" + stage3_preFilterCount +
@@ -466,30 +506,23 @@ public class VendingService {
     }
 
     /**
-     * 아이템 이름으로 DB에서 아이콘 URL 조회
-     * 1차: 정규화된 이름으로 정확 매칭
-     * 2차: LIKE 검색으로 첫 번째 후보
-     * 매칭 시: Divine Pride 아이콘 URL 반환
-     * 미매칭 시: null 반환 (프론트에서 fallback 처리)
+     * Fallback: batch 매칭 실패 시 개별 조회
+     * 1차: Prefix 검색 (keyword%) - 인덱스 활용
+     * 2차: LIKE 검색 (%keyword%) - full scan
      */
-    private String lookupItemIconUrl(String rawItemName) {
-        if (rawItemName == null || rawItemName.isEmpty()) {
+    private String lookupItemIconUrlFallback(String normalized) {
+        if (normalized == null || normalized.isEmpty()) {
             return null;
         }
         
-        String normalized = normalizeItemName(rawItemName);
-        if (normalized.isEmpty()) {
-            return null;
-        }
-        
-        // 1차: 정확 매칭
-        Optional<Item> exactMatch = itemRepository.findByNameKr(normalized);
-        if (exactMatch.isPresent()) {
-            Integer itemId = exactMatch.get().getId();
+        // 1차: Prefix 검색 (인덱스 활용)
+        Optional<Item> prefixMatch = itemRepository.findFirstByNameKrStartingWith(normalized);
+        if (prefixMatch.isPresent()) {
+            Integer itemId = prefixMatch.get().getId();
             return "https://static.divine-pride.net/images/items/item/" + itemId + ".png";
         }
         
-        // 2차: LIKE 검색 (첫 번째 후보)
+        // 2차: LIKE 검색 (마지막 수단, full scan)
         Optional<Item> likeMatch = itemRepository.findFirstByNameKrContaining(normalized);
         if (likeMatch.isPresent()) {
             Integer itemId = likeMatch.get().getId();
