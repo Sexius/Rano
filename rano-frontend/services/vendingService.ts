@@ -29,7 +29,7 @@ function convertToMarketItem(dto: any, index: number): MarketItem {
         location: dto.location || '알 수 없음',
         created_at: now,
         category: dto.item_type || '기타',
-        image_placeholder: dto.image_url || `https://picsum.photos/seed/${dto.item_id || index}/64/64`,
+        image_placeholder: dto.item_icon_url || dto.image_url || `https://picsum.photos/seed/${dto.item_id || index}/64/64`,
         refine_level: 0,
         card_slots: 0,
         cards_equipped: [],

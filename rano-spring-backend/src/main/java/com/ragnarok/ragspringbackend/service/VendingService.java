@@ -2,6 +2,8 @@ package com.ragnarok.ragspringbackend.service;
 
 import com.ragnarok.ragspringbackend.dto.VendingItemDto;
 import com.ragnarok.ragspringbackend.dto.VendingPageResponse;
+import com.ragnarok.ragspringbackend.entity.Item;
+import com.ragnarok.ragspringbackend.repository.ItemRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,9 +14,17 @@ import org.springframework.cache.annotation.Cacheable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
 
 @Service
 public class VendingService {
+
+    private final ItemRepository itemRepository;
+
+    public VendingService(ItemRepository itemRepository) {
+        this.itemRepository = itemRepository;
+    }
 
     public VendingPageResponse<VendingItemDto> getAllVendingData(String server, int page, int size) {
         List<VendingItemDto> allItems = getSampleVendingData(server);
@@ -208,6 +218,12 @@ public class VendingService {
             } else {
                 stage2_parseFail++;
             }
+        }
+
+        // ========== ICON LOOKUP: Map item_name to DB item_id ==========
+        for (VendingItemDto item : items) {
+            String iconUrl = lookupItemIconUrl(item.getItem_name());
+            item.setItem_icon_url(iconUrl);
         }
 
         // Concise summary log for matchesQuery analysis (next PR will restore filter)
@@ -414,5 +430,73 @@ public class VendingService {
         }
 
         return matches;
+    }
+
+    /**
+     * 노점 아이템 이름 정규화
+     * - 제련 접두사 제거: "+10 ", "+15 " 등
+     * - 희귀도 태그 제거: [RARE], [UNIQUE], [LEGENDARY] 등
+     * - 괄호 내용 제거: (카드명), (옵션) 등
+     * - 대괄호 내용 제거: [2], [4] 슬롯 표시 등
+     * - 앞뒤 공백 정리
+     */
+    private String normalizeItemName(String itemName) {
+        if (itemName == null || itemName.isEmpty()) {
+            return "";
+        }
+        
+        String normalized = itemName;
+        
+        // 1. 제련 접두사 제거: "+숫자 " 패턴
+        normalized = normalized.replaceAll("^\\+\\d+\\s+", "");
+        
+        // 2. 희귀도 태그 제거: [RARE], [UNIQUE], [LEGENDARY], [EPIC] 등
+        normalized = normalized.replaceAll("\\[(RARE|UNIQUE|LEGENDARY|EPIC|COMMON|UNCOMMON)\\]\\s*", "");
+        
+        // 3. 괄호 내용 제거: (카드명), (옵션 설명) 등 - 맨 끝에 있는 경우
+        normalized = normalized.replaceAll("\\s*\\([^)]*\\)\\s*$", "");
+        
+        // 4. 대괄호 슬롯 표시 제거: [2], [4] 등 - 맨 끝에 있는 경우
+        normalized = normalized.replaceAll("\\s*\\[\\d+\\]\\s*$", "");
+        
+        // 5. 앞뒤 공백 정리
+        normalized = normalized.trim();
+        
+        return normalized;
+    }
+
+    /**
+     * 아이템 이름으로 DB에서 아이콘 URL 조회
+     * 1차: 정규화된 이름으로 정확 매칭
+     * 2차: LIKE 검색으로 첫 번째 후보
+     * 매칭 시: Divine Pride 아이콘 URL 반환
+     * 미매칭 시: null 반환 (프론트에서 fallback 처리)
+     */
+    private String lookupItemIconUrl(String rawItemName) {
+        if (rawItemName == null || rawItemName.isEmpty()) {
+            return null;
+        }
+        
+        String normalized = normalizeItemName(rawItemName);
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        
+        // 1차: 정확 매칭
+        Optional<Item> exactMatch = itemRepository.findByNameKr(normalized);
+        if (exactMatch.isPresent()) {
+            Integer itemId = exactMatch.get().getId();
+            return "https://static.divine-pride.net/images/items/item/" + itemId + ".png";
+        }
+        
+        // 2차: LIKE 검색 (첫 번째 후보)
+        Optional<Item> likeMatch = itemRepository.findFirstByNameKrContaining(normalized);
+        if (likeMatch.isPresent()) {
+            Integer itemId = likeMatch.get().getId();
+            return "https://static.divine-pride.net/images/items/item/" + itemId + ".png";
+        }
+        
+        // 미매칭: null 반환
+        return null;
     }
 }

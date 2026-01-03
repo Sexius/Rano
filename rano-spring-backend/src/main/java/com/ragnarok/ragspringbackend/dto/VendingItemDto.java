@@ -18,6 +18,7 @@ public class VendingItemDto {
     private String ssi; // Original site String identifier
     private String map_id; // Original site Map identifier
     private List<String> cards_equipped = new ArrayList<>(); // Cards and enchants
+    private String item_icon_url; // DB-provided item icon URL (DivinePrice based on item_id)
 
     // Constructors
     public VendingItemDto() {
@@ -157,5 +158,13 @@ public class VendingItemDto {
 
     public void setCards_equipped(List<String> cards_equipped) {
         this.cards_equipped = cards_equipped;
+    }
+
+    public String getItem_icon_url() {
+        return item_icon_url;
+    }
+
+    public void setItem_icon_url(String item_icon_url) {
+        this.item_icon_url = item_icon_url;
     }
 }
