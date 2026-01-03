@@ -48,6 +48,12 @@ public class VendingService {
 
     private VendingPageResponse<VendingItemDto> scrapeItemVending(String itemName, String server, int page, int size)
             throws IOException {
+        // ========== PERFORMANCE TIMING ==========
+        long totalStart = System.currentTimeMillis();
+        long fetchTime = 0, parseTime = 0, dbTime = 0, buildTime = 0;
+        int httpStatus = 0;
+        int contentLength = 0;
+        
         VendingPageResponse<VendingItemDto> response = new VendingPageResponse<>();
         List<VendingItemDto> items = new ArrayList<>();
         int totalItems = 0;
@@ -73,10 +79,9 @@ public class VendingService {
         // Correct endpoint: itemDealList.asp (per Chromium DevTools Ground Truth)
         String url = "https://ro.gnjoy.com/itemdeal/itemDealList.asp";
 
-        System.out.println("========== COUNT ANALYSIS START ==========");
-        System.out.println("[STAGE 0] Request: item=" + itemName + ", server=" + server + ", page=" + page);
-
-        Document doc = Jsoup.connect(url)
+        // ========== FETCH TIMING ==========
+        long fetchStart = System.currentTimeMillis();
+        org.jsoup.Connection.Response httpResponse = Jsoup.connect(url)
                 .userAgent(
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
                 .header("Referer", "https://ro.gnjoy.com/")
@@ -88,13 +93,19 @@ public class VendingService {
                 .data("curpage", String.valueOf(page))
                 .timeout(15000)
                 .method(org.jsoup.Connection.Method.GET)
-                .get();
+                .execute();
+        
+        httpStatus = httpResponse.statusCode();
+        String body = httpResponse.body();
+        contentLength = body != null ? body.length() : 0;
+        Document doc = httpResponse.parse();
+        fetchTime = System.currentTimeMillis() - fetchStart;
 
+        // ========== PARSE TIMING ==========
+        long parseStart = System.currentTimeMillis();
+        
         // STAGE 1: Raw HTML Stats
         stage1_htmlChars = doc.outerHtml().length();
-        System.out.println("[STAGE 1] Crawl URL: " + doc.location());
-        System.out.println("[STAGE 1] HTTP Status: 200 (success)");
-        System.out.println("[STAGE 1] HTML Length: " + stage1_htmlChars + " chars");
 
         // Parse Total from source site
         Element totalElement = doc.selectFirst("#searchResult strong");
@@ -220,8 +231,11 @@ public class VendingService {
             }
         }
 
-        // ========== ICON LOOKUP: Batch query to eliminate N+1 ==========
-        long iconLookupStart = System.currentTimeMillis();
+        // End parse timing
+        parseTime = System.currentTimeMillis() - parseStart;
+
+        // ========== DB LOOKUP TIMING ==========
+        long dbStart = System.currentTimeMillis();
         
         // Step 1: Collect normalized names
         java.util.Set<String> normalizedNames = new java.util.HashSet<>();
@@ -263,13 +277,10 @@ public class VendingService {
             }
         }
         
-        long iconLookupTime = System.currentTimeMillis() - iconLookupStart;
-        System.out.println("[VendingService] ICON LOOKUP: matched=" + iconMatched + " missed=" + iconMissed + " time=" + iconLookupTime + "ms");
+        dbTime = System.currentTimeMillis() - dbStart;
 
-        // Concise summary log for matchesQuery analysis (next PR will restore filter)
-        System.out.println("[VendingService] preCount=" + stage3_preFilterCount +
-                " postCount=" + items.size() +
-                " matchesQuery(pass/fail)=" + stage4_matchesQueryPass + "/" + stage4_matchesQueryFail);
+        // ========== BUILD TIMING ==========
+        long buildStart = System.currentTimeMillis();
 
         if (totalItems == 0 && !items.isEmpty()) {
             totalItems = items.size();
@@ -282,6 +293,12 @@ public class VendingService {
 
         int safeSize = size > 0 ? size : 10;
         response.setTotalPages((int) Math.ceil((double) totalItems / safeSize));
+
+        buildTime = System.currentTimeMillis() - buildStart;
+        long totalTime = System.currentTimeMillis() - totalStart;
+
+        // ========== FINAL PERFORMANCE LOG ==========
+        System.out.println("[VendingPerf] cache=MISS fetch=" + fetchTime + "ms parse=" + parseTime + "ms db=" + dbTime + "ms build=" + buildTime + "ms total=" + totalTime + "ms (http=" + httpStatus + " len=" + contentLength + ")");
 
         return response;
     }
