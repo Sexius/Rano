@@ -22,11 +22,11 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("vendingSearch");
         cacheManager.setCaffeine(Caffeine.newBuilder()
-                .expireAfterWrite(20, TimeUnit.SECONDS) // 20 second TTL
+                .expireAfterWrite(30, TimeUnit.SECONDS) // 30 second TTL
                 .maximumSize(10_000)
                 .recordStats()); // Enable stats for monitoring
 
-        System.out.println("[CacheConfig] Caffeine cache initialized: vendingSearch TTL=20s, maxSize=10000");
+        System.out.println("[CacheConfig] Caffeine cache initialized: vendingSearch TTL=30s, maxSize=10000");
         return cacheManager;
     }
 }

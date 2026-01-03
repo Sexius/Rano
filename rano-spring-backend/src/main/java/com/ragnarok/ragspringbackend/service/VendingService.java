@@ -8,9 +8,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
-import org.springframework.cache.annotation.Cacheable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +22,12 @@ import java.util.regex.Pattern;
 public class VendingService {
 
     private final ItemRepository itemRepository;
+    private final CacheManager cacheManager;
+    private static final int MAX_PAGE = 10;
 
-    public VendingService(ItemRepository itemRepository) {
+    public VendingService(ItemRepository itemRepository, CacheManager cacheManager) {
         this.itemRepository = itemRepository;
+        this.cacheManager = cacheManager;
     }
 
     public VendingPageResponse<VendingItemDto> getAllVendingData(String server, int page, int size) {
@@ -31,11 +35,45 @@ public class VendingService {
         return paginateResults(allItems, page, size);
     }
 
-    @Cacheable(value = "vendingSearch", key = "#itemName + #server + #page + #size")
     public VendingPageResponse<VendingItemDto> searchVendingByItem(String itemName, String server, int page, int size) {
-        System.out.println("[VendingService] SEARCH REQUEST RECEIVED: " + itemName);
+        long startTime = System.currentTimeMillis();
+        
+        // Page limit check
+        if (page > MAX_PAGE) {
+            System.out.println("[VendingPerf] cache=BLOCKED page=" + page + " exceeds MAX_PAGE=" + MAX_PAGE);
+            VendingPageResponse<VendingItemDto> emptyResponse = new VendingPageResponse<>();
+            emptyResponse.setData(new ArrayList<>());
+            emptyResponse.setTotal(0);
+            emptyResponse.setPage(page);
+            emptyResponse.setTotalPages(0);
+            return emptyResponse;
+        }
+        
+        // Cache key
+        String cacheKey = server + "|" + itemName + "|" + page + "|" + size;
+        Cache cache = cacheManager.getCache("vendingSearch");
+        
+        // Cache lookup
+        if (cache != null) {
+            @SuppressWarnings("unchecked")
+            VendingPageResponse<VendingItemDto> cached = cache.get(cacheKey, VendingPageResponse.class);
+            if (cached != null) {
+                long elapsed = System.currentTimeMillis() - startTime;
+                System.out.println("[VendingPerf] cache=HIT total=" + elapsed + "ms key=" + cacheKey);
+                return cached;
+            }
+        }
+        
+        // Cache MISS - fetch from external source
         try {
-            return scrapeItemVending(itemName, server, page, size);
+            VendingPageResponse<VendingItemDto> result = scrapeItemVending(itemName, server, page, size);
+            
+            // Store in cache
+            if (cache != null) {
+                cache.put(cacheKey, result);
+            }
+            
+            return result;
         } catch (Exception e) {
             System.err.println("[VendingService] Crawl Failed. Item: " + itemName + ", Server: " + server);
             e.printStackTrace();
