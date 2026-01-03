@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { MarketItem } from '../types';
 import { X, Store, MapPin, Copy, Shield, Zap, Clock, Info, Loader2 } from 'lucide-react';
+import { createImageErrorHandler } from '../utils/imageFallback';
 
 interface ItemDetailViewProps {
   item: MarketItem | null;
@@ -194,7 +195,7 @@ const ItemDetailView: React.FC<ItemDetailViewProps> = ({ item, onClose }) => {
                           src={`https://static.divine-pride.net/images/items/collection/${cardInfo.id}.png`}
                           alt={cardInfo.name}
                           className="w-10 h-10 object-contain"
-                          onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
+                          onError={createImageErrorHandler(cardInfo.name)}
                         />
                       )}
                       <div>

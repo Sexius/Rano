@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Pin, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { PanelState, ItemInfo, CardInfo } from '../hooks/usePanelManager';
+import { createImageErrorHandler } from '../utils/imageFallback';
 
 interface MobileDrawerProps {
     inspectorPanel: PanelState | null;
@@ -85,7 +86,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
                                 src={`https://static.divine-pride.net/images/items/collection/${itemData.id}.png`}
                                 alt={itemData.name}
                                 className="w-10 h-10 object-contain bg-gray-50 rounded-lg border border-gray-100 p-1"
-                                onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/909.png'}
+                                onError={createImageErrorHandler(itemData.name)}
                             />
                         )}
                         <div className="min-w-0">
@@ -153,7 +154,7 @@ const MobileDrawer: React.FC<MobileDrawerProps> = ({
                                                     src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
                                                     alt={card.name}
                                                     className="w-10 h-10 object-contain bg-white rounded-lg border border-gray-200 p-1"
-                                                    onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
+                                                    onError={createImageErrorHandler(card.name)}
                                                 />
                                             )}
                                             <div className="flex-1 min-w-0">

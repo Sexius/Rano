@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { PanelState, ItemInfo, CardInfo } from '../hooks/usePanelManager';
+import { createImageErrorHandler } from '../utils/imageFallback';
 
 interface FloatingPanelProps {
     panel: PanelState;
@@ -48,7 +49,7 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
                             src={`https://static.divine-pride.net/images/items/collection/${itemData.id}.png`}
                             alt={itemData.name}
                             className="w-12 h-12 object-contain bg-white rounded-lg border border-gray-100 p-1 flex-shrink-0"
-                            onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/909.png'}
+                            onError={createImageErrorHandler(itemData.name)}
                         />
                     )}
                     <div className="min-w-0 flex-1">
@@ -110,7 +111,7 @@ const FloatingPanel: React.FC<FloatingPanelProps> = ({
                                                 src={`https://static.divine-pride.net/images/items/collection/${card.id}.png`}
                                                 alt={card.name}
                                                 className="w-10 h-10 object-contain bg-white rounded-lg border border-gray-200 p-1 flex-shrink-0"
-                                                onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/4001.png'}
+                                                onError={createImageErrorHandler(card.name)}
                                             />
                                         )}
                                         <div className="flex-1 min-w-0">

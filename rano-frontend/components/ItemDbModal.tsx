@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { X, Box, Coins, Scale, TrendingUp, Users, Info } from 'lucide-react';
+import { createImageErrorHandler } from '../utils/imageFallback';
 
 interface ItemDbEntry {
     id: number;
@@ -40,7 +41,7 @@ const ItemDbModal: React.FC<ItemDbModalProps> = ({ item, onClose }) => {
                 <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-start">
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-16 bg-white rounded-xl border border-gray-200 shadow-sm flex items-center justify-center p-1 relative">
-                            <img src={`https://static.divine-pride.net/images/items/collection/${item.id}.png`} onError={(e) => (e.target as HTMLImageElement).src = 'https://static.divine-pride.net/images/items/collection/501.png'} alt={item.name} className="w-full h-full object-contain rounded-lg" />
+                            <img src={`https://static.divine-pride.net/images/items/collection/${item.id}.png`} onError={createImageErrorHandler(item.name, item.type)} alt={item.name} className="w-full h-full object-contain rounded-lg" />
                             {item.slots > 0 && (
                                 <div className="absolute -bottom-1.5 -right-1.5 bg-gray-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-md border border-white shadow-sm">
                                     {item.slots}

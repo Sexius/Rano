@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Database, Grid, List, X, Sword, Shield, Sparkles, Scroll, Box, Crown, Check, Loader2 } from 'lucide-react';
 import ItemDbModal, { ItemDbEntry } from './ItemDbModal';
+import { createImageErrorHandler } from '../utils/imageFallback';
 
 // DB Item from backend
 interface DbItem {
@@ -341,7 +342,7 @@ const ItemInfoView: React.FC = () => {
                   <img
                     src={`https://static.divine-pride.net/images/items/item/${item.id}.png`}
                     alt={item.name}
-                    onError={(e) => { (e.target as HTMLImageElement).src = `https://via.placeholder.com/75?text=No+Img`; }}
+                    onError={createImageErrorHandler(item.name, item.type)}
                     className={`object-contain mix-blend-multiply opacity-90 group-hover:scale-110 transition-transform ${viewMode === 'grid' ? 'w-24 h-24' : 'w-10 h-10'}`}
                   />
                   <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
