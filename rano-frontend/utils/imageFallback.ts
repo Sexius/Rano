@@ -76,13 +76,24 @@ export function createImageErrorHandler(name?: string | null, type?: string | nu
     if (!target) return;
     
     const originalSrc = target.src;
-    const fallback = getFallbackImage(name, type);
+    
+    // Extract itemId from src for debugging
+    const idMatch = originalSrc.match(/\/(\d+)\.png$/);
+    const itemId = idMatch ? idMatch[1] : 'unknown';
+    
+    let fallback = getFallbackImage(name, type);
+    
+    // 가드: fallback이 없거나 원본과 같으면 확정된 512로 강제
+    if (!fallback || fallback === originalSrc) {
+      fallback = ULTIMATE_FALLBACK;
+    }
     
     // 디버그 로그 (prod에서도 문제 추적용)
     console.warn('[ImageFallback] Failed:', {
       name: name || 'unknown',
+      itemId,
       originalSrc,
-      fallback,
+      fallbackSrc: fallback,
       category: getItemCategory(name, type)
     });
     
