@@ -195,37 +195,25 @@ public class VendingService {
 
                 stage3_preFilterCount++;
 
-                // STAGE 4: matchesQuery check (currently bypassed but logged)
+                // matchesQuery check - currently bypassed, will restore in next PR
                 boolean matches = matchesQuery(itemNameText, itemName);
                 if (matches) {
                     stage4_matchesQueryPass++;
                 } else {
                     stage4_matchesQueryFail++;
-                    if (stage4_failedItems.size() < 5) {
-                        stage4_failedItems.add(itemNameText);
-                    }
                 }
 
-                // HOTFIX: Bypass filter - add all items
+                // BYPASS: Add all items (matchesQuery filter disabled)
                 items.add(item);
             } else {
                 stage2_parseFail++;
             }
         }
 
-        // ========== STAGE SUMMARY OUTPUT ==========
-        System.out.println("[STAGE 2] Parse Success: " + stage2_parseSuccess);
-        System.out.println("[STAGE 2] Parse Fail: " + stage2_parseFail);
-        System.out.println("[STAGE 3] Pre-Filter Count: " + stage3_preFilterCount);
-        System.out.println("[STAGE 4] matchesQuery PASS: " + stage4_matchesQueryPass);
-        System.out.println("[STAGE 4] matchesQuery FAIL: " + stage4_matchesQueryFail);
-        if (!stage4_failedItems.isEmpty()) {
-            System.out.println("[STAGE 4] Failed Items Sample: " + stage4_failedItems);
-        }
-        System.out.println("[STAGE 5] Dedup: N/A (no dedup logic)");
-        System.out.println("[STAGE 6] Final items.size(): " + items.size());
-        System.out.println("[STAGE 6] Response total: " + totalItems);
-        System.out.println("========== COUNT ANALYSIS END ==========");
+        // Concise summary log for matchesQuery analysis (next PR will restore filter)
+        System.out.println("[VendingService] preCount=" + stage3_preFilterCount +
+                " postCount=" + items.size() +
+                " matchesQuery(pass/fail)=" + stage4_matchesQueryPass + "/" + stage4_matchesQueryFail);
 
         if (totalItems == 0 && !items.isEmpty()) {
             totalItems = items.size();
@@ -238,11 +226,6 @@ public class VendingService {
 
         int safeSize = size > 0 ? size : 10;
         response.setTotalPages((int) Math.ceil((double) totalItems / safeSize));
-
-        // Diagnostic fields for cache analysis
-        response.setFetchedAt(java.time.Instant.now().toString());
-        response.setCacheHit(false); // This is a fresh fetch, not cached
-        System.out.println("[CACHE] fetchedAt=" + response.getFetchedAt() + ", cacheHit=false (fresh fetch)");
 
         return response;
     }

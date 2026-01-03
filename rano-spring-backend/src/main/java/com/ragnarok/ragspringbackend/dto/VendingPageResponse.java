@@ -9,10 +9,6 @@ public class VendingPageResponse<T> {
     private int size;
     private int totalPages;
 
-    // Diagnostic fields for cache analysis
-    private String fetchedAt;
-    private boolean cacheHit;
-
     public VendingPageResponse() {
     }
 
@@ -54,21 +50,5 @@ public class VendingPageResponse<T> {
 
     public void setTotalPages(int totalPages) {
         this.totalPages = totalPages;
-    }
-
-    public String getFetchedAt() {
-        return fetchedAt;
-    }
-
-    public void setFetchedAt(String fetchedAt) {
-        this.fetchedAt = fetchedAt;
-    }
-
-    public boolean isCacheHit() {
-        return cacheHit;
-    }
-
-    public void setCacheHit(boolean cacheHit) {
-        this.cacheHit = cacheHit;
     }
 }
