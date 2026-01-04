@@ -2,8 +2,6 @@ package com.ragnarok.ragspringbackend.service;
 
 import com.ragnarok.ragspringbackend.dto.VendingItemDto;
 import com.ragnarok.ragspringbackend.dto.VendingPageResponse;
-import com.ragnarok.ragspringbackend.entity.Item;
-import com.ragnarok.ragspringbackend.repository.ItemRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -15,18 +13,16 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Service
 public class VendingService {
 
-    private final ItemRepository itemRepository;
+    private final ItemCacheService itemCacheService;
     private final CacheManager cacheManager;
     private static final int MAX_PAGE = 10;
 
-    public VendingService(ItemRepository itemRepository, CacheManager cacheManager) {
-        this.itemRepository = itemRepository;
+    public VendingService(ItemCacheService itemCacheService, CacheManager cacheManager) {
+        this.itemCacheService = itemCacheService;
         this.cacheManager = cacheManager;
     }
 
@@ -272,46 +268,36 @@ public class VendingService {
         // End parse timing
         parseTime = System.currentTimeMillis() - parseStart;
 
-        // ========== DB LOOKUP TIMING ==========
+        // ========== MEMORY LOOKUP (NO DB) ==========
         long dbStart = System.currentTimeMillis();
         
-        // Step 1: Collect normalized names
-        java.util.Set<String> normalizedNames = new java.util.HashSet<>();
-        java.util.Map<String, String> rawToNormalizedMap = new java.util.HashMap<>();
-        for (VendingItemDto item : items) {
-            String raw = item.getItem_name();
-            String normalized = normalizeItemName(raw);
-            if (!normalized.isEmpty()) {
-                normalizedNames.add(normalized);
-                rawToNormalizedMap.put(raw, normalized);
-            }
-        }
-        
-        // Step 2: Batch query (1 query instead of N)
-        java.util.Map<String, Integer> nameToIdMap = new java.util.HashMap<>();
-        if (!normalizedNames.isEmpty()) {
-            List<Item> matchedItems = itemRepository.findByNameKrIn(normalizedNames);
-            for (Item dbItem : matchedItems) {
-                nameToIdMap.put(dbItem.getNameKr(), dbItem.getId());
-            }
-            System.out.println("[VendingService] BATCH LOOKUP: " + normalizedNames.size() + " names → " + matchedItems.size() + " matched (1 query)");
-        }
-        
-        // Step 3: Apply iconUrl using map (no DB call)
         int iconMatched = 0;
         int iconMissed = 0;
         for (VendingItemDto item : items) {
-            String normalized = rawToNormalizedMap.get(item.getItem_name());
-            if (normalized != null && nameToIdMap.containsKey(normalized)) {
-                Integer itemId = nameToIdMap.get(normalized);
+            String normalized = normalizeItemName(item.getItem_name());
+            if (normalized.isEmpty()) {
+                iconMissed++;
+                continue;
+            }
+            
+            // 1차: 정확 매칭 (O(1))
+            Integer itemId = itemCacheService.getIdByName(normalized);
+            
+            // 2차: prefix 매칭
+            if (itemId == null) {
+                itemId = itemCacheService.getIdByPrefix(normalized);
+            }
+            
+            // 3차: contains 매칭 (마지막 수단)
+            if (itemId == null) {
+                itemId = itemCacheService.getIdByContains(normalized);
+            }
+            
+            if (itemId != null) {
                 item.setItem_icon_url("https://static.divine-pride.net/images/items/item/" + itemId + ".png");
                 iconMatched++;
             } else {
-                // Fallback: prefix search (single query, only for misses)
-                String iconUrl = lookupItemIconUrlFallback(normalized);
-                item.setItem_icon_url(iconUrl);
-                if (iconUrl != null) iconMatched++;
-                else iconMissed++;
+                iconMissed++;
             }
         }
         
