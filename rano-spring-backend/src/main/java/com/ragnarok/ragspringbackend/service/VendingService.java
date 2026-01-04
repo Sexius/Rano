@@ -95,6 +95,22 @@ public class VendingService {
         });
     }
 
+    /**
+     * 직접 크롤링 (수집 서비스용 - 캐시 우회)
+     * VendingCollectorService에서 DB 적재용으로 호출
+     */
+    public VendingPageResponse<VendingItemDto> searchVendingByItemDirect(String server, String keyword, int page, int size) {
+        try {
+            return scrapeItemVending(keyword, server, page, size);
+        } catch (Exception e) {
+            System.err.println("[VendingService] Direct crawl failed: " + e.getMessage());
+            VendingPageResponse<VendingItemDto> empty = new VendingPageResponse<>();
+            empty.setData(new ArrayList<>());
+            empty.setTotal(0);
+            return empty;
+        }
+    }
+
     private VendingPageResponse<VendingItemDto> scrapeItemVending(String itemName, String server, int page, int size)
             throws IOException {
         // ========== PERFORMANCE TIMING ==========

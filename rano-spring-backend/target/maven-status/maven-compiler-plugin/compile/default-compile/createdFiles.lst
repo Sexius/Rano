@@ -2,10 +2,14 @@ com\ragnarok\ragspringbackend\dto\VendingItemDto.class
 com\ragnarok\ragspringbackend\RagSpringBackendApplication.class
 com\ragnarok\ragspringbackend\controller\ItemController.class
 com\ragnarok\ragspringbackend\controller\SkillController.class
+com\ragnarok\ragspringbackend\service\VendingSearchService.class
 com\ragnarok\ragspringbackend\dto\DivinePrideSearchResponse.class
+com\ragnarok\ragspringbackend\repository\VendingListingRepository.class
 com\ragnarok\ragspringbackend\dto\SkillDto.class
+com\ragnarok\ragspringbackend\service\VendingCollectorService.class
 com\ragnarok\ragspringbackend\entity\Skill.class
 com\ragnarok\ragspringbackend\config\CacheConfig.class
+com\ragnarok\ragspringbackend\entity\VendingListing.class
 com\ragnarok\ragspringbackend\dto\DivinePrideItemDto.class
 com\ragnarok\ragspringbackend\entity\Item.class
 com\ragnarok\ragspringbackend\config\CorsConfig.class
@@ -15,6 +19,7 @@ com\ragnarok\ragspringbackend\controller\CalculatorController.class
 com\ragnarok\ragspringbackend\controller\VendingController.class
 com\ragnarok\ragspringbackend\controller\HealthController.class
 com\ragnarok\ragspringbackend\dto\VendingPageResponse.class
+com\ragnarok\ragspringbackend\service\VendingSearchService$VendingSearchResponse.class
 com\ragnarok\ragspringbackend\repository\SkillRepository.class
 com\ragnarok\ragspringbackend\service\ItemService.class
 com\ragnarok\ragspringbackend\service\SkillService.class
