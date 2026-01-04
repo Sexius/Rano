@@ -5,6 +5,7 @@ com\ragnarok\ragspringbackend\controller\SkillController.class
 com\ragnarok\ragspringbackend\dto\DivinePrideSearchResponse.class
 com\ragnarok\ragspringbackend\dto\SkillDto.class
 com\ragnarok\ragspringbackend\entity\Skill.class
+com\ragnarok\ragspringbackend\config\CacheConfig.class
 com\ragnarok\ragspringbackend\dto\DivinePrideItemDto.class
 com\ragnarok\ragspringbackend\entity\Item.class
 com\ragnarok\ragspringbackend\config\CorsConfig.class
@@ -18,6 +19,7 @@ com\ragnarok\ragspringbackend\repository\SkillRepository.class
 com\ragnarok\ragspringbackend\service\ItemService.class
 com\ragnarok\ragspringbackend\service\SkillService.class
 com\ragnarok\ragspringbackend\util\RagDescriptionUtils.class
+com\ragnarok\ragspringbackend\service\ItemCacheService.class
 com\ragnarok\ragspringbackend\service\VendingService.class
 com\ragnarok\ragspringbackend\controller\DivinePrideController.class
 com\ragnarok\ragspringbackend\repository\ItemRepository.class

@@ -560,32 +560,4 @@ public class VendingService {
         
         return normalized;
     }
-
-    /**
-     * Fallback: batch 매칭 실패 시 개별 조회
-     * 1차: Prefix 검색 (keyword%) - 인덱스 활용
-     * 2차: LIKE 검색 (%keyword%) - full scan
-     */
-    private String lookupItemIconUrlFallback(String normalized) {
-        if (normalized == null || normalized.isEmpty()) {
-            return null;
-        }
-        
-        // 1차: Prefix 검색 (인덱스 활용)
-        Optional<Item> prefixMatch = itemRepository.findFirstByNameKrStartingWith(normalized);
-        if (prefixMatch.isPresent()) {
-            Integer itemId = prefixMatch.get().getId();
-            return "https://static.divine-pride.net/images/items/item/" + itemId + ".png";
-        }
-        
-        // 2차: LIKE 검색 (마지막 수단, full scan)
-        Optional<Item> likeMatch = itemRepository.findFirstByNameKrContaining(normalized);
-        if (likeMatch.isPresent()) {
-            Integer itemId = likeMatch.get().getId();
-            return "https://static.divine-pride.net/images/items/item/" + itemId + ".png";
-        }
-        
-        // 미매칭: null 반환
-        return null;
-    }
 }
