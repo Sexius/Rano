@@ -19,7 +19,6 @@ public class VendingService {
 
     private final ItemCacheService itemCacheService;
     private final CacheManager cacheManager;
-    private static final int MAX_PAGE = 10;
 
     public VendingService(ItemCacheService itemCacheService, CacheManager cacheManager) {
         this.itemCacheService = itemCacheService;
@@ -34,33 +33,31 @@ public class VendingService {
     public VendingPageResponse<VendingItemDto> searchVendingByItem(String itemName, String server, int page, int size) {
         long startTime = System.currentTimeMillis();
         
-        // Page limit check
-        if (page > MAX_PAGE) {
-            System.out.println("[VendingPerf] cache=BLOCKED page=" + page + " exceeds MAX_PAGE=" + MAX_PAGE);
-            VendingPageResponse<VendingItemDto> emptyResponse = new VendingPageResponse<>();
-            emptyResponse.setData(new ArrayList<>());
-            emptyResponse.setTotal(0);
-            emptyResponse.setPage(page);
-            emptyResponse.setTotalPages(0);
-            return emptyResponse;
+        // Page warning (no blocking)
+        if (page > 50) {
+            System.out.println("[VendingPerf] page=" + page + " is high, performance may degrade");
         }
         
         // Cache key
         String cacheKey = server + "|" + itemName + "|" + page + "|" + size;
         Cache cache = cacheManager.getCache("vendingSearch");
         
-        // Cache lookup
+        // Stale-While-Revalidate: Check cache first
         if (cache != null) {
             @SuppressWarnings("unchecked")
             VendingPageResponse<VendingItemDto> cached = cache.get(cacheKey, VendingPageResponse.class);
             if (cached != null) {
                 long elapsed = System.currentTimeMillis() - startTime;
                 System.out.println("[VendingPerf] cache=HIT total=" + elapsed + "ms key=" + cacheKey);
+                
+                // Background refresh (async) - revalidate stale data
+                triggerBackgroundRefresh(itemName, server, page, size, cacheKey, cache);
+                
                 return cached;
             }
         }
         
-        // Cache MISS - fetch from external source
+        // Cache MISS - sync fetch (first request)
         try {
             VendingPageResponse<VendingItemDto> result = scrapeItemVending(itemName, server, page, size);
             
@@ -78,6 +75,24 @@ public class VendingService {
             emptyResponse.setTotal(0);
             return emptyResponse;
         }
+    }
+
+    /**
+     * Stale-While-Revalidate: Background refresh
+     * Triggers async crawl to update cache while serving stale data
+     */
+    private void triggerBackgroundRefresh(String itemName, String server, int page, int size, String cacheKey, Cache cache) {
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            try {
+                long start = System.currentTimeMillis();
+                VendingPageResponse<VendingItemDto> fresh = scrapeItemVending(itemName, server, page, size);
+                cache.put(cacheKey, fresh);
+                long elapsed = System.currentTimeMillis() - start;
+                System.out.println("[VendingPerf] cache=REVALIDATE key=" + cacheKey + " time=" + elapsed + "ms");
+            } catch (Exception e) {
+                System.err.println("[VendingService] Background refresh failed: " + e.getMessage());
+            }
+        });
     }
 
     private VendingPageResponse<VendingItemDto> scrapeItemVending(String itemName, String server, int page, int size)
