@@ -123,8 +123,9 @@ public class VendingCollectorService {
 
         String normalizedName = normalizeItemName(dto.getItem_name());
         
-        Optional<VendingListing> existing = listingRepository.findByServerAndMapIdAndSsiAndItemName(
-            server, dto.getMap_id(), dto.getSsi(), dto.getItem_name()
+        // price 포함하여 조회 (UNIQUE 제약: server, map_id, ssi, item_name, price)
+        Optional<VendingListing> existing = listingRepository.findByServerAndMapIdAndSsiAndItemNameAndPrice(
+            server, dto.getMap_id(), dto.getSsi(), dto.getItem_name(), dto.getPrice()
         );
 
         VendingListing listing;

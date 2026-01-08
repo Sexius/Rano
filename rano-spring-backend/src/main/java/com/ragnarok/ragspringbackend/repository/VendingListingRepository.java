@@ -55,9 +55,9 @@ public interface VendingListingRepository extends JpaRepository<VendingListing, 
     @Query("SELECT COUNT(v) FROM VendingListing v WHERE v.server = :server AND v.itemName LIKE :keyword%")
     long countByServerAndItemNamePrefix(@Param("server") String server, @Param("keyword") String keyword);
 
-    // 7. Upsert 용 조회 (수집 잡에서 사용)
-    Optional<VendingListing> findByServerAndMapIdAndSsiAndItemName(
-        String server, String mapId, String ssi, String itemName
+    // 7. Upsert 용 조회 (수집 잡에서 사용) - price 포함
+    Optional<VendingListing> findByServerAndMapIdAndSsiAndItemNameAndPrice(
+        String server, String mapId, String ssi, String itemName, Long price
     );
 
     // 8. 오래된 데이터 삭제 (정리용)

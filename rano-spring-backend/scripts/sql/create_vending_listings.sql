@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS vending_listings (
     scraped_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     source_page INTEGER DEFAULT 1,
     
-    -- 중복 방지: map_id + ssi + item_name 기준
-    -- (동일 노점의 동일 아이템은 1개만 저장, 가격/수량은 업데이트)
-    CONSTRAINT uq_vending_listing UNIQUE (server, map_id, ssi, item_name)
+    -- 중복 방지: map_id + ssi + item_name + price 기준
+    -- (동일 노점의 동일 아이템+가격은 1개만 저장)
+    CONSTRAINT uq_vending_listing UNIQUE (server, map_id, ssi, item_name, price)
 );
 
 -- 2. 인덱스
