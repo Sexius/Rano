@@ -12,7 +12,6 @@ interface SearchFiltersProps {
 const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) => {
   const [query, setQuery] = useState('');
   const [server, setServer] = useState(SERVERS[0]);
-  const [category, setCategory] = useState(CATEGORIES[0]);
   const [placeholder] = useState(DEFAULT_SEARCH_PLACEHOLDERS[Math.floor(Math.random() * DEFAULT_SEARCH_PLACEHOLDERS.length)]);
 
   // Recent Search State
@@ -57,20 +56,19 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
     if (!query.trim()) return;
     saveRecentSearch(query);
     setShowRecent(false);
-    onSearch({ query, server, category });
+    onSearch({ query, server, category: '전체' });
   };
 
   const handleRecentClick = (term: string) => {
     setQuery(term);
     saveRecentSearch(term);
     setShowRecent(false);
-    onSearch({ query: term, server, category });
+    onSearch({ query: term, server, category: '전체' });
   };
 
   const handleReset = () => {
     setQuery('');
     setServer(SERVERS[0]);
-    setCategory(CATEGORIES[0]);
   }
 
   return (
@@ -138,7 +136,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
 
         {/* Bottom Row: Filters */}
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="w-full md:w-1/4">
+          <div className="w-full md:w-1/3">
             <label htmlFor="server-select" className="block text-xs font-bold text-gray-500 mb-1.5 ml-1">
               서버
             </label>
@@ -151,27 +149,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
               >
                 {SERVERS.map((s) => (
                   <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="w-full md:w-1/4">
-            <label htmlFor="category-select" className="block text-xs font-bold text-gray-500 mb-1.5 ml-1">
-              카테고리
-            </label>
-            <div className="relative">
-              <select
-                id="category-select"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="block w-full px-3 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-kafra-100 focus:border-kafra-500 bg-white shadow-sm transition-shadow appearance-none cursor-pointer hover:border-gray-300"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">

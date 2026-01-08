@@ -1,20 +1,10 @@
 import { ServerType, ItemCategory } from './types';
 
-// kRO Servers
+// kRO Servers (실제 서버 3개만)
 export const SERVERS = [
-  '전체 서버',
   '바포메트',
-  '다이크',
-  '프리야',
-  '사라',
-  '토르',
-  '아이리스',
-  '케이아스',
-  '로키',
-  '리디아',
-  '오딘',
-  '타나토스',
-  '란드그리스',
+  '이그드라실',
+  '이프리트',
 ];
 
 export const CATEGORIES = [
