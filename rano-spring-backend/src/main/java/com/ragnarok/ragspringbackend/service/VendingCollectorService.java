@@ -53,6 +53,9 @@ public class VendingCollectorService {
     public int collectSync(String server, String keyword, int maxPages) {
         String cooldownKey = server + "|" + keyword;
         
+        // 디버그 로그 활성화: keyword에 "천공" 포함 시에만
+        boolean debugLog = keyword != null && keyword.contains("천공");
+        
         // 쿨다운 체크
         LocalDateTime lastTime = lastCrawlTime.get(cooldownKey);
         if (lastTime != null && lastTime.plusSeconds(COOLDOWN_SECONDS).isAfter(LocalDateTime.now())) {
@@ -82,7 +85,7 @@ public class VendingCollectorService {
 
                     // DB upsert
                     for (VendingItemDto dto : response.getData()) {
-                        totalSaved += upsertListing(server, dto, page);
+                        totalSaved += upsertListing(server, dto, page, debugLog);
                     }
 
                     // Rate limit: 페이지 간 1초 대기
@@ -116,16 +119,23 @@ public class VendingCollectorService {
     /**
      * DB upsert (기존 레코드 업데이트 or 신규 삽입)
      */
-    private int upsertListing(String server, VendingItemDto dto, int page) {
+    private int upsertListing(String server, VendingItemDto dto, int page, boolean debugLog) {
         if (dto.getMap_id() == null || dto.getSsi() == null) {
             return 0;  // map_id, ssi 없으면 저장 불가
         }
 
         String normalizedName = normalizeItemName(dto.getItem_name());
+        String rawName = dto.getItem_name();  // 크롤링 원문
+        
+        if (debugLog) {
+            System.out.println("[VendingCollector] RAW: " + rawName);
+            System.out.println("[VendingCollector] NORMALIZED: " + normalizedName);
+            System.out.println("[VendingCollector] UPSERT_LOOKUP_KEY: " + rawName);
+        }
         
         // price 포함하여 조회 (UNIQUE 제약: server, map_id, ssi, item_name, price)
         Optional<VendingListing> existing = listingRepository.findByServerAndMapIdAndSsiAndItemNameAndPrice(
-            server, dto.getMap_id(), dto.getSsi(), dto.getItem_name(), dto.getPrice()
+            server, dto.getMap_id(), dto.getSsi(), rawName, dto.getPrice()
         );
 
         VendingListing listing;
@@ -135,14 +145,21 @@ public class VendingCollectorService {
             listing.setPrice(dto.getPrice());
             listing.setAmount(dto.getQuantity());
             listing.setScrapedAt(LocalDateTime.now());
+            if (debugLog) {
+                System.out.println("[VendingCollector] ACTION: UPDATE existing row");
+            }
         } else {
             // 신규 생성
             listing = new VendingListing();
             listing.setServer(server);
             listing.setMapId(dto.getMap_id());
             listing.setSsi(dto.getSsi());
-            listing.setItemName(dto.getItem_name());
+            listing.setItemName(rawName);  // DB에 RAW 원문 저장
             listing.setItemNameNormalized(normalizedName);
+            if (debugLog) {
+                System.out.println("[VendingCollector] DB_SAVE_ITEM_NAME: " + rawName);
+                System.out.println("[VendingCollector] ACTION: INSERT new row");
+            }
             listing.setPrice(dto.getPrice());
             listing.setAmount(dto.getQuantity());
             listing.setShopName(dto.getVendor_info());
