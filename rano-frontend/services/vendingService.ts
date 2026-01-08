@@ -72,8 +72,8 @@ export const searchVendingItems = async (
 
         params.append('page', page.toString());
         params.append('size', '10');
-
-        const response = await fetch(`${baseUrl}/vending?${params.toString()}`);
+        // ★ V2 API 호출 (DB 스냅샷 검색 - 빠름)
+        const response = await fetch(`${baseUrl}/vending/v2/search?${params.toString()}`);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
