@@ -77,7 +77,7 @@ public class VendingController {
     public ResponseEntity<Map<String, Object>> triggerCollection(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "baphomet") String server,
-            @RequestParam(defaultValue = "15") int maxPages) {
+            @RequestParam(defaultValue = "3") int maxPages) {
         try {
             int saved = vendingCollectorService.collectSync(server, keyword, maxPages);
             return ResponseEntity.ok(Map.of(

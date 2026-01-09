@@ -2,6 +2,7 @@ package com.ragnarok.ragspringbackend.service;
 
 import com.ragnarok.ragspringbackend.dto.VendingItemDto;
 import com.ragnarok.ragspringbackend.dto.VendingPageResponse;
+import com.ragnarok.ragspringbackend.exception.RateLimitedException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -98,10 +99,21 @@ public class VendingService {
     /**
      * 직접 크롤링 (수집 서비스용 - 캐시 우회)
      * VendingCollectorService에서 DB 적재용으로 호출
+     * @throws RateLimitedException 429 발생 시
      */
     public VendingPageResponse<VendingItemDto> searchVendingByItemDirect(String server, String keyword, int page, int size) {
         try {
             return scrapeItemVending(keyword, server, page, size);
+        } catch (org.jsoup.HttpStatusException e) {
+            if (e.getStatusCode() == 429) {
+                System.err.println("[VendingService] 429 Rate Limited: status=429 server=" + server + " keyword=" + keyword + " page=" + page);
+                throw new RateLimitedException(server, keyword, page, "HTTP 429 Rate Limited");
+            }
+            System.err.println("[VendingService] Direct crawl failed: " + e.getMessage());
+            VendingPageResponse<VendingItemDto> empty = new VendingPageResponse<>();
+            empty.setData(new ArrayList<>());
+            empty.setTotal(0);
+            return empty;
         } catch (Exception e) {
             System.err.println("[VendingService] Direct crawl failed: " + e.getMessage());
             VendingPageResponse<VendingItemDto> empty = new VendingPageResponse<>();

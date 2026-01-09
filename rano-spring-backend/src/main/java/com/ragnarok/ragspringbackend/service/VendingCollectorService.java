@@ -3,6 +3,7 @@ package com.ragnarok.ragspringbackend.service;
 import com.ragnarok.ragspringbackend.dto.VendingItemDto;
 import com.ragnarok.ragspringbackend.dto.VendingPageResponse;
 import com.ragnarok.ragspringbackend.entity.VendingListing;
+import com.ragnarok.ragspringbackend.exception.RateLimitedException;
 import com.ragnarok.ragspringbackend.repository.VendingListingRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
@@ -34,6 +36,12 @@ public class VendingCollectorService {
     // 쿨다운: server|keyword → 마지막 수집 시각
     private final Map<String, LocalDateTime> lastCrawlTime = new ConcurrentHashMap<>();
     private static final long COOLDOWN_SECONDS = 60;
+    
+    // 429 백오프 설정
+    private static final long BACKOFF_MIN_MINUTES = 15;
+    private static final long BACKOFF_MAX_MINUTES = 60;
+    private static final int MAX_PAGES_CAP = 5;
+    private final Random random = new Random();
 
     public VendingCollectorService(
             VendingService vendingService,
@@ -56,6 +64,11 @@ public class VendingCollectorService {
         // 디버그 로그 활성화: keyword에 "천공" 포함 시에만
         boolean debugLog = keyword != null && keyword.contains("천공");
         
+        // maxPages cap 적용
+        int cappedMaxPages = Math.min(maxPages, MAX_PAGES_CAP);
+        System.out.println("[VendingCollector] requestedMaxPages=" + maxPages 
+            + " cappedMaxPages=" + cappedMaxPages);
+        
         // 쿨다운 체크
         LocalDateTime lastTime = lastCrawlTime.get(cooldownKey);
         if (lastTime != null && lastTime.plusSeconds(COOLDOWN_SECONDS).isAfter(LocalDateTime.now())) {
@@ -73,8 +86,9 @@ public class VendingCollectorService {
         try {
             long start = System.currentTimeMillis();
             int totalSaved = 0;
+            boolean rateLimited = false;
 
-            for (int page = 1; page <= maxPages; page++) {
+            for (int page = 1; page <= cappedMaxPages; page++) {
                 try {
                     // 기존 크롤러 호출
                     VendingPageResponse<VendingItemDto> response = vendingService.searchVendingByItemDirect(server, keyword, page, 10);
@@ -88,10 +102,24 @@ public class VendingCollectorService {
                         totalSaved += upsertListing(server, dto, page, debugLog);
                     }
 
-                    // Rate limit: 페이지 간 1초 대기
-                    if (page < maxPages) {
-                        Thread.sleep(1000);
+                    // Rate limit: 페이지 간 3~6초 랜덤 대기 (완만한 패턴)
+                    if (page < cappedMaxPages) {
+                        long delay = 3000 + random.nextInt(3000); // 3000~5999ms
+                        Thread.sleep(delay);
                     }
+                } catch (RateLimitedException e) {
+                    // 429 감지: 즉시 중단 + 백오프 쿨다운 적용
+                    long backoffMinutes = BACKOFF_MIN_MINUTES 
+                        + random.nextInt((int)(BACKOFF_MAX_MINUTES - BACKOFF_MIN_MINUTES + 1)); // 15~60 포함
+                    LocalDateTime backoffUntil = LocalDateTime.now().plusMinutes(backoffMinutes);
+                    lastCrawlTime.put(cooldownKey, backoffUntil.minusSeconds(COOLDOWN_SECONDS));
+                    
+                    System.out.println("[VendingCollector] 429_BLOCKED: server=" + server 
+                        + " keyword=" + keyword + " page=" + page 
+                        + " status=429 backoff=" + backoffMinutes + "min");
+                    
+                    rateLimited = true;
+                    break;  // 즉시 중단
                 } catch (Exception e) {
                     System.err.println("[VendingCollector] Page " + page + " failed: " + e.getMessage());
                     break;
@@ -99,8 +127,12 @@ public class VendingCollectorService {
             }
 
             long elapsed = System.currentTimeMillis() - start;
-            lastCrawlTime.put(cooldownKey, LocalDateTime.now());
-            System.out.println("[VendingCollector] DONE: " + cooldownKey + " saved=" + totalSaved + " time=" + elapsed + "ms");
+            
+            // 429 발생 시 DONE 로그/lastCrawlTime 갱신 건너뛰기
+            if (!rateLimited) {
+                lastCrawlTime.put(cooldownKey, LocalDateTime.now());
+                System.out.println("[VendingCollector] DONE: " + cooldownKey + " saved=" + totalSaved + " time=" + elapsed + "ms");
+            }
             
             return totalSaved;
         } finally {

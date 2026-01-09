@@ -7,6 +7,7 @@ E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controlle
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\SkillController.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\dto\DivinePrideSearchResponse.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\VendingService.java
+E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\exception\RateLimitedException.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\entity\VendingListing.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\dto\VendingPageResponse.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\ItemCacheService.java
