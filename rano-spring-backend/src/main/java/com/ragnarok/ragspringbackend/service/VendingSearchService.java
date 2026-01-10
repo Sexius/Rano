@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -26,8 +28,12 @@ public class VendingSearchService {
     private final VendingListingRepository listingRepository;
     private final VendingCollectorService collectorService;
 
-    // 데이터 신선도 기준 (5분)
-    private static final long STALE_THRESHOLD_MINUTES = 5;
+    // 데이터 신선도 기준 (30분)
+    private static final long STALE_THRESHOLD_MINUTES = 30;
+    
+    // Refresh 트리거 쿨다운 (30분)
+    private static final long REFRESH_COOLDOWN_MINUTES = 30;
+    private final Map<String, LocalDateTime> lastRefreshTrigger = new ConcurrentHashMap<>();
 
     public VendingSearchService(
             VendingListingRepository listingRepository,
@@ -75,11 +81,20 @@ public class VendingSearchService {
         boolean isStale = latestScrapedAt.isEmpty() || 
                 latestScrapedAt.get().plusMinutes(STALE_THRESHOLD_MINUTES).isBefore(LocalDateTime.now());
 
-        // On-demand refresh 트리거 (비동기, 결과 기다리지 않음)
+        // On-demand refresh 트리거 (비동기 fire-and-forget, 쿨다운 적용)
         boolean refreshTriggered = false;
         if (isStale && server != null && !server.isEmpty()) {
-            collectorService.collectAsync(server, keyword, 3);  // 최대 3페이지만
-            refreshTriggered = true;
+            String refreshKey = server + "|" + keyword;
+            LocalDateTime lastTrigger = lastRefreshTrigger.get(refreshKey);
+            boolean canTrigger = lastTrigger == null || 
+                lastTrigger.plusMinutes(REFRESH_COOLDOWN_MINUTES).isBefore(LocalDateTime.now());
+            
+            if (canTrigger) {
+                lastRefreshTrigger.put(refreshKey, LocalDateTime.now());
+                collectorService.collectAsync(server, keyword, 3);  // 최대 3페이지, 비동기
+                refreshTriggered = true;
+                System.out.println("[VendingSearch] Refresh triggered for " + refreshKey);
+            }
         }
 
         long dbTime = System.currentTimeMillis() - start;
