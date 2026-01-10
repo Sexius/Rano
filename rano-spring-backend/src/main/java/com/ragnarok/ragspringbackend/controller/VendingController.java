@@ -79,14 +79,21 @@ public class VendingController {
     public ResponseEntity<Map<String, Object>> triggerCollection(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "baphomet") String server,
+            @RequestParam(defaultValue = "1") int startPage,
             @RequestParam(defaultValue = "3") int maxPages) {
         try {
-            int saved = vendingCollectorService.collectSync(server, keyword, maxPages);
+            int effectiveStartPage = Math.max(1, startPage);
+            int cappedMaxPages = Math.min(maxPages, 5);
+            int endPage = effectiveStartPage + cappedMaxPages - 1;
+            
+            int saved = vendingCollectorService.collectSync(server, keyword, effectiveStartPage, cappedMaxPages);
             return ResponseEntity.ok(Map.of(
                 "status", "completed",
                 "keyword", keyword,
                 "server", server,
-                "saved", saved
+                "startPage", effectiveStartPage,
+                "endPage", endPage,
+                "savedCount", saved
             ));
         } catch (Exception e) {
             e.printStackTrace();

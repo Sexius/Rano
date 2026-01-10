@@ -55,19 +55,26 @@ public class VendingCollectorService {
 
     /**
      * 동기 수집 (직접 호출)
+     * @param startPage 시작 페이지 (1부터)
+     * @param maxPages 수집할 최대 페이지 수
      * @return 저장된 레코드 수
      */
     @Transactional
-    public int collectSync(String server, String keyword, int maxPages) {
+    public int collectSync(String server, String keyword, int startPage, int maxPages) {
         String cooldownKey = server + "|" + keyword;
         
         // 디버그 로그 활성화: keyword에 "천공" 포함 시에만
         boolean debugLog = keyword != null && keyword.contains("천공");
         
+        // startPage 최소 1
+        int effectiveStartPage = Math.max(1, startPage);
+        
         // maxPages cap 적용
         int cappedMaxPages = Math.min(maxPages, MAX_PAGES_CAP);
-        System.out.println("[VendingCollector] requestedMaxPages=" + maxPages 
-            + " cappedMaxPages=" + cappedMaxPages);
+        int endPage = effectiveStartPage + cappedMaxPages - 1;
+        
+        System.out.println("[VendingCollector] startPage=" + effectiveStartPage 
+            + " endPage=" + endPage + " cappedMaxPages=" + cappedMaxPages);
         
         // 쿨다운 체크
         LocalDateTime lastTime = lastCrawlTime.get(cooldownKey);
@@ -88,7 +95,7 @@ public class VendingCollectorService {
             int totalSaved = 0;
             boolean rateLimited = false;
 
-            for (int page = 1; page <= cappedMaxPages; page++) {
+            for (int page = effectiveStartPage; page <= endPage; page++) {
                 try {
                     // 기존 크롤러 호출
                     VendingPageResponse<VendingItemDto> response = vendingService.searchVendingByItemDirect(server, keyword, page, 10);
@@ -103,7 +110,7 @@ public class VendingCollectorService {
                     }
 
                     // Rate limit: 페이지 간 3~6초 랜덤 대기 (완만한 패턴)
-                    if (page < cappedMaxPages) {
+                    if (page < endPage) {
                         long delay = 3000 + random.nextInt(3000); // 3000~5999ms
                         Thread.sleep(delay);
                     }
@@ -144,8 +151,8 @@ public class VendingCollectorService {
      * 비동기 수집 (on-demand refresh)
      */
     @Async
-    public void collectAsync(String server, String keyword, int maxPages) {
-        collectSync(server, keyword, maxPages);
+    public void collectAsync(String server, String keyword, int startPage, int maxPages) {
+        collectSync(server, keyword, startPage, maxPages);
     }
 
     /**
