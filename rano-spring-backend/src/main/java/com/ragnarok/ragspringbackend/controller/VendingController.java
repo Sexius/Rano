@@ -18,7 +18,7 @@ public class VendingController {
     private final VendingService vendingService;
     private final VendingSearchService vendingSearchService;
     private final VendingCollectorService vendingCollectorService;
-    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int DEFAULT_PAGE_SIZE = 100;
 
     public VendingController(
             VendingService vendingService,
@@ -60,11 +60,13 @@ public class VendingController {
             @RequestParam String item,
             @RequestParam(defaultValue = "baphomet") String server,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(required = false) Integer size) {
+            @RequestParam(required = false) Integer size,
+            @RequestParam(defaultValue = "price") String sort,
+            @RequestParam(defaultValue = "asc") String dir) {
         try {
             int pageSize = (size != null && size > 0) ? size : DEFAULT_PAGE_SIZE;
             VendingSearchService.VendingSearchResponse result = 
-                vendingSearchService.search(server, item, page, pageSize);
+                vendingSearchService.search(server, item, page, pageSize, sort, dir);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();

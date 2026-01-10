@@ -71,7 +71,9 @@ export const searchVendingItems = async (
         if (category && category !== '전체') params.append('category', category);
 
         params.append('page', page.toString());
-        params.append('size', '10');
+        params.append('size', '100');
+        params.append('sort', 'price');
+        params.append('dir', 'asc');
         // ★ V2 API 호출 (DB 스냅샷 검색 - 빠름)
         const response = await fetch(`${baseUrl}/vending/v2/search?${params.toString()}`);
 

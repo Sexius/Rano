@@ -6,6 +6,7 @@ import com.ragnarok.ragspringbackend.entity.VendingListing;
 import com.ragnarok.ragspringbackend.repository.VendingListingRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -40,17 +41,24 @@ public class VendingSearchService {
      * 노점 검색 (DB Only - fetch 없음)
      * @return VendingPageResponse with scraped_at, is_stale flag
      */
-    public VendingSearchResponse search(String server, String keyword, int page, int size) {
+    public VendingSearchResponse search(String server, String keyword, int page, int size, String sortField, String sortDir) {
         long start = System.currentTimeMillis();
 
-        PageRequest pageable = PageRequest.of(page - 1, size);
+        // 정렬 설정 (기본: price ASC)
+        Sort sort;
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            sort = Sort.by(Sort.Direction.DESC, sortField);
+        } else {
+            sort = Sort.by(Sort.Direction.ASC, sortField);
+        }
+        PageRequest pageable = PageRequest.of(page - 1, size, sort);
 
         // 1차: Prefix 검색 (빠름)
         Page<VendingListing> result;
         if (server == null || server.isEmpty() || "all".equalsIgnoreCase(server)) {
-            result = listingRepository.findByItemNamePrefix(keyword, pageable);
+            result = listingRepository.findByItemNamePrefixSorted(keyword, pageable);
         } else {
-            result = listingRepository.findByServerAndItemNamePrefix(server, keyword, pageable);
+            result = listingRepository.findByServerAndItemNamePrefixSorted(server, keyword, pageable);
         }
 
         // 결과 변환
