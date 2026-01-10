@@ -86,8 +86,8 @@ export const searchVendingItems = async (
         // Convert to MarketItem
         const items = result.data ? result.data.map((dto, index) => convertToMarketItem(dto, index)) : [];
 
-        // Auto-fetch card details for each item (in parallel, with limit)
-        const enrichedItems = await enrichWithCardDetails(items);
+        // 카드 상세는 개별 아이템 클릭 시에만 로드 (검색 속도 최적화)
+        const enrichedItems = items;
 
         return {
             items: enrichedItems,
