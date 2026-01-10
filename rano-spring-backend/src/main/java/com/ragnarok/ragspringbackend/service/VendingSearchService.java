@@ -11,9 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -26,21 +24,12 @@ import java.util.stream.Collectors;
 public class VendingSearchService {
 
     private final VendingListingRepository listingRepository;
-    private final VendingCollectorService collectorService;
 
-    // 데이터 신선도 기준 (30분)
+    // 데이터 신선도 기준 (30분) - 표시/진단용
     private static final long STALE_THRESHOLD_MINUTES = 30;
-    
-    // Refresh 트리거 쿨다운 (30분)
-    private static final long REFRESH_COOLDOWN_MINUTES = 30;
-    private final Map<String, LocalDateTime> lastRefreshTrigger = new ConcurrentHashMap<>();
 
-    public VendingSearchService(
-            VendingListingRepository listingRepository,
-            VendingCollectorService collectorService
-    ) {
+    public VendingSearchService(VendingListingRepository listingRepository) {
         this.listingRepository = listingRepository;
-        this.collectorService = collectorService;
     }
 
     /**
@@ -77,25 +66,12 @@ public class VendingSearchService {
                 ? listingRepository.findLatestScrapedAtByKeyword(server, keyword)
                 : Optional.empty();
 
-        // 신선도 체크
+        // 신선도 체크 (표시/진단용, 수집 트리거하지 않음)
         boolean isStale = latestScrapedAt.isEmpty() || 
                 latestScrapedAt.get().plusMinutes(STALE_THRESHOLD_MINUTES).isBefore(LocalDateTime.now());
 
-        // On-demand refresh 트리거 (비동기 fire-and-forget, 쿨다운 적용)
+        // 검색에서는 수집을 트리거하지 않음 (수집은 /api/vending/collect에서만 실행)
         boolean refreshTriggered = false;
-        if (isStale && server != null && !server.isEmpty()) {
-            String refreshKey = server + "|" + keyword;
-            LocalDateTime lastTrigger = lastRefreshTrigger.get(refreshKey);
-            boolean canTrigger = lastTrigger == null || 
-                lastTrigger.plusMinutes(REFRESH_COOLDOWN_MINUTES).isBefore(LocalDateTime.now());
-            
-            if (canTrigger) {
-                lastRefreshTrigger.put(refreshKey, LocalDateTime.now());
-                collectorService.collectAsync(server, keyword, 3);  // 최대 3페이지, 비동기
-                refreshTriggered = true;
-                System.out.println("[VendingSearch] Refresh triggered for " + refreshKey);
-            }
-        }
 
         long dbTime = System.currentTimeMillis() - start;
         System.out.println("[VendingPerf] db=" + dbTime + "ms total=" + dbTime + "ms count=" + items.size() + " stale=" + isStale);
