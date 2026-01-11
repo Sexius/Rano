@@ -118,16 +118,20 @@ public class VendingController {
     }
 
     // ========== 외부 업로드 API (GitHub Actions 전용) ==========
+    private static final java.util.Set<String> ALLOWED_SERVERS = java.util.Set.of("baphomet", "yggdrasil", "ifrit");
+    private static final int MAX_UPLOAD_ITEMS = 2000;
+    
     @PostMapping("/vending/upload")
     public ResponseEntity<Map<String, Object>> uploadVendingData(
             @RequestHeader(value = "X-API-KEY", required = false) String apiKey,
             @RequestParam String server,
             @RequestBody List<VendingItemDto> items) {
         
-        // API 키 검증
+        // 1. API 키 검증 (환경변수 필수, fallback 없음)
         String expectedKey = System.getenv("VENDING_UPLOAD_KEY");
         if (expectedKey == null || expectedKey.isEmpty()) {
-            expectedKey = "rano-upload-secret-2026"; // fallback for dev
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Upload key not configured on server"));
         }
         
         if (apiKey == null || !apiKey.equals(expectedKey)) {
@@ -135,11 +139,28 @@ public class VendingController {
                 .body(Map.of("error", "Invalid API key"));
         }
         
+        // 2. 서버 허용 목록 검증
+        if (server == null || !ALLOWED_SERVERS.contains(server.toLowerCase())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "Invalid server. Allowed: baphomet, yggdrasil, ifrit"));
+        }
+        
+        // 3. 아이템 개수 제한
+        if (items == null || items.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "No items provided"));
+        }
+        
+        if (items.size() > MAX_UPLOAD_ITEMS) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(Map.of("error", "Too many items. Max: " + MAX_UPLOAD_ITEMS));
+        }
+        
         try {
-            int saved = vendingCollectorService.uploadBatch(server, items);
+            int saved = vendingCollectorService.uploadBatch(server.toLowerCase(), items);
             return ResponseEntity.ok(Map.of(
                 "status", "completed",
-                "server", server,
+                "server", server.toLowerCase(),
                 "receivedCount", items.size(),
                 "savedCount", saved
             ));
