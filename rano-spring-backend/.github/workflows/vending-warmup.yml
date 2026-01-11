@@ -1,0 +1,55 @@
+name: Vending Cache Warmup
+
+on:
+  schedule:
+    # 매 10분마다 실행
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+# 동시 실행 방지: 같은 workflow는 1개만 실행
+concurrency:
+  group: vending-warmup
+  cancel-in-progress: true
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Call Warmup API
+        env:
+          WARMUP_URL: ${{ secrets.WARMUP_URL }}
+          WARMUP_KEY: ${{ secrets.WARMUP_KEY }}
+        run: |
+          echo "Starting cache warmup at $(date)"
+          
+          RESPONSE=$(curl -s -X POST "$WARMUP_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-API-KEY: $WARMUP_KEY" \
+            -d '{
+              "targets": [
+                {"server":"baphomet","keyword":"천공","page":1,"size":10},
+                {"server":"baphomet","keyword":"룬","page":1,"size":10},
+                {"server":"baphomet","keyword":"카드","page":1,"size":10},
+                {"server":"baphomet","keyword":"강화","page":1,"size":10},
+                {"server":"baphomet","keyword":"의상","page":1,"size":10},
+                {"server":"yggdrasil","keyword":"카드","page":1,"size":10},
+                {"server":"yggdrasil","keyword":"의상","page":1,"size":10},
+                {"server":"ifrit","keyword":"카드","page":1,"size":10},
+                {"server":"ifrit","keyword":"의상","page":1,"size":10}
+              ]
+            }')
+          
+          echo "Warmup Response:"
+          echo "$RESPONSE" | jq . || echo "$RESPONSE"
+          
+          # 성공 여부 확인
+          SUCCESS_COUNT=$(echo "$RESPONSE" | jq -r '.successCount // 0')
+          FAIL_COUNT=$(echo "$RESPONSE" | jq -r '.failCount // 0')
+          
+          echo ""
+          echo "Summary: $SUCCESS_COUNT success, $FAIL_COUNT failed"
+          
+          # 전부 실패해도 workflow는 성공 (다음 run에서 재시도)
+          exit 0
