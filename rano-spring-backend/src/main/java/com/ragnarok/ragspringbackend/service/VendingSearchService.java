@@ -45,7 +45,7 @@ public class VendingSearchService {
     }
 
     /**
-     * 노점 검색 (Cache → GNJOY fallback)
+     * 노점 검색 (Cache → GNJOY fallback → Stale Cache fallback)
      */
     public VendingSearchResponse search(String server, String keyword, int page, int size, String sortField, String sortDir) {
         long start = System.currentTimeMillis();
@@ -57,18 +57,18 @@ public class VendingSearchService {
         // Cache Key 생성
         String cacheKey = buildCacheKey(server, keyword, page, size, sortField);
         
-        // 1. 캐시 조회
+        // 1. Valid 캐시 조회 (expires_at > now)
         OffsetDateTime now = OffsetDateTime.now();
         Optional<VendingSearchCache> cached = cacheRepository.findValidCache(cacheKey, now);
         
         if (cached.isPresent()) {
-            // Cache Hit
+            // Valid Cache Hit
             long cacheTime = System.currentTimeMillis() - start;
             System.out.println("[VendingSearch] CACHE_HIT key=" + cacheKey + " time=" + cacheTime + "ms");
-            return fromCache(cached.get(), false);
+            return fromCache(cached.get(), false, null);
         }
         
-        // 2. Cache Miss → GNJOY 호출
+        // 2. Cache Miss → GNJOY 호출 시도
         System.out.println("[VendingSearch] CACHE_MISS key=" + cacheKey);
         
         // 동시 갱신 방지
@@ -78,15 +78,15 @@ public class VendingSearchService {
                 // Double-check: 다른 스레드가 이미 갱신했을 수 있음
                 cached = cacheRepository.findValidCache(cacheKey, OffsetDateTime.now());
                 if (cached.isPresent()) {
-                    return fromCache(cached.get(), false);
+                    return fromCache(cached.get(), false, null);
                 }
                 
                 // GNJOY 호출
                 VendingPageResponse<VendingItemDto> gnjoyResult = vendingService.searchVendingByItemDirect(server, keyword, page, size);
                 
                 long gnjoyTime = System.currentTimeMillis() - start;
-                System.out.println("[VendingSearch] GNJOY_FETCH time=" + gnjoyTime + "ms items=" + 
-                    (gnjoyResult.getData() != null ? gnjoyResult.getData().size() : 0));
+                int itemCount = gnjoyResult.getData() != null ? gnjoyResult.getData().size() : 0;
+                System.out.println("[VendingSearch] GNJOY_FETCH time=" + gnjoyTime + "ms items=" + itemCount);
                 
                 // 캐시 저장
                 saveCache(cacheKey, server, keyword, page, size, sortField, gnjoyResult);
@@ -99,15 +99,27 @@ public class VendingSearchService {
                 response.setTotalPages(gnjoyResult.getTotalPages());
                 response.setScrapedAt(LocalDateTime.now());
                 response.setStale(false);
-                response.setRefreshTriggered(true);  // GNJOY에서 방금 가져옴
+                response.setRefreshTriggered(true);
+                response.setReason(null);
                 
                 return response;
                 
             } catch (Exception e) {
-                System.err.println("[VendingSearch] GNJOY_ERROR: " + e.getMessage());
-                e.printStackTrace();
+                String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+                System.err.println("[VendingSearch] GNJOY_ERROR: " + errorMsg);
                 
-                // GNJOY 실패 시 빈 응답
+                // 3. GNJOY 실패 → Stale 캐시 fallback
+                Optional<VendingSearchCache> staleCache = cacheRepository.findLatestCache(cacheKey);
+                
+                if (staleCache.isPresent()) {
+                    // Stale 캐시 반환
+                    System.out.println("[VendingSearch] STALE_CACHE_FALLBACK key=" + cacheKey);
+                    String reason = errorMsg.contains("429") ? "GNJOY_429" : "GNJOY_ERROR";
+                    return fromCache(staleCache.get(), true, reason);
+                }
+                
+                // 4. Stale 캐시도 없음 → 실패 응답
+                System.err.println("[VendingSearch] NO_CACHE_AVAILABLE key=" + cacheKey);
                 VendingSearchResponse response = new VendingSearchResponse();
                 response.setData(List.of());
                 response.setTotal(0);
@@ -115,7 +127,9 @@ public class VendingSearchService {
                 response.setTotalPages(0);
                 response.setStale(true);
                 response.setRefreshTriggered(false);
+                response.setReason(errorMsg.contains("429") ? "GNJOY_429" : "GNJOY_UNAVAILABLE");
                 return response;
+                
             } finally {
                 refreshLocks.remove(cacheKey);
             }
@@ -169,7 +183,7 @@ public class VendingSearchService {
     /**
      * 캐시에서 응답 생성
      */
-    private VendingSearchResponse fromCache(VendingSearchCache cache, boolean isStale) {
+    private VendingSearchResponse fromCache(VendingSearchCache cache, boolean isStale, String reason) {
         VendingSearchResponse response = new VendingSearchResponse();
         
         try {
@@ -189,6 +203,7 @@ public class VendingSearchService {
         response.setScrapedAt(cache.getCachedAt().toLocalDateTime());
         response.setStale(isStale);
         response.setRefreshTriggered(false);
+        response.setReason(reason);
         
         return response;
     }
@@ -200,6 +215,7 @@ public class VendingSearchService {
         private LocalDateTime scrapedAt;
         private boolean isStale;
         private boolean refreshTriggered;
+        private String reason;
 
         public LocalDateTime getScrapedAt() { return scrapedAt; }
         public void setScrapedAt(LocalDateTime scrapedAt) { this.scrapedAt = scrapedAt; }
@@ -209,5 +225,8 @@ public class VendingSearchService {
 
         public boolean isRefreshTriggered() { return refreshTriggered; }
         public void setRefreshTriggered(boolean refreshTriggered) { this.refreshTriggered = refreshTriggered; }
+
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
     }
 }

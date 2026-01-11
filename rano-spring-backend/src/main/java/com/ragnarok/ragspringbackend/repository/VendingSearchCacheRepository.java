@@ -23,6 +23,12 @@ public interface VendingSearchCacheRepository extends JpaRepository<VendingSearc
     );
 
     /**
+     * 최신 캐시 조회 (만료 여부 무관, stale fallback용)
+     */
+    @Query("SELECT c FROM VendingSearchCache c WHERE c.cacheKey = :cacheKey ORDER BY c.cachedAt DESC")
+    Optional<VendingSearchCache> findLatestCache(@Param("cacheKey") String cacheKey);
+
+    /**
      * cache_key로 기존 캐시 조회 (upsert용)
      */
     Optional<VendingSearchCache> findByCacheKey(String cacheKey);
