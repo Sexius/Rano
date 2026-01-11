@@ -9,6 +9,7 @@ com\ragnarok\ragspringbackend\dto\SkillDto.class
 com\ragnarok\ragspringbackend\exception\RateLimitedException.class
 com\ragnarok\ragspringbackend\service\VendingCollectorService.class
 com\ragnarok\ragspringbackend\entity\Skill.class
+com\ragnarok\ragspringbackend\entity\VendingSearchCache.class
 com\ragnarok\ragspringbackend\config\CacheConfig.class
 com\ragnarok\ragspringbackend\entity\VendingListing.class
 com\ragnarok\ragspringbackend\dto\DivinePrideItemDto.class
@@ -25,6 +26,7 @@ com\ragnarok\ragspringbackend\repository\SkillRepository.class
 com\ragnarok\ragspringbackend\service\ItemService.class
 com\ragnarok\ragspringbackend\service\SkillService.class
 com\ragnarok\ragspringbackend\util\RagDescriptionUtils.class
+com\ragnarok\ragspringbackend\repository\VendingSearchCacheRepository.class
 com\ragnarok\ragspringbackend\service\ItemCacheService.class
 com\ragnarok\ragspringbackend\service\VendingService.class
 com\ragnarok\ragspringbackend\controller\DivinePrideController.class

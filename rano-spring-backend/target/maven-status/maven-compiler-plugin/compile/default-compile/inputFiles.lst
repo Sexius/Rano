@@ -2,6 +2,7 @@ E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\dto\Divin
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\entity\Skill.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\ItemService.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\RagSpringBackendApplication.java
+E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\repository\VendingSearchCacheRepository.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\CalculatorController.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\ItemController.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\SkillController.java
@@ -22,6 +23,7 @@ E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\V
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\dto\VendingItemDto.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\VendingSearchService.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\entity\Item.java
+E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\entity\VendingSearchCache.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\CalculatorService.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\config\CacheConfig.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\HealthController.java

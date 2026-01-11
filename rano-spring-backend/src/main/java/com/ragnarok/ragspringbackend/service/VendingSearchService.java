@@ -1,119 +1,200 @@
 package com.ragnarok.ragspringbackend.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragnarok.ragspringbackend.dto.VendingItemDto;
 import com.ragnarok.ragspringbackend.dto.VendingPageResponse;
-import com.ragnarok.ragspringbackend.entity.VendingListing;
-import com.ragnarok.ragspringbackend.repository.VendingListingRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import com.ragnarok.ragspringbackend.entity.VendingSearchCache;
+import com.ragnarok.ragspringbackend.repository.VendingSearchCacheRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 노점 검색 서비스 (DB Only)
- * - 외부 fetch 절대 없음
- * - vending_listings 테이블만 조회
- * - p95 < 500ms 목표
+ * 노점 검색 서비스 (Cache → GNJOY fallback)
+ * - DB는 검색 결과 캐시로만 사용
+ * - Source of Truth: GNJOY (ro.gnjoy.com)
+ * - TTL: 10분
  */
 @Service
 public class VendingSearchService {
 
-    private final VendingListingRepository listingRepository;
+    private final VendingSearchCacheRepository cacheRepository;
+    private final VendingService vendingService;
+    private final ObjectMapper objectMapper;
 
-    // 데이터 신선도 기준 (30분) - 표시/진단용
-    private static final long STALE_THRESHOLD_MINUTES = 30;
+    // TTL 설정
+    private static final long CACHE_TTL_MINUTES = 10;
+    
+    // 동시 갱신 방지용 락
+    private static final ConcurrentHashMap<String, Object> refreshLocks = new ConcurrentHashMap<>();
 
-    public VendingSearchService(VendingListingRepository listingRepository) {
-        this.listingRepository = listingRepository;
+    public VendingSearchService(
+            VendingSearchCacheRepository cacheRepository,
+            VendingService vendingService,
+            ObjectMapper objectMapper
+    ) {
+        this.cacheRepository = cacheRepository;
+        this.vendingService = vendingService;
+        this.objectMapper = objectMapper;
     }
 
     /**
-     * 노점 검색 (DB Only - fetch 없음)
-     * @return VendingPageResponse with scraped_at, is_stale flag
+     * 노점 검색 (Cache → GNJOY fallback)
      */
     public VendingSearchResponse search(String server, String keyword, int page, int size, String sortField, String sortDir) {
         long start = System.currentTimeMillis();
-
-        // 정렬 설정 (기본: price ASC)
-        Sort sort;
-        if ("desc".equalsIgnoreCase(sortDir)) {
-            sort = Sort.by(Sort.Direction.DESC, sortField);
-        } else {
-            sort = Sort.by(Sort.Direction.ASC, sortField);
+        
+        // 기본값 처리
+        if (server == null || server.isEmpty()) server = "baphomet";
+        if (keyword == null) keyword = "";
+        
+        // Cache Key 생성
+        String cacheKey = buildCacheKey(server, keyword, page, size, sortField);
+        
+        // 1. 캐시 조회
+        OffsetDateTime now = OffsetDateTime.now();
+        Optional<VendingSearchCache> cached = cacheRepository.findValidCache(cacheKey, now);
+        
+        if (cached.isPresent()) {
+            // Cache Hit
+            long cacheTime = System.currentTimeMillis() - start;
+            System.out.println("[VendingSearch] CACHE_HIT key=" + cacheKey + " time=" + cacheTime + "ms");
+            return fromCache(cached.get(), false);
         }
-        PageRequest pageable = PageRequest.of(page - 1, size, sort);
-
-        // 1차: Prefix 검색 (빠름)
-        Page<VendingListing> result;
-        if (server == null || server.isEmpty() || "all".equalsIgnoreCase(server)) {
-            result = listingRepository.findByItemNamePrefixSorted(keyword, pageable);
-        } else {
-            result = listingRepository.findByServerAndItemNamePrefixSorted(server, keyword, pageable);
+        
+        // 2. Cache Miss → GNJOY 호출
+        System.out.println("[VendingSearch] CACHE_MISS key=" + cacheKey);
+        
+        // 동시 갱신 방지
+        Object lock = refreshLocks.computeIfAbsent(cacheKey, k -> new Object());
+        synchronized (lock) {
+            try {
+                // Double-check: 다른 스레드가 이미 갱신했을 수 있음
+                cached = cacheRepository.findValidCache(cacheKey, OffsetDateTime.now());
+                if (cached.isPresent()) {
+                    return fromCache(cached.get(), false);
+                }
+                
+                // GNJOY 호출
+                VendingPageResponse<VendingItemDto> gnjoyResult = vendingService.searchVendingByItemDirect(server, keyword, page, size);
+                
+                long gnjoyTime = System.currentTimeMillis() - start;
+                System.out.println("[VendingSearch] GNJOY_FETCH time=" + gnjoyTime + "ms items=" + 
+                    (gnjoyResult.getData() != null ? gnjoyResult.getData().size() : 0));
+                
+                // 캐시 저장
+                saveCache(cacheKey, server, keyword, page, size, sortField, gnjoyResult);
+                
+                // 응답 생성
+                VendingSearchResponse response = new VendingSearchResponse();
+                response.setData(gnjoyResult.getData());
+                response.setTotal(gnjoyResult.getTotal());
+                response.setPage(page);
+                response.setTotalPages(gnjoyResult.getTotalPages());
+                response.setScrapedAt(LocalDateTime.now());
+                response.setStale(false);
+                response.setRefreshTriggered(true);  // GNJOY에서 방금 가져옴
+                
+                return response;
+                
+            } catch (Exception e) {
+                System.err.println("[VendingSearch] GNJOY_ERROR: " + e.getMessage());
+                e.printStackTrace();
+                
+                // GNJOY 실패 시 빈 응답
+                VendingSearchResponse response = new VendingSearchResponse();
+                response.setData(List.of());
+                response.setTotal(0);
+                response.setPage(page);
+                response.setTotalPages(0);
+                response.setStale(true);
+                response.setRefreshTriggered(false);
+                return response;
+            } finally {
+                refreshLocks.remove(cacheKey);
+            }
         }
+    }
 
-        // 결과 변환
-        List<VendingItemDto> items = result.getContent().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    /**
+     * Cache Key 생성
+     */
+    private String buildCacheKey(String server, String keyword, int page, int size, String sortField) {
+        return String.format("%s|%s|%d|%d|%s", 
+            server.toLowerCase(), 
+            keyword, 
+            page, 
+            size, 
+            sortField != null ? sortField : "price"
+        );
+    }
 
-        // 최신 scraped_at 조회
-        Optional<LocalDateTime> latestScrapedAt = server != null && !server.isEmpty()
-                ? listingRepository.findLatestScrapedAtByKeyword(server, keyword)
-                : Optional.empty();
+    /**
+     * 캐시 저장 (Upsert)
+     */
+    @Transactional
+    protected void saveCache(String cacheKey, String server, String keyword, int page, int size, 
+                           String sortField, VendingPageResponse<VendingItemDto> result) {
+        try {
+            String resultJson = objectMapper.writeValueAsString(result.getData());
+            
+            VendingSearchCache cache = cacheRepository.findByCacheKey(cacheKey)
+                .orElse(new VendingSearchCache());
+            
+            cache.setCacheKey(cacheKey);
+            cache.setServer(server);
+            cache.setKeyword(keyword);
+            cache.setPage(page);
+            cache.setSize(size);
+            cache.setItemOrder(sortField != null ? sortField : "price");
+            cache.setResultJson(resultJson);
+            cache.setTotalCount(result.getTotal());
+            cache.setCachedAt(OffsetDateTime.now());
+            cache.setExpiresAt(OffsetDateTime.now().plusMinutes(CACHE_TTL_MINUTES));
+            
+            cacheRepository.save(cache);
+            System.out.println("[VendingSearch] CACHE_SAVED key=" + cacheKey);
+            
+        } catch (JsonProcessingException e) {
+            System.err.println("[VendingSearch] CACHE_SAVE_ERROR: " + e.getMessage());
+        }
+    }
 
-        // 신선도 체크 (표시/진단용, 수집 트리거하지 않음)
-        boolean isStale = latestScrapedAt.isEmpty() || 
-                latestScrapedAt.get().plusMinutes(STALE_THRESHOLD_MINUTES).isBefore(LocalDateTime.now());
-
-        // 검색에서는 수집을 트리거하지 않음 (수집은 /api/vending/collect에서만 실행)
-        boolean refreshTriggered = false;
-
-        long dbTime = System.currentTimeMillis() - start;
-        System.out.println("[VendingPerf] db=" + dbTime + "ms total=" + dbTime + "ms count=" + items.size() + " stale=" + isStale);
-
-        // 응답 생성
+    /**
+     * 캐시에서 응답 생성
+     */
+    private VendingSearchResponse fromCache(VendingSearchCache cache, boolean isStale) {
         VendingSearchResponse response = new VendingSearchResponse();
-        response.setData(items);
-        response.setTotal((int) result.getTotalElements());
-        response.setPage(page);
-        response.setTotalPages(result.getTotalPages());
-        response.setScrapedAt(latestScrapedAt.orElse(null));
+        
+        try {
+            List<VendingItemDto> items = objectMapper.readValue(
+                cache.getResultJson(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, VendingItemDto.class)
+            );
+            response.setData(items);
+        } catch (JsonProcessingException e) {
+            System.err.println("[VendingSearch] CACHE_PARSE_ERROR: " + e.getMessage());
+            response.setData(List.of());
+        }
+        
+        response.setTotal(cache.getTotalCount());
+        response.setPage(cache.getPage());
+        response.setTotalPages((int) Math.ceil((double) cache.getTotalCount() / cache.getSize()));
+        response.setScrapedAt(cache.getCachedAt().toLocalDateTime());
         response.setStale(isStale);
-        response.setRefreshTriggered(refreshTriggered);
-
+        response.setRefreshTriggered(false);
+        
         return response;
     }
 
     /**
-     * Entity → DTO 변환
-     */
-    private VendingItemDto toDto(VendingListing listing) {
-        VendingItemDto dto = new VendingItemDto();
-        dto.setId(listing.getId().intValue());
-        dto.setServer_name(listing.getServer());
-        dto.setItem_name(listing.getItemName());
-        dto.setPrice(listing.getPrice());
-        dto.setQuantity(listing.getAmount());
-        dto.setVendor_name(listing.getSellerName());
-        dto.setVendor_info(listing.getShopName());
-        dto.setMap_id(listing.getMapId());
-        dto.setSsi(listing.getSsi());
-        
-        // 아이콘 URL 생성
-        if (listing.getItemId() != null) {
-            dto.setItem_icon_url("https://static.divine-pride.net/images/items/item/" + listing.getItemId() + ".png");
-        }
-        
-        return dto;
-    }
-
-    /**
-     * 검색 응답 DTO (scraped_at 포함)
+     * 검색 응답 DTO
      */
     public static class VendingSearchResponse extends VendingPageResponse<VendingItemDto> {
         private LocalDateTime scrapedAt;
