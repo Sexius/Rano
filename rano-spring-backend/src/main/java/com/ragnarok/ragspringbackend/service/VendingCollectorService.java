@@ -156,6 +156,22 @@ public class VendingCollectorService {
     }
 
     /**
+     * 외부 업로드 API용 배치 저장
+     * @param server 서버명
+     * @param items 저장할 아이템 목록
+     * @return 저장된 레코드 수
+     */
+    @Transactional
+    public int uploadBatch(String server, java.util.List<VendingItemDto> items) {
+        int saved = 0;
+        for (VendingItemDto dto : items) {
+            saved += upsertListing(server, dto, 0, false);
+        }
+        System.out.println("[VendingUpload] server=" + server + " received=" + items.size() + " saved=" + saved);
+        return saved;
+    }
+
+    /**
      * DB upsert (기존 레코드 업데이트 or 신규 삽입)
      */
     private int upsertListing(String server, VendingItemDto dto, int page, boolean debugLog) {

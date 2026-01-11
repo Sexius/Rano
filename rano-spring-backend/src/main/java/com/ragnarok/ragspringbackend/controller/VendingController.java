@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -113,6 +114,39 @@ public class VendingController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // ========== 외부 업로드 API (GitHub Actions 전용) ==========
+    @PostMapping("/vending/upload")
+    public ResponseEntity<Map<String, Object>> uploadVendingData(
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey,
+            @RequestParam String server,
+            @RequestBody List<VendingItemDto> items) {
+        
+        // API 키 검증
+        String expectedKey = System.getenv("VENDING_UPLOAD_KEY");
+        if (expectedKey == null || expectedKey.isEmpty()) {
+            expectedKey = "rano-upload-secret-2026"; // fallback for dev
+        }
+        
+        if (apiKey == null || !apiKey.equals(expectedKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Invalid API key"));
+        }
+        
+        try {
+            int saved = vendingCollectorService.uploadBatch(server, items);
+            return ResponseEntity.ok(Map.of(
+                "status", "completed",
+                "server", server,
+                "receivedCount", items.size(),
+                "savedCount", saved
+            ));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
         }
     }
 }
