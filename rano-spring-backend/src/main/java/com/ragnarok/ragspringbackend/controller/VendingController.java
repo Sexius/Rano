@@ -5,6 +5,7 @@ import com.ragnarok.ragspringbackend.dto.VendingPageResponse;
 import com.ragnarok.ragspringbackend.service.VendingService;
 import com.ragnarok.ragspringbackend.service.VendingSearchService;
 import com.ragnarok.ragspringbackend.service.VendingCollectorService;
+import com.ragnarok.ragspringbackend.service.NoCacheAvailableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,9 +56,9 @@ public class VendingController {
         }
     }
 
-    // ========== V2: DB 스냅샷 기반 검색 (fetch 없음) ==========
+    // ========== V2: DB 캐시 기반 검색 (Cache → GNJOY fallback) ==========
     @GetMapping("/vending/v2/search")
-    public ResponseEntity<VendingSearchService.VendingSearchResponse> searchV2(
+    public ResponseEntity<?> searchV2(
             @RequestParam String item,
             @RequestParam(defaultValue = "baphomet") String server,
             @RequestParam(defaultValue = "1") int page,
@@ -69,9 +70,22 @@ public class VendingController {
             VendingSearchService.VendingSearchResponse result = 
                 vendingSearchService.search(server, item, page, pageSize, sort, dir);
             return ResponseEntity.ok(result);
+        } catch (NoCacheAvailableException e) {
+            // GNJOY 에러 + 캐시 없음 → 429 반환
+            System.out.println("[VendingController] NoCacheAvailable: " + e.getReason());
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(e.getRetryAfterSeconds()))
+                .body(Map.of(
+                    "error", "Data temporarily unavailable",
+                    "reason", e.getReason(),
+                    "server", e.getServer(),
+                    "keyword", e.getKeyword(),
+                    "retryAfterSeconds", e.getRetryAfterSeconds()
+                ));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal server error"));
         }
     }
 

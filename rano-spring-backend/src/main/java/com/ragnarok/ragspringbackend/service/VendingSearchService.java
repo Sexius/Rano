@@ -118,17 +118,13 @@ public class VendingSearchService {
                     return fromCache(staleCache.get(), true, reason);
                 }
                 
-                // 4. Stale 캐시도 없음 → 실패 응답
+                // 4. Stale 캐시도 없음 → 예외 발생 (컨트롤러에서 429/503 반환)
                 System.err.println("[VendingSearch] NO_CACHE_AVAILABLE key=" + cacheKey);
-                VendingSearchResponse response = new VendingSearchResponse();
-                response.setData(List.of());
-                response.setTotal(0);
-                response.setPage(page);
-                response.setTotalPages(0);
-                response.setStale(true);
-                response.setRefreshTriggered(false);
-                response.setReason(errorMsg.contains("429") ? "GNJOY_429" : "GNJOY_UNAVAILABLE");
-                return response;
+                boolean is429 = errorMsg.contains("429");
+                throw new NoCacheAvailableException(
+                    is429 ? "GNJOY_429_NO_CACHE" : "GNJOY_UNAVAILABLE",
+                    server, keyword, is429 ? 600 : 60
+                );
                 
             } finally {
                 refreshLocks.remove(cacheKey);

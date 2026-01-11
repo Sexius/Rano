@@ -16,6 +16,7 @@ com\ragnarok\ragspringbackend\dto\DivinePrideItemDto.class
 com\ragnarok\ragspringbackend\entity\Item.class
 com\ragnarok\ragspringbackend\config\CorsConfig.class
 com\ragnarok\ragspringbackend\controller\HealthController$PingResponse.class
+com\ragnarok\ragspringbackend\service\NoCacheAvailableException.class
 com\ragnarok\ragspringbackend\service\CalculatorService.class
 com\ragnarok\ragspringbackend\controller\CalculatorController.class
 com\ragnarok\ragspringbackend\controller\VendingController.class

@@ -17,6 +17,7 @@ E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\repositor
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\SkillService.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\repository\VendingListingRepository.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\DivinePrideService.java
+E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\NoCacheAvailableException.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\util\RagDescriptionUtils.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\controller\DivinePrideController.java
 E:\RAG\rano-spring-backend\src\main\java\com\ragnarok\ragspringbackend\service\VendingCollectorService.java
