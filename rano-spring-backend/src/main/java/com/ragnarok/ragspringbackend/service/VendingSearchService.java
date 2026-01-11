@@ -231,7 +231,9 @@ public class VendingSearchService {
         
         response.setTotal(cache.getTotalCount());
         response.setPage(cache.getPage());
-        response.setTotalPages((int) Math.ceil((double) cache.getTotalCount() / cache.getSize()));
+        // GNJOY는 페이지 당 10개 고정
+        int GNJOY_PAGE_SIZE = 10;
+        response.setTotalPages((int) Math.ceil((double) cache.getTotalCount() / GNJOY_PAGE_SIZE));
         response.setScrapedAt(cache.getCachedAt().toLocalDateTime());
         response.setStale(isStale);
         response.setRefreshTriggered(false);

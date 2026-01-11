@@ -358,8 +358,9 @@ public class VendingService {
         response.setPage(page);
         response.setSize(items.size());
 
-        int safeSize = size > 0 ? size : 10;
-        response.setTotalPages((int) Math.ceil((double) totalItems / safeSize));
+        // GNJOY는 페이지 당 10개 고정 (size 파라미터 무시)
+        int GNJOY_PAGE_SIZE = 10;
+        response.setTotalPages((int) Math.ceil((double) totalItems / GNJOY_PAGE_SIZE));
 
         buildTime = System.currentTimeMillis() - buildStart;
         long totalTime = System.currentTimeMillis() - totalStart;
