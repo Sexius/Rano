@@ -76,21 +76,27 @@ public class VendingSearchService {
         // Singleflight 패턴: 동일 cacheKey에 대한 동시 요청 합치기
         final String finalServer = server;
         final String finalKeyword = keyword;
+        final boolean[] isLeader = {false};
         
         CompletableFuture<VendingSearchResponse> future = inFlightRequests.computeIfAbsent(cacheKey, k -> {
+            isLeader[0] = true;
             System.out.println("[Singleflight] LEADER key=" + k);
             return CompletableFuture.supplyAsync(() -> 
                 doGnjoyFetch(k, finalServer, finalKeyword, page, size, sortField, start)
             );
         });
         
-        // 이미 진행 중인 요청이 있으면 join
-        if (future != inFlightRequests.get(cacheKey)) {
-            System.out.println("[Singleflight] JOIN key=" + cacheKey);
+        // JOIN 요청 감지 (LEADER가 아닌 경우)
+        if (!isLeader[0]) {
+            System.out.println("[Singleflight] JOIN key=" + cacheKey + " (waiting for leader)");
         }
         
         try {
-            return future.get();  // 결과 대기
+            VendingSearchResponse result = future.get();  // 결과 대기
+            if (!isLeader[0]) {
+                System.out.println("[Singleflight] JOIN_COMPLETE key=" + cacheKey);
+            }
+            return result;
         } catch (InterruptedException | ExecutionException e) {
             Throwable cause = e.getCause();
             if (cause instanceof NoCacheAvailableException) {
