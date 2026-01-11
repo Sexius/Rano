@@ -39,5 +39,5 @@ jobs:
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }}
         run: |
           python .github/scripts/collect_and_upload.py \
-            --server baphomet \
-            --pages 5
+            --pages 3 \
+            --targets-count 3

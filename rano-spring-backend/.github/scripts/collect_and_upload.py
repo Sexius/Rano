@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Vending Data Collector for GitHub Actions
-- 공홈(ro.gnjoy.com)에서 노점 데이터 수집
+- targets.json 기반 로테이션 수집
+- 랜덤 startPage로 커버리지 확대
 - Render 백엔드로 업로드
 """
 import os
@@ -10,8 +11,10 @@ import json
 import time
 import random
 import argparse
+import datetime
 import requests
 from bs4 import BeautifulSoup
+from pathlib import Path
 
 # 공홈 URL 패턴
 GNJOY_BASE_URL = "https://ro.gnjoy.com/itemdeal/itemDealList.asp"
@@ -23,23 +26,62 @@ SERVER_IDS = {
     "ifrit": "131"
 }
 
-# 인기 키워드 목록 (순환 수집용)
-POPULAR_KEYWORDS = [
-    "천공", "룬", "카드", "주문서", "악세", "무기", "방어구",
-    "마법", "힘", "민첩", "지능", "행운", "체력", "정신력"
-]
+
+def load_targets():
+    """targets.json 로드"""
+    script_dir = Path(__file__).parent
+    targets_path = script_dir / "targets.json"
+    
+    if targets_path.exists():
+        with open(targets_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    
+    # fallback
+    return [{"server": "baphomet", "keyword": "천공"}]
+
+
+def get_rotation_targets(targets, count=3):
+    """
+    시간 기반 + 랜덤 혼합 로테이션
+    - 매 10분 주기마다 다른 target 그룹 선택
+    - 같은 주기에 count개 타겟 수집
+    """
+    now = datetime.datetime.now()
+    
+    # 10분 단위 시간 슬롯 (하루 144개 슬롯)
+    time_slot = (now.hour * 6) + (now.minute // 10)
+    
+    # 시간 슬롯 기반 시작 인덱스 (deterministic)
+    start_idx = (time_slot * count) % len(targets)
+    
+    # count개 타겟 선택 (순환)
+    selected = []
+    for i in range(count):
+        idx = (start_idx + i) % len(targets)
+        selected.append(targets[idx])
+    
+    return selected, time_slot
+
+
+def get_random_start_page(max_total_pages=20):
+    """
+    랜덤 startPage 생성 (1~max_total_pages 범위)
+    - 상태 저장 없이 커버리지 확대
+    - 같은 키워드도 다른 페이지 범위 수집
+    """
+    return random.randint(1, max(1, max_total_pages - 5))
+
 
 def parse_vending_page(html_content, server):
     """공홈 HTML에서 노점 데이터 파싱"""
     soup = BeautifulSoup(html_content, 'html.parser')
     items = []
     
-    # 테이블 찾기
     table = soup.select_one('table.listTypeOfDefault.dealList')
     if not table:
         return items
     
-    rows = table.select('tr')[1:]  # 헤더 제외
+    rows = table.select('tr')[1:]
     
     for row in rows:
         cols = row.select('td')
@@ -47,58 +89,47 @@ def parse_vending_page(html_content, server):
             continue
         
         try:
-            # 서버명
-            server_name = cols[0].get_text(strip=True)
-            
-            # 아이템명 (이미지 alt 또는 텍스트)
             item_elem = cols[1].select_one('a')
             if not item_elem:
                 continue
             
-            # onclick에서 ssi, mapId 추출
             onclick = item_elem.get('onclick', '')
             ssi = ""
             map_id = ""
             if 'popup_info' in onclick:
-                # popup_info('ssi값','mapId값')
                 parts = onclick.split("'")
                 if len(parts) >= 4:
                     ssi = parts[1]
                     map_id = parts[3]
             
-            # 아이템명
             img = cols[1].select_one('img')
             if img and img.get('alt'):
                 item_name = img['alt']
             else:
                 item_name = cols[1].get_text(strip=True)
             
-            # 수량
             qty_text = cols[2].get_text(strip=True).replace(',', '')
             quantity = int(qty_text) if qty_text.isdigit() else 1
             
-            # 가격
             price_text = cols[3].get_text(strip=True).replace(',', '').replace('z', '')
             price = int(price_text) if price_text.isdigit() else 0
             
-            # 노점 정보
             vendor_info_elem = cols[4].select_one('a')
             vendor_info = vendor_info_elem.get_text(strip=True) if vendor_info_elem else ""
             
-            # DTO 생성
             items.append({
                 "item_name": item_name,
                 "price": price,
                 "quantity": quantity,
                 "vendor_info": vendor_info,
-                "vendor_name": "",  # 공홈에서는 판매자명 없음
+                "vendor_name": "",
                 "ssi": ssi,
                 "map_id": map_id,
                 "server_name": server
             })
             
         except Exception as e:
-            print(f"[Parser] Error parsing row: {e}")
+            print(f"[Parser] Error: {e}")
             continue
     
     return items
@@ -156,95 +187,103 @@ def upload_to_server(items, server, upload_url, upload_key):
             result = resp.json()
             return result.get("savedCount", 0), None
         else:
-            return 0, f"HTTP {resp.status_code}: {resp.text}"
+            return 0, f"HTTP {resp.status_code}: {resp.text[:200]}"
             
     except Exception as e:
         return 0, str(e)
 
 
-def collect_and_upload(server, keyword, max_pages, upload_url, upload_key):
-    """수집 + 업로드 메인 로직"""
-    print(f"[Collector] Starting: server={server} keyword={keyword} pages={max_pages}")
+def collect_and_upload(server, keyword, start_page, max_pages, upload_url, upload_key):
+    """수집 + 업로드"""
+    end_page = start_page + max_pages - 1
+    print(f"[Collector] {server}|{keyword} pages {start_page}~{end_page}")
     
     all_items = []
     
-    for page in range(1, max_pages + 1):
-        print(f"[Collector] Fetching page {page}/{max_pages}...")
+    for page in range(start_page, end_page + 1):
+        print(f"[Collector] Fetching page {page}...")
         
         html, error = fetch_page(server, keyword, page)
         
         if error == "429":
-            print("[Collector] 429 detected, stopping collection")
-            break
+            print("[Collector] 429 detected, stopping")
+            return 0, True  # rate limited
         
         if error:
-            print(f"[Collector] Error on page {page}: {error}")
+            print(f"[Collector] Error: {error}")
             break
         
         items = parse_vending_page(html, server)
-        print(f"[Collector] Page {page}: {len(items)} items parsed")
+        print(f"[Collector] Page {page}: {len(items)} items")
         
         if not items:
-            print("[Collector] No more items, stopping")
             break
         
         all_items.extend(items)
         
-        # 다음 페이지 전 랜덤 딜레이 (3~6초)
-        if page < max_pages:
+        if page < end_page:
             delay = 3 + random.random() * 3
-            print(f"[Collector] Waiting {delay:.1f}s...")
             time.sleep(delay)
     
     if not all_items:
-        print("[Collector] No items collected")
-        return 0
+        return 0, False
     
-    # 업로드
-    print(f"[Collector] Uploading {len(all_items)} items to {upload_url}...")
     saved, error = upload_to_server(all_items, server, upload_url, upload_key)
     
     if error:
         print(f"[Collector] Upload error: {error}")
-        return 0
+        return 0, False
     
-    print(f"[Collector] Upload complete: {saved} items saved")
-    return saved
+    print(f"[Collector] Uploaded: {saved} items")
+    return saved, False
 
 
 def main():
     parser = argparse.ArgumentParser(description='Vending Data Collector')
-    parser.add_argument('--server', default='baphomet', help='Server name')
-    parser.add_argument('--keyword', default='', help='Search keyword (empty = cycle popular keywords)')
-    parser.add_argument('--pages', type=int, default=3, help='Max pages per keyword')
+    parser.add_argument('--server', default='', help='Server name (empty = use targets.json)')
+    parser.add_argument('--keyword', default='', help='Search keyword (empty = use targets.json)')
+    parser.add_argument('--pages', type=int, default=3, help='Max pages per target')
+    parser.add_argument('--targets-count', type=int, default=3, help='Number of targets per run')
     args = parser.parse_args()
     
-    # 환경 변수에서 URL/키 읽기
     upload_url = os.environ.get('UPLOAD_URL', 'https://rano.onrender.com/api/vending/upload')
-    upload_key = os.environ.get('UPLOAD_KEY', 'rano-upload-secret-2026')
+    upload_key = os.environ.get('UPLOAD_KEY', '')
     
-    if not upload_url or not upload_key:
-        print("[ERROR] UPLOAD_URL and UPLOAD_KEY environment variables required")
+    if not upload_key:
+        print("[ERROR] UPLOAD_KEY required")
         sys.exit(1)
     
     total_saved = 0
     
     if args.keyword:
-        # 특정 키워드만 수집
-        total_saved = collect_and_upload(args.server, args.keyword, args.pages, upload_url, upload_key)
+        # 단일 키워드 수집
+        start_page = get_random_start_page()
+        saved, _ = collect_and_upload(args.server or 'baphomet', args.keyword, start_page, args.pages, upload_url, upload_key)
+        total_saved = saved
     else:
-        # 인기 키워드 순환 수집 (시간 기반 인덱스)
-        import datetime
-        minute = datetime.datetime.now().minute
-        # 10분 주기로 다른 키워드 선택
-        keyword_index = (minute // 10) % len(POPULAR_KEYWORDS)
-        keyword = POPULAR_KEYWORDS[keyword_index]
+        # targets.json 기반 로테이션 수집
+        all_targets = load_targets()
+        selected, time_slot = get_rotation_targets(all_targets, args.targets_count)
         
-        print(f"[Collector] Auto-selected keyword: {keyword} (index {keyword_index})")
-        total_saved = collect_and_upload(args.server, keyword, args.pages, upload_url, upload_key)
+        print(f"[Collector] Time slot: {time_slot}, Targets: {len(selected)}")
+        
+        for target in selected:
+            server = target.get("server", "baphomet")
+            keyword = target.get("keyword", "천공")
+            
+            start_page = get_random_start_page()
+            saved, rate_limited = collect_and_upload(server, keyword, start_page, args.pages, upload_url, upload_key)
+            total_saved += saved
+            
+            if rate_limited:
+                print("[Collector] Rate limited, stopping all")
+                break
+            
+            # 타겟 간 딜레이
+            time.sleep(2)
     
     print(f"[Collector] Total saved: {total_saved}")
-    sys.exit(0 if total_saved > 0 else 1)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
