@@ -130,8 +130,9 @@ public class VendingController {
         // 1. API 키 검증 (환경변수 필수, fallback 없음)
         String expectedKey = System.getenv("VENDING_UPLOAD_KEY");
         if (expectedKey == null || expectedKey.isEmpty()) {
+            System.out.println("[VendingUpload] DISABLED: missing VENDING_UPLOAD_KEY env var");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(Map.of("error", "Upload key not configured on server"));
+                .body(Map.of("error", "upload disabled: missing VENDING_UPLOAD_KEY"));
         }
         
         if (apiKey == null || !apiKey.equals(expectedKey)) {
