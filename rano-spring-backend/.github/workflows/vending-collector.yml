@@ -33,6 +33,15 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
       
+      # 상태 파일 캐시 복원
+      - name: Restore collector state
+        uses: actions/cache@v4
+        with:
+          path: .github/scripts/.collector_state.json
+          key: collector-state-${{ github.ref }}
+          restore-keys: |
+            collector-state-
+      
       - name: Run collector script
         env:
           UPLOAD_URL: ${{ secrets.UPLOAD_URL }}
@@ -41,3 +50,11 @@ jobs:
           python .github/scripts/collect_and_upload.py \
             --pages 3 \
             --targets-count 3
+      
+      # 상태 파일 캐시 저장 (항상 실행)
+      - name: Save collector state
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .github/scripts/.collector_state.json
+          key: collector-state-${{ github.ref }}-${{ github.run_id }}

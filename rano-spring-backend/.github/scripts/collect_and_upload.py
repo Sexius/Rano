@@ -2,8 +2,8 @@
 """
 Vending Data Collector for GitHub Actions
 - targets.json 기반 로테이션 수집
-- 랜덤 startPage로 커버리지 확대
-- Render 백엔드로 업로드
+- 순차 startPage 로테이션 (state 파일 기반)
+- 429 발생 시 해당 target만 스킵
 """
 import os
 import sys
@@ -26,6 +26,55 @@ SERVER_IDS = {
     "ifrit": "131"
 }
 
+# 상태 파일 경로 (GitHub Actions cache로 유지)
+STATE_FILE = Path(__file__).parent / ".collector_state.json"
+
+# startPage 순환 설정
+PAGE_STEP = 3  # 3페이지씩 이동
+MAX_START_PAGE = 15  # startPage 최대값 (이후 1로 리셋)
+
+
+def load_state():
+    """상태 파일 로드"""
+    if STATE_FILE.exists():
+        try:
+            with open(STATE_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            pass
+    return {"targets": {}}
+
+
+def save_state(state):
+    """상태 파일 저장"""
+    try:
+        with open(STATE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(state, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[State] Save error: {e}")
+
+
+def get_next_start_page(state, target_key):
+    """
+    순차 startPage 반환 (1 → 4 → 7 → 10 → 13 → 1 ...)
+    """
+    targets_state = state.get("targets", {})
+    current = targets_state.get(target_key, {}).get("startPage", 1)
+    
+    # 다음 startPage 계산
+    next_page = current + PAGE_STEP
+    if next_page > MAX_START_PAGE:
+        next_page = 1
+    
+    # 상태 업데이트
+    if target_key not in targets_state:
+        targets_state[target_key] = {}
+    targets_state[target_key]["startPage"] = next_page
+    targets_state[target_key]["lastRun"] = datetime.datetime.now().isoformat()
+    state["targets"] = targets_state
+    
+    return current  # 현재 값 반환 (다음 run에서 next_page 사용)
+
 
 def load_targets():
     """targets.json 로드"""
@@ -36,40 +85,23 @@ def load_targets():
         with open(targets_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     
-    # fallback
     return [{"server": "baphomet", "keyword": "천공"}]
 
 
 def get_rotation_targets(targets, count=3):
     """
-    시간 기반 + 랜덤 혼합 로테이션
-    - 매 10분 주기마다 다른 target 그룹 선택
-    - 같은 주기에 count개 타겟 수집
+    시간 기반 deterministic 로테이션
     """
     now = datetime.datetime.now()
-    
-    # 10분 단위 시간 슬롯 (하루 144개 슬롯)
     time_slot = (now.hour * 6) + (now.minute // 10)
-    
-    # 시간 슬롯 기반 시작 인덱스 (deterministic)
     start_idx = (time_slot * count) % len(targets)
     
-    # count개 타겟 선택 (순환)
     selected = []
     for i in range(count):
         idx = (start_idx + i) % len(targets)
         selected.append(targets[idx])
     
     return selected, time_slot
-
-
-def get_random_start_page(max_total_pages=20):
-    """
-    랜덤 startPage 생성 (1~max_total_pages 범위)
-    - 상태 저장 없이 커버리지 확대
-    - 같은 키워드도 다른 페이지 범위 수집
-    """
-    return random.randint(1, max(1, max_total_pages - 5))
 
 
 def parse_vending_page(html_content, server):
@@ -194,11 +226,12 @@ def upload_to_server(items, server, upload_url, upload_key):
 
 
 def collect_and_upload(server, keyword, start_page, max_pages, upload_url, upload_key):
-    """수집 + 업로드"""
+    """수집 + 업로드. 반환: (saved_count, is_429)"""
     end_page = start_page + max_pages - 1
     print(f"[Collector] {server}|{keyword} pages {start_page}~{end_page}")
     
     all_items = []
+    hit_429 = False
     
     for page in range(start_page, end_page + 1):
         print(f"[Collector] Fetching page {page}...")
@@ -206,8 +239,9 @@ def collect_and_upload(server, keyword, start_page, max_pages, upload_url, uploa
         html, error = fetch_page(server, keyword, page)
         
         if error == "429":
-            print("[Collector] 429 detected, stopping")
-            return 0, True  # rate limited
+            print(f"[Collector] 429 on {server}|{keyword}, skipping this target")
+            hit_429 = True
+            break
         
         if error:
             print(f"[Collector] Error: {error}")
@@ -226,16 +260,16 @@ def collect_and_upload(server, keyword, start_page, max_pages, upload_url, uploa
             time.sleep(delay)
     
     if not all_items:
-        return 0, False
+        return 0, hit_429
     
     saved, error = upload_to_server(all_items, server, upload_url, upload_key)
     
     if error:
         print(f"[Collector] Upload error: {error}")
-        return 0, False
+        return 0, hit_429
     
     print(f"[Collector] Uploaded: {saved} items")
-    return saved, False
+    return saved, hit_429
 
 
 def main():
@@ -253,12 +287,18 @@ def main():
         print("[ERROR] UPLOAD_KEY required")
         sys.exit(1)
     
+    # 상태 로드
+    state = load_state()
+    print(f"[State] Loaded: {len(state.get('targets', {}))} targets tracked")
+    
     total_saved = 0
+    consecutive_429 = 0
     
     if args.keyword:
         # 단일 키워드 수집
-        start_page = get_random_start_page()
-        saved, _ = collect_and_upload(args.server or 'baphomet', args.keyword, start_page, args.pages, upload_url, upload_key)
+        target_key = f"{args.server or 'baphomet'}|{args.keyword}"
+        start_page = get_next_start_page(state, target_key)
+        saved, hit_429 = collect_and_upload(args.server or 'baphomet', args.keyword, start_page, args.pages, upload_url, upload_key)
         total_saved = saved
     else:
         # targets.json 기반 로테이션 수집
@@ -270,17 +310,29 @@ def main():
         for target in selected:
             server = target.get("server", "baphomet")
             keyword = target.get("keyword", "천공")
+            target_key = f"{server}|{keyword}"
             
-            start_page = get_random_start_page()
-            saved, rate_limited = collect_and_upload(server, keyword, start_page, args.pages, upload_url, upload_key)
+            # 순차 startPage
+            start_page = get_next_start_page(state, target_key)
+            
+            saved, hit_429 = collect_and_upload(server, keyword, start_page, args.pages, upload_url, upload_key)
             total_saved += saved
             
-            if rate_limited:
-                print("[Collector] Rate limited, stopping all")
-                break
+            if hit_429:
+                consecutive_429 += 1
+                print(f"[Collector] 429 count: {consecutive_429}/3")
+                if consecutive_429 >= 3:
+                    print("[Collector] 3 consecutive 429s, stopping")
+                    break
+            else:
+                consecutive_429 = 0  # 리셋
             
             # 타겟 간 딜레이
             time.sleep(2)
+    
+    # 상태 저장
+    save_state(state)
+    print(f"[State] Saved: {len(state.get('targets', {}))} targets tracked")
     
     print(f"[Collector] Total saved: {total_saved}")
     sys.exit(0)
