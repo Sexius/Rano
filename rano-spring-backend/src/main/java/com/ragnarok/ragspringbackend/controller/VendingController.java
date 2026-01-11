@@ -10,8 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api")
@@ -184,5 +186,111 @@ public class VendingController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
         }
+    }
+
+    // ========== Cache Warmup (관리용) ==========
+    @PostMapping("/vending/warmup")
+    public ResponseEntity<?> warmupCache(
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKey,
+            @RequestBody WarmupRequest request) {
+        
+        // API 키 검증
+        String expectedKey = System.getenv("VENDING_WARMUP_KEY");
+        if (expectedKey == null || expectedKey.isEmpty()) {
+            System.out.println("[VendingWarmup] DISABLED: missing VENDING_WARMUP_KEY env var");
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "warmup disabled: missing VENDING_WARMUP_KEY"));
+        }
+        
+        if (apiKey == null || !apiKey.equals(expectedKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Invalid API key"));
+        }
+        
+        if (request.getTargets() == null || request.getTargets().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "No targets provided"));
+        }
+        
+        List<Map<String, Object>> results = new ArrayList<>();
+        int successCount = 0;
+        int failCount = 0;
+        
+        for (WarmupTarget target : request.getTargets()) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("server", target.getServer());
+            result.put("keyword", target.getKeyword());
+            result.put("page", target.getPage());
+            result.put("size", target.getSize());
+            
+            try {
+                // v2/search 내부 로직 호출 (캐시 생성)
+                VendingSearchService.VendingSearchResponse response = 
+                    vendingSearchService.search(
+                        target.getServer(), 
+                        target.getKeyword(), 
+                        target.getPage(), 
+                        target.getSize(), 
+                        "price", 
+                        "asc"
+                    );
+                
+                result.put("status", "OK");
+                result.put("httpStatus", 200);
+                result.put("cached", response.isRefreshTriggered());
+                result.put("itemCount", response.getData() != null ? response.getData().size() : 0);
+                result.put("stale", response.isStale());
+                successCount++;
+                
+            } catch (NoCacheAvailableException e) {
+                result.put("status", "RATE_LIMITED");
+                result.put("httpStatus", 429);
+                result.put("cached", false);
+                result.put("reason", e.getReason());
+                failCount++;
+                
+            } catch (Exception e) {
+                result.put("status", "ERROR");
+                result.put("httpStatus", 500);
+                result.put("cached", false);
+                result.put("error", e.getMessage());
+                failCount++;
+            }
+            
+            results.add(result);
+            
+            // 타겟 간 딜레이 (429 방지)
+            try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+        }
+        
+        return ResponseEntity.ok(Map.of(
+            "totalTargets", request.getTargets().size(),
+            "successCount", successCount,
+            "failCount", failCount,
+            "results", results
+        ));
+    }
+    
+    // Warmup 요청 DTO
+    public static class WarmupRequest {
+        private List<WarmupTarget> targets;
+        public List<WarmupTarget> getTargets() { return targets; }
+        public void setTargets(List<WarmupTarget> targets) { this.targets = targets; }
+    }
+    
+    public static class WarmupTarget {
+        private String server = "baphomet";
+        private String keyword = "";
+        private int page = 1;
+        private int size = 10;
+        
+        public String getServer() { return server; }
+        public void setServer(String server) { this.server = server; }
+        public String getKeyword() { return keyword; }
+        public void setKeyword(String keyword) { this.keyword = keyword; }
+        public int getPage() { return page; }
+        public void setPage(int page) { this.page = page; }
+        public int getSize() { return size; }
+        public void setSize(int size) { this.size = size; }
     }
 }

@@ -17,6 +17,7 @@ com\ragnarok\ragspringbackend\entity\Item.class
 com\ragnarok\ragspringbackend\config\CorsConfig.class
 com\ragnarok\ragspringbackend\controller\HealthController$PingResponse.class
 com\ragnarok\ragspringbackend\service\NoCacheAvailableException.class
+com\ragnarok\ragspringbackend\controller\VendingController$WarmupRequest.class
 com\ragnarok\ragspringbackend\service\CalculatorService.class
 com\ragnarok\ragspringbackend\controller\CalculatorController.class
 com\ragnarok\ragspringbackend\controller\VendingController.class
@@ -26,6 +27,7 @@ com\ragnarok\ragspringbackend\service\VendingSearchService$VendingSearchResponse
 com\ragnarok\ragspringbackend\repository\SkillRepository.class
 com\ragnarok\ragspringbackend\service\ItemService.class
 com\ragnarok\ragspringbackend\service\SkillService.class
+com\ragnarok\ragspringbackend\controller\VendingController$WarmupTarget.class
 com\ragnarok\ragspringbackend\util\RagDescriptionUtils.class
 com\ragnarok\ragspringbackend\repository\VendingSearchCacheRepository.class
 com\ragnarok\ragspringbackend\service\ItemCacheService.class
