@@ -149,9 +149,12 @@ public class VendingService {
         String svrId = "1"; // Default to Baphomet
         if ("ifrit".equalsIgnoreCase(server) || "이프리트".equals(server)) {
             svrId = "729";
+        } else if ("yggdrasil".equalsIgnoreCase(server) || "이그드라실".equals(server)) {
+            svrId = "217";
         } else if ("baphomet".equalsIgnoreCase(server) || "바포메트".equals(server)) {
             svrId = "1";
         }
+        // Note: '전체' (all) is not supported by GNJOY API, defaults to baphomet
 
         // Correct endpoint: itemDealList.asp (per Chromium DevTools Ground Truth)
         String url = "https://ro.gnjoy.com/itemdeal/itemDealList.asp";

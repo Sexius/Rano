@@ -63,12 +63,15 @@ export const searchVendingItems = async (
         if (itemName) params.append('item', itemName);
 
         // 서버 파라미터 매핑 (한글 -> 영어)
-        let serverParam = 'baphomet'; // 기본값
+        let serverParam = 'baphomet'; // 기본값 (전체 선택 시에도 baphomet)
         if (server === '바포메트') serverParam = 'baphomet';
         else if (server === '이그드라실') serverParam = 'yggdrasil';
         else if (server === '이프리트') serverParam = 'ifrit';
+        // '전체' 선택 시 serverParam 생략 (백엔드에서 기본값 사용)
 
-        params.append('server', serverParam);
+        if (server !== '전체') {
+            params.append('server', serverParam);
+        }
         if (category && category !== '전체') params.append('category', category);
 
         params.append('page', page.toString());

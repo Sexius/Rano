@@ -1,7 +1,8 @@
 import { ServerType, ItemCategory } from './types';
 
-// kRO Servers (실제 서버 3개만)
+// kRO Servers (실제 서버 3개 + 전체)
 export const SERVERS = [
+  '전체',
   '바포메트',
   '이그드라실',
   '이프리트',
