@@ -123,7 +123,7 @@ const App: React.FC = () => {
             {/* List - Always Full Width */}
             <div className="flex flex-col gap-2 relative mt-8">
               <div className="w-full max-w-5xl mx-auto">
-                <div className="flex items-center justify-between mb-4 pl-1">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 pl-1 gap-1">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                     {lastQuery ? `"${lastQuery}" 검색 결과` : '실시간 인기 매물'}
                     {totalResults > 0 && <span className="text-sm font-normal text-gray-500">({totalResults}건)</span>}
@@ -132,7 +132,6 @@ const App: React.FC = () => {
                     <span className="text-xs text-gray-400">
                       마지막 업데이트: {lastSearchTime.toLocaleString('ko-KR', {
                         timeZone: 'Asia/Seoul',
-                        year: 'numeric',
                         month: '2-digit',
                         day: '2-digit',
                         hour: '2-digit',
