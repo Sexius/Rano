@@ -279,25 +279,6 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
               {/* Price Column */}
               <div className="flex items-center gap-2">
                 <div className="text-right">
-                  {/* Update time in KST */}
-                  {item.created_at && (
-                    <div className="text-[9px] text-gray-400 mb-0.5">
-                      {(() => {
-                        try {
-                          const date = new Date(item.created_at);
-                          return date.toLocaleString('ko-KR', { 
-                            timeZone: 'Asia/Seoul',
-                            month: '2-digit',
-                            day: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          });
-                        } catch {
-                          return '';
-                        }
-                      })()}
-                    </div>
-                  )}
                   <div
                     className="text-base font-extrabold whitespace-nowrap"
                     style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
