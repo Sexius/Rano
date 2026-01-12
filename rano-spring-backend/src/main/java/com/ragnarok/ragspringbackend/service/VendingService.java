@@ -290,6 +290,9 @@ public class VendingService {
                 if (imageUrl != null) {
                     item.setImage_url(imageUrl);
                 }
+                
+                // 현재 itemDealList.asp는 판매 노점만 반환 (구매 노점은 별도 파라미터 필요)
+                item.setShop_type("sell");
 
                 stage3_preFilterCount++;
 

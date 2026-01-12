@@ -36,7 +36,8 @@ function convertToMarketItem(dto: any, index: number): MarketItem {
         description: '',
         stats: [],
         ssi: dto.ssi,
-        map_id: dto.map_id
+        map_id: dto.map_id,
+        shop_type: dto.shop_type || 'sell'
     };
 }
 

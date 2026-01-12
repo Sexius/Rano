@@ -19,6 +19,7 @@ public class VendingItemDto {
     private String map_id; // Original site Map identifier
     private List<String> cards_equipped = new ArrayList<>(); // Cards and enchants
     private String item_icon_url; // DB-provided item icon URL (DivinePrice based on item_id)
+    private String shop_type; // "sell" or "buy"
 
     // Constructors
     public VendingItemDto() {
@@ -166,5 +167,13 @@ public class VendingItemDto {
 
     public void setItem_icon_url(String item_icon_url) {
         this.item_icon_url = item_icon_url;
+    }
+
+    public String getShop_type() {
+        return shop_type;
+    }
+
+    public void setShop_type(String shop_type) {
+        this.shop_type = shop_type;
     }
 }

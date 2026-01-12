@@ -198,6 +198,15 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
               {/* Non-clickable container - only specific elements are clickable */}
               <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Shop Type Badge */}
+                <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                  item.shop_type === 'buy' 
+                    ? 'bg-red-50 text-red-600' 
+                    : 'bg-blue-50 text-blue-600'
+                }`}>
+                  {item.shop_type === 'buy' ? '구매' : '판매'}
+                </span>
+                
                 {/* Image Thumbnail - NOT clickable */}
                 <div className="relative shrink-0">
                   <div className={`h-11 w-11 rounded-lg overflow-hidden border ${isSelected ? 'border-kafra-200' : 'border-gray-100'} bg-gray-50`}>

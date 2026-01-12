@@ -20,6 +20,7 @@ export interface MarketItem {
   parsedData?: any;               // Raw DB JSON (or string)
   ssi?: string;                   // For fetching vending details
   map_id?: string;                // For fetching vending details
+  shop_type?: 'sell' | 'buy';     // Vending shop type
 }
 
 export interface SearchParams {
