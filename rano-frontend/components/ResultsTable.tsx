@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MarketItem } from '../types';
-import { Package, Clock, Info } from 'lucide-react';
+import { Package, Info } from 'lucide-react';
 import { getZenyStyle, formatZeny } from '../utils/zenyStyle';
 import { usePanelManager, CardInfo } from '../hooks/usePanelManager';
 import FloatingPanel from './FloatingPanel';
@@ -272,9 +272,6 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     <span className="font-medium text-gray-600">{item.server}</span>
                     <span className="w-0.5 h-2.5 bg-gray-200"></span>
                     <span className="truncate max-w-[120px]">{item.seller}</span>
-                    <span className="hidden sm:flex items-center gap-0.5 text-gray-400">
-                      <Clock size={10} /> {item.created_at}
-                    </span>
                   </div>
                 </div>
               </div>
@@ -282,6 +279,25 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
               {/* Price Column */}
               <div className="flex items-center gap-2">
                 <div className="text-right">
+                  {/* Update time in KST */}
+                  {item.created_at && (
+                    <div className="text-[9px] text-gray-400 mb-0.5">
+                      {(() => {
+                        try {
+                          const date = new Date(item.created_at);
+                          return date.toLocaleString('ko-KR', { 
+                            timeZone: 'Asia/Seoul',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          });
+                        } catch {
+                          return '';
+                        }
+                      })()}
+                    </div>
+                  )}
                   <div
                     className="text-base font-extrabold whitespace-nowrap"
                     style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
