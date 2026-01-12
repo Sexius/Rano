@@ -294,13 +294,13 @@ public class VendingService {
                     item.setImage_url(imageUrl);
                 }
                 
-                // 6번째 컬럼에서 구매/판매 구분 파싱
+                // 5번째 컬럼(노점명)의 class 속성에서 구매/판매 구분
+                // <td class="shop buy"> → 구매, <td class="shop"> 또는 <td class="shop sell"> → 판매
                 String shopType = "sell"; // 기본값
-                if (columns.size() >= 6) {
-                    String typeText = columns.get(5).text();
-                    if (typeText.contains("구매")) {
-                        shopType = "buy";
-                    }
+                Element shopColumn = columns.get(4);
+                String shopClass = shopColumn.attr("class");
+                if (shopClass != null && shopClass.contains("buy")) {
+                    shopType = "buy";
                 }
                 item.setShop_type(shopType);
 
