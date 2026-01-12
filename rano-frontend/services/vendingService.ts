@@ -88,16 +88,31 @@ export const searchVendingItems = async (
         const result: VendingPageResponse = await response.json();
 
         // Convert to MarketItem
-        const items = result.data ? result.data.map((dto, index) => convertToMarketItem(dto, index)) : [];
+        let items = result.data ? result.data.map((dto, index) => convertToMarketItem(dto, index)) : [];
+
+        // 클라이언트 측 서버 필터링 (GNJOY API가 서버 필터링을 지원하지 않는 경우)
+        if (server !== '전체') {
+            const serverNameMap: Record<string, string[]> = {
+                '바포메트': ['바포메트', 'Baphomet', '바포'],
+                '이그드라실': ['이그드라실', 'Yggdrasil', '이그'],
+                '이프리트': ['이프리트', 'Ifrit', '이프']
+            };
+            const validNames = serverNameMap[server] || [];
+            if (validNames.length > 0) {
+                items = items.filter(item => 
+                    validNames.some(name => item.server.includes(name))
+                );
+            }
+        }
 
         // 카드 상세는 개별 아이템 클릭 시에만 로드 (검색 속도 최적화)
         const enrichedItems = items;
 
         return {
             items: enrichedItems,
-            total: result.total || 0,
+            total: server !== '전체' ? items.length : (result.total || 0),
             page: result.page || 1,
-            totalPages: result.totalPages || 0
+            totalPages: server !== '전체' ? Math.ceil(items.length / 10) : (result.totalPages || 0)
         };
 
     } catch (error) {
