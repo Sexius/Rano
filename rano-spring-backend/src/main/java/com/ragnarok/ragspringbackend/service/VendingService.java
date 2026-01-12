@@ -291,8 +291,15 @@ public class VendingService {
                     item.setImage_url(imageUrl);
                 }
                 
-                // 현재 itemDealList.asp는 판매 노점만 반환 (구매 노점은 별도 파라미터 필요)
-                item.setShop_type("sell");
+                // 6번째 컬럼에서 구매/판매 구분 파싱
+                String shopType = "sell"; // 기본값
+                if (columns.size() >= 6) {
+                    String typeText = columns.get(5).text();
+                    if (typeText.contains("구매")) {
+                        shopType = "buy";
+                    }
+                }
+                item.setShop_type(shopType);
 
                 stage3_preFilterCount++;
 
