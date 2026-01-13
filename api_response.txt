@@ -1,0 +1,18 @@
+All keys: ['id', 'vendor_name', 'server_name', 'coordinates', 'item_name', 'quantity', 'price', 'vendor_info', 'category', 'rarity', 'image_url', 'ssi', 'map_id', 'cards_equipped', 'item_icon_url', 'shop_type']
+
+  id: 401117
+  vendor_name: ㅇㅇ
+  server_name: 바포메트
+  coordinates: ㅇㅇ
+  item_name: 천공의 룬 크라운(하이퍼 노비스)[1]
+  quantity: 1
+  price: 50000
+  vendor_info: ㅇㅇ
+  category: Unknown
+  rarity: Common
+  image_url: https://imgc1.gnjoy.com/games/ro1/object/201306/401117.png
+  ssi: 7594857335999718719
+  map_id: 2023
+  cards_equipped: []
+  item_icon_url: https://static.divine-pride.net/images/items/item/401117.png
+  shop_type: sell
