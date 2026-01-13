@@ -3,6 +3,7 @@ import { MarketItem } from '../types';
 import { Package, Info } from 'lucide-react';
 import { getZenyStyle, formatZeny } from '../utils/zenyStyle';
 import { usePanelManager, CardInfo } from '../hooks/usePanelManager';
+import { getEnchantIconUrl } from '../utils/enchantIcons';
 import FloatingPanel from './FloatingPanel';
 import MobileDrawer from './MobileDrawer';
 
@@ -254,7 +255,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                         >
                           {isEnchant ? (
                             <img 
-                              src="https://static.divine-pride.net/images/items/collection/24323.png" 
+                              src={getEnchantIconUrl(card)} 
                               alt="enchant" 
                               className="w-4 h-4 shrink-0"
                             />

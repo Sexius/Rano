@@ -123,6 +123,9 @@ export const searchVendingItems = async (
 
 // Fetch card details for each item in parallel (export for background loading)
 export async function enrichWithCardDetails(items: MarketItem[]): Promise<MarketItem[]> {
+    // Lazy import to avoid circular dependency
+    const { lookupEnchantId } = await import('../utils/enchantIcons');
+    
     // Process in batches to avoid overwhelming the server
     const batchSize = 5;
     const enrichedItems = [...items];
@@ -134,9 +137,18 @@ export async function enrichWithCardDetails(items: MarketItem[]): Promise<Market
                 try {
                     const detail = await getVendingItemDetailInternal(item.server, item.ssi, item.map_id);
                     if (detail) {
+                        const cardsEquipped = detail.cards_equipped || enrichedItems[i + batchIndex].cards_equipped;
+                        
+                        // Lookup and cache enchant IDs in background
+                        if (cardsEquipped && cardsEquipped.length > 0) {
+                            cardsEquipped.forEach(cardName => {
+                                lookupEnchantId(cardName); // Fire and forget - caches for future use
+                            });
+                        }
+                        
                         enrichedItems[i + batchIndex] = {
                             ...enrichedItems[i + batchIndex],
-                            cards_equipped: detail.cards_equipped || enrichedItems[i + batchIndex].cards_equipped,
+                            cards_equipped: cardsEquipped,
                             seller: detail.seller || enrichedItems[i + batchIndex].seller,
                             shop_title: detail.shop_title || enrichedItems[i + batchIndex].shop_title,
                             location: detail.location || enrichedItems[i + batchIndex].location

@@ -1,0 +1,18 @@
+{
+  "id": 0,
+  "vendor_name": "오버디스용!!",
+  "server_name": null,
+  "coordinates": null,
+  "item_name": null,
+  "quantity": 0,
+  "price": 0,
+  "vendor_info": "ㅇㅇ",
+  "category": null,
+  "rarity": null,
+  "image_url": null,
+  "ssi": "7594857335999718719",
+  "map_id": "prt_mk",
+  "cards_equipped": [],
+  "item_icon_url": null,
+  "shop_type": null
+}
