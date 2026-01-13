@@ -26,7 +26,7 @@ function convertToMarketItem(dto: any, index: number): MarketItem {
         amount: dto.quantity || 1,
         seller: dto.shop_name || dto.vendor_name || 'Unknown',
         shop_title: dto.vendor_title || dto.vendor_info || 'Unknown',
-        location: dto.location || '알 수 없음',
+        location: dto.map_id || dto.location || '',
         created_at: now,
         category: dto.item_type || '기타',
         image_placeholder: dto.item_icon_url || dto.image_url || `https://picsum.photos/seed/${dto.item_id || index}/64/64`,
