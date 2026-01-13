@@ -120,20 +120,21 @@ const App: React.FC = () => {
               {!lastQuery && (
                 <div className="mb-8 text-center lg:text-left">
                   <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-                    <span className="text-kafra-500">RANO</span> Market
+                    <span className="text-kafra-500">RANO</span> 
                   </h1>
-                  <p className="mt-2 text-sm text-gray-500">라그나로크 노점 검색의 새로운 기준</p>
+                  <p className="mt-2 text-sm text-gray-500">라그나로크 노점 검색</p>
                 </div>
               )}
               <SearchFilters onSearch={handleSearch} isLoading={isLoading} />
             </div>
 
-            {/* List - Always Full Width */}
+            {/* List - Only show when there's a search query */}
+            {lastQuery && (
             <div className="flex flex-col gap-2 relative mt-8">
               <div className="w-full max-w-5xl mx-auto">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 pl-1 gap-1">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    {lastQuery ? `"${lastQuery}" 검색 결과` : '실시간 인기 매물'}
+                    "{lastQuery}" 검색 결과
                     {totalResults > 0 && <span className="text-sm font-normal text-gray-500">({totalResults}건)</span>}
                   </h2>
                   {lastSearchTime && totalResults > 0 && (
@@ -256,6 +257,7 @@ const App: React.FC = () => {
                 )}
               </div>
             </div>
+            )}
 
             {/* ===== COMMENTED OUT: Original Item Detail Popup Modal =====
                Now using Inspector panel in ResultsTable instead
