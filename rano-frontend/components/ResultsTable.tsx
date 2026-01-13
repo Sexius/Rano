@@ -175,8 +175,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
   return (
     <>
-      {/* High-density list */}
-      <div className="flex flex-col gap-1.5">
+      {/* Kafra-style Grid Layout */}
+      <div className="flex flex-col gap-1">
         {items.map((item) => {
           const isSelected = selectedItemId === item.id;
           const fullName = getFullItemName(item);
@@ -185,39 +185,32 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
             <div
               key={item.id}
               className={`
-                flex items-center gap-2 md:gap-3 px-3 py-2.5 rounded-lg border
-                transition-all duration-150
+                grid grid-cols-[1fr_80px_70px_90px_140px] gap-2 items-center
+                px-3 py-2 rounded-lg border transition-all duration-150
                 ${isSelected
                   ? 'bg-kafra-50/50 border-kafra-400 shadow-sm'
                   : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
                 }
               `}
             >
-                {/* 1. Buy/Sell Tag */}
-                <div className="flex justify-center">
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${
-                    item.shop_type === 'buy' 
-                      ? 'bg-red-100 text-red-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {item.shop_type === 'buy' ? '구매' : '판매'}
-                  </span>
+              {/* Column 1: 아이템 (Tag + Image + Name) */}
+              <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                {/* Buy/Sell Tag */}
+                <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                  item.shop_type === 'buy' 
+                    ? 'bg-red-50 text-red-600 border-red-200' 
+                    : 'bg-blue-50 text-blue-600 border-blue-200'
+                }`}>
+                  {item.shop_type === 'buy' ? '구매' : '판매'}
+                </span>
+
+                {/* Item Image */}
+                <div className={`shrink-0 w-8 h-8 rounded overflow-hidden border ${isSelected ? 'border-kafra-300' : 'border-gray-200'} bg-gray-50`}>
+                  <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
                 </div>
 
-                {/* 2. Item Image */}
-                <div className="relative">
-                  <div className={`w-8 h-8 md:w-9 md:h-9 rounded overflow-hidden border ${isSelected ? 'border-kafra-300' : 'border-gray-200'} bg-gray-50`}>
-                    <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
-                  {item.card_slots > 0 && (
-                    <div className="absolute -bottom-0.5 -right-0.5 bg-gray-800 text-white text-[8px] font-bold w-3.5 h-3.5 rounded flex items-center justify-center">
-                      {item.card_slots}
-                    </div>
-                  )}
-                </div>
-
-                {/* 3. Item Name + Cards (Click opens detail) */}
-                <div className="min-w-0 flex-1 overflow-hidden">
+                {/* Item Name */}
+                <div className="min-w-0 overflow-hidden">
                   <div 
                     className="cursor-pointer hover:text-kafra-600 transition-colors"
                     onClick={(e) => {
@@ -238,19 +231,19 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   {/* Cards/Enchants - Compact */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
                     <div 
-                      className="flex flex-wrap gap-x-1.5 mt-0.5 cursor-pointer"
+                      className="flex flex-wrap gap-x-1 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCardClick(item, e);
                       }}
                     >
-                      {item.cards_equipped.slice(0, 3).map((card, i) => {
+                      {item.cards_equipped.slice(0, 2).map((card, i) => {
                         const isEnchant = card.startsWith('[옵션]');
                         const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
                         return (
                           <span
                             key={i}
-                            className={`text-[10px] font-medium ${
+                            className={`text-[9px] font-medium ${
                               isEnchant ? 'text-purple-500' : 'text-amber-600'
                             }`}
                           >
@@ -258,37 +251,50 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                           </span>
                         );
                       })}
-                      {item.cards_equipped.length > 3 && (
-                        <span className="text-[10px] text-gray-400">+{item.cards_equipped.length - 3}</span>
+                      {item.cards_equipped.length > 2 && (
+                        <span className="text-[9px] text-gray-400">+{item.cards_equipped.length - 2}</span>
                       )}
                     </div>
                   )}
-                  {/* Server & Seller Info */}
-                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-500">
-                    <span className="bg-gray-100 px-1 py-0.5 rounded font-medium">{item.server}</span>
-                    <span className="truncate">{item.seller}</span>
-                  </div>
-                </div>
-
-                {/* 4. Quantity - Middle column */}
-                <div className="text-right shrink-0 w-16">
-                  <span className="text-sm text-gray-600 font-medium">{item.amount.toLocaleString()}개</span>
-                </div>
-
-                {/* 5. Price */}
-                <div className="text-right shrink-0">
-                  <div
-                    className="text-base font-extrabold whitespace-nowrap"
-                    style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
-                  >
-                    {formatZeny(item.price)}
-                    <span className="text-[10px] text-gray-400 font-normal ml-0.5">z</span>
-                  </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+
+              {/* Column 2: 서버 */}
+              <div className="text-center">
+                <span className="text-xs text-gray-600">{item.server}</span>
+              </div>
+
+              {/* Column 3: 수량 */}
+              <div className="text-right">
+                <span className="text-sm text-gray-600">{item.amount.toLocaleString()}개</span>
+              </div>
+
+              {/* Column 4: 가격 */}
+              <div className="text-right">
+                <span
+                  className="text-base font-extrabold whitespace-nowrap"
+                  style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
+                >
+                  {formatZeny(item.price)}
+                  <span className="text-[10px] text-gray-400 font-normal ml-0.5">z</span>
+                </span>
+              </div>
+
+              {/* Column 5: 상점 정보 */}
+              <div className="text-right overflow-hidden">
+                <div className="text-xs text-gray-700 font-medium truncate" title={item.shop_title}>
+                  {item.shop_title}
+                </div>
+                <div className="flex items-center justify-end gap-1 text-[10px] text-gray-400">
+                  <span className="truncate max-w-[70px]">{item.seller}</span>
+                  <span>·</span>
+                  <span className="shrink-0">{item.location || 'prt_mk'}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Desktop: Floating Panel (Inspector only) */}
       {!isMobile && panelManager.inspectorPanel && (
