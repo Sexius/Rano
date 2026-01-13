@@ -108,7 +108,7 @@ const App: React.FC = () => {
         return (
           <>
             {/* Top Section: Search & Title */}
-            <div className="max-w-4xl mx-auto lg:mx-0 lg:max-w-none">
+            <div className="max-w-5xl mx-auto">
               {!lastQuery && (
                 <div className="mb-8 text-center lg:text-left">
                   <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">

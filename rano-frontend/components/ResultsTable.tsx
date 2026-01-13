@@ -185,8 +185,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
             <div
               key={item.id}
               className={`
-                grid grid-cols-[50px_1fr_70px_100px_160px] gap-4 items-center
-                px-5 py-4 bg-white rounded-lg shadow-sm
+                grid grid-cols-[50px_1fr_180px_70px_100px] gap-3 items-center
+                px-4 py-3 bg-white rounded-lg shadow-sm
                 transition-all duration-200
                 ${isSelected ? 'ring-2 ring-kafra-400 ring-offset-1' : 'hover:shadow-md'}
               `}
@@ -205,7 +205,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
               {/* Column 2: 아이콘 + 아이템 이름 + 서버 배지 */}
               <div className="flex items-center gap-3 min-w-0 overflow-hidden">
                 {/* Item Image */}
-                <div className="shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-50">
+                <div className="shrink-0 w-9 h-9 rounded-lg overflow-hidden bg-gray-50">
                   <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
                 </div>
 
@@ -236,7 +236,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   {/* Cards/Enchants */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
                     <div 
-                      className="flex flex-wrap gap-x-1.5 mt-1 cursor-pointer"
+                      className="flex flex-wrap gap-x-1.5 mt-0.5 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCardClick(item, e);
@@ -264,30 +264,30 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
               </div>
 
-              {/* Column 3: 수량 */}
+              {/* Column 3: 상점 정보 (가운데) */}
+              <div className="overflow-hidden">
+                <div className="text-sm text-gray-800 font-medium truncate" title={item.shop_title}>
+                  {item.shop_title}
+                </div>
+                <div className="text-[10px] text-gray-400 mt-0.5 truncate">
+                  {item.seller}{item.location && /[a-zA-Z]/.test(item.location) && ` · ${item.location}`}
+                </div>
+              </div>
+
+              {/* Column 4: 수량 */}
               <div className="text-right">
                 <span className="text-sm text-gray-500">{item.amount.toLocaleString()}개</span>
               </div>
 
-              {/* Column 4: 가격 */}
+              {/* Column 5: 가격 */}
               <div className="text-right">
                 <span
-                  className="text-lg font-bold whitespace-nowrap"
+                  className="text-base font-bold whitespace-nowrap"
                   style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
                 >
                   {formatZeny(item.price)}
                   <span className="text-xs text-gray-400 font-normal ml-0.5">z</span>
                 </span>
-              </div>
-
-              {/* Column 5: 상점 상세 정보 */}
-              <div className="text-right overflow-hidden">
-                <div className="text-sm text-gray-800 font-medium truncate" title={item.shop_title}>
-                  {item.shop_title}
-                </div>
-                <div className="text-[10px] text-gray-400 mt-0.5">
-                  {item.seller}{item.location && /[a-zA-Z]/.test(item.location) && ` · ${item.location}`}
-                </div>
               </div>
             </div>
           );
