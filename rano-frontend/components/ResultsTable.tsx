@@ -286,7 +286,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   {item.shop_title}
                 </div>
                 <div className="text-[10px] text-gray-400 mt-0.5">
-                  {item.seller} · {item.location || 'prt_mk'}
+                  {item.seller}{item.location && /[a-zA-Z]/.test(item.location) && ` · ${item.location}`}
                 </div>
               </div>
             </div>
