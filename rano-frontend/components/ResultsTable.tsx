@@ -185,15 +185,15 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
             <div
               key={item.id}
               className={`
-                grid grid-cols-[50px_1fr_180px_70px_100px] gap-3 items-center
-                px-4 py-3 bg-white rounded-lg shadow-sm
+                grid grid-cols-[50px_1fr_140px_160px_60px_90px] gap-2 items-center
+                px-3 py-2.5 bg-white rounded-lg shadow-sm
                 transition-all duration-200
                 ${isSelected ? 'ring-2 ring-kafra-400 ring-offset-1' : 'hover:shadow-md'}
               `}
             >
               {/* Column 1: 구매/판매 태그 */}
               <div className="flex justify-center">
-                <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-md ${
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${
                   item.shop_type === 'buy' 
                     ? 'bg-red-50 text-red-600' 
                     : 'bg-blue-50 text-blue-600'
@@ -202,17 +202,13 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </span>
               </div>
 
-              {/* Column 2: 아이콘 + 아이템 이름 + 서버 배지 */}
-              <div className="flex items-center gap-3 min-w-0 overflow-hidden">
-                {/* Item Image */}
-                <div className="shrink-0 w-9 h-9 rounded-lg overflow-hidden bg-gray-50">
+              {/* Column 2: 아이콘 + 아이템 이름 + 서버 */}
+              <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                <div className="shrink-0 w-8 h-8 rounded overflow-hidden bg-gray-50">
                   <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
                 </div>
-
-                {/* Item Info */}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* Item Name */}
+                  <div className="flex items-center gap-1.5">
                     <span 
                       className={`text-sm font-semibold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} cursor-pointer hover:text-kafra-600 transition-colors truncate`}
                       title={fullName}
@@ -226,82 +222,84 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                       {item.name}
                       {item.card_slots > 0 && <span className="text-gray-400 font-normal">[{item.card_slots}]</span>}
                     </span>
-                    
-                    {/* Server Badge */}
-                    <span className="shrink-0 text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">
+                    <span className="shrink-0 text-[10px] bg-gray-100 text-gray-500 rounded-full px-1.5 py-0.5">
                       {item.server}
                     </span>
                   </div>
-
-                  {/* Cards/Enchants */}
-                  {item.cards_equipped && item.cards_equipped.length > 0 && (
-                    <div 
-                      className="flex flex-wrap gap-1 mt-0.5 cursor-pointer items-center"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCardClick(item, e);
-                      }}
-                    >
-                      {item.cards_equipped.slice(0, 4).map((card, i) => {
-                        const isEnchant = card.startsWith('[옵션]');
-                        const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
-                        return (
-                          <span
-                            key={i}
-                            className={`inline-flex items-center gap-0.5 text-[10px] px-1 py-0.5 rounded ${
-                              isEnchant 
-                                ? 'bg-purple-50 text-purple-600' 
-                                : 'bg-amber-50 text-amber-700'
-                            }`}
-                            title={displayName}
-                          >
-                            {isEnchant ? (
-                              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/>
-                              </svg>
-                            ) : (
-                              <img 
-                                src="https://static.divine-pride.net/images/items/collection/4001.png" 
-                                alt="card" 
-                                className="w-3 h-3"
-                              />
-                            )}
-                            <span className="truncate max-w-[60px]">{displayName}</span>
-                          </span>
-                        );
-                      })}
-                      {item.cards_equipped.length > 4 && (
-                        <span className="text-[10px] text-gray-400 px-1">+{item.cards_equipped.length - 4}</span>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {/* Column 3: 상점 정보 (가운데) */}
+              {/* Column 3: 카드/인챈트 (세로 배치) */}
+              <div 
+                className="flex flex-col gap-0.5 overflow-hidden cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (item.cards_equipped && item.cards_equipped.length > 0) {
+                    handleCardClick(item, e);
+                  }
+                }}
+              >
+                {item.cards_equipped && item.cards_equipped.length > 0 ? (
+                  <>
+                    {item.cards_equipped.slice(0, 3).map((card, i) => {
+                      const isEnchant = card.startsWith('[옵션]');
+                      const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
+                      return (
+                        <div
+                          key={i}
+                          className={`inline-flex items-center gap-1 text-[9px] truncate ${
+                            isEnchant ? 'text-purple-600' : 'text-amber-700'
+                          }`}
+                          title={displayName}
+                        >
+                          {isEnchant ? (
+                            <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/>
+                            </svg>
+                          ) : (
+                            <img 
+                              src="https://static.divine-pride.net/images/items/collection/4001.png" 
+                              alt="card" 
+                              className="w-3 h-3 shrink-0"
+                            />
+                          )}
+                          <span className="truncate">{displayName}</span>
+                        </div>
+                      );
+                    })}
+                    {item.cards_equipped.length > 3 && (
+                      <span className="text-[9px] text-gray-400">+{item.cards_equipped.length - 3}개</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-[9px] text-gray-300">-</span>
+                )}
+              </div>
+
+              {/* Column 4: 상점 정보 */}
               <div className="overflow-hidden">
-                <div className="text-sm text-gray-800 font-medium truncate" title={item.shop_title}>
+                <div className="text-xs text-gray-800 font-medium truncate" title={item.shop_title}>
                   {item.shop_title}
                 </div>
-                <div className="text-[10px] text-gray-400 mt-0.5 truncate">
+                <div className="text-[10px] text-gray-400 truncate">
                   {item.seller !== item.shop_title && item.seller !== 'Unknown' && `${item.seller} `}
                   {item.location && /[a-zA-Z]/.test(item.location) && `· ${item.location}`}
                 </div>
               </div>
 
-              {/* Column 4: 수량 */}
+              {/* Column 5: 수량 */}
               <div className="text-right">
-                <span className="text-sm text-gray-500">{item.amount.toLocaleString()}개</span>
+                <span className="text-sm text-gray-500">{item.amount.toLocaleString()}</span>
               </div>
 
-              {/* Column 5: 가격 */}
+              {/* Column 6: 가격 */}
               <div className="text-right">
                 <span
-                  className="text-base font-bold whitespace-nowrap"
+                  className="text-sm font-bold whitespace-nowrap"
                   style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
                 >
                   {formatZeny(item.price)}
-                  <span className="text-xs text-gray-400 font-normal ml-0.5">z</span>
+                  <span className="text-[10px] text-gray-400 font-normal ml-0.5">z</span>
                 </span>
               </div>
             </div>
