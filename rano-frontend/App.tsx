@@ -62,6 +62,14 @@ const App: React.FC = () => {
       setCurrentPage(result.page);
       setTotalPages(result.totalPages);
       setLastSearchTime(new Date());
+
+      // Background load card/enchant details
+      if (result.items.length > 0) {
+        import('./services/vendingService').then(async ({ enrichWithCardDetails }) => {
+          const enrichedItems = await enrichWithCardDetails(result.items);
+          setItems(enrichedItems);
+        });
+      }
     } catch (error) {
       console.error("Search failed:", error);
     } finally {

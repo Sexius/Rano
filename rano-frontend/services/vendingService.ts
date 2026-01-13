@@ -121,8 +121,8 @@ export const searchVendingItems = async (
     }
 };
 
-// Fetch card details for each item in parallel
-async function enrichWithCardDetails(items: MarketItem[]): Promise<MarketItem[]> {
+// Fetch card details for each item in parallel (export for background loading)
+export async function enrichWithCardDetails(items: MarketItem[]): Promise<MarketItem[]> {
     // Process in batches to avoid overwhelming the server
     const batchSize = 5;
     const enrichedItems = [...items];
@@ -133,12 +133,13 @@ async function enrichWithCardDetails(items: MarketItem[]): Promise<MarketItem[]>
             if (item.ssi && item.map_id) {
                 try {
                     const detail = await getVendingItemDetailInternal(item.server, item.ssi, item.map_id);
-                    if (detail && detail.cards_equipped && detail.cards_equipped.length > 0) {
+                    if (detail) {
                         enrichedItems[i + batchIndex] = {
                             ...enrichedItems[i + batchIndex],
-                            cards_equipped: detail.cards_equipped,
+                            cards_equipped: detail.cards_equipped || enrichedItems[i + batchIndex].cards_equipped,
                             seller: detail.seller || enrichedItems[i + batchIndex].seller,
-                            shop_title: detail.shop_title || enrichedItems[i + batchIndex].shop_title
+                            shop_title: detail.shop_title || enrichedItems[i + batchIndex].shop_title,
+                            location: detail.location || enrichedItems[i + batchIndex].location
                         };
                     }
                 } catch (e) {
@@ -152,12 +153,11 @@ async function enrichWithCardDetails(items: MarketItem[]): Promise<MarketItem[]>
     return enrichedItems;
 }
 
-// Internal function to get item detail (to avoid circular dependency)
 async function getVendingItemDetailInternal(
     server: string,
     ssi: string,
     mapId: string
-): Promise<{ seller?: string; shop_title?: string; cards_equipped?: string[] } | null> {
+): Promise<{ seller?: string; shop_title?: string; cards_equipped?: string[]; location?: string } | null> {
     try {
         let rawUrl = import.meta.env.VITE_API_URL || 'https://rano.onrender.com';
         rawUrl = rawUrl.replace(/\/+$/, '');
@@ -179,7 +179,8 @@ async function getVendingItemDetailInternal(
         return {
             seller: result.vendor_name,
             shop_title: result.vendor_info,
-            cards_equipped: result.cards_equipped || []
+            cards_equipped: result.cards_equipped || [],
+            location: result.map_id
         };
     } catch {
         return null;
