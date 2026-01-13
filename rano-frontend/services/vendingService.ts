@@ -139,11 +139,9 @@ export async function enrichWithCardDetails(items: MarketItem[]): Promise<Market
                     if (detail) {
                         const cardsEquipped = detail.cards_equipped || enrichedItems[i + batchIndex].cards_equipped;
                         
-                        // Lookup and cache enchant IDs in background
+                        // Lookup and cache enchant IDs (await to ensure cache is populated)
                         if (cardsEquipped && cardsEquipped.length > 0) {
-                            cardsEquipped.forEach(cardName => {
-                                lookupEnchantId(cardName); // Fire and forget - caches for future use
-                            });
+                            await Promise.all(cardsEquipped.map(cardName => lookupEnchantId(cardName)));
                         }
                         
                         enrichedItems[i + batchIndex] = {
