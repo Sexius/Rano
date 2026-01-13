@@ -236,28 +236,42 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   {/* Cards/Enchants */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
                     <div 
-                      className="flex flex-wrap gap-x-1.5 mt-0.5 cursor-pointer"
+                      className="flex flex-wrap gap-1 mt-0.5 cursor-pointer items-center"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCardClick(item, e);
                       }}
                     >
-                      {item.cards_equipped.slice(0, 3).map((card, i) => {
+                      {item.cards_equipped.slice(0, 4).map((card, i) => {
                         const isEnchant = card.startsWith('[옵션]');
                         const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
                         return (
                           <span
                             key={i}
-                            className={`text-[10px] ${
-                              isEnchant ? 'text-purple-500' : 'text-amber-600'
+                            className={`inline-flex items-center gap-0.5 text-[10px] px-1 py-0.5 rounded ${
+                              isEnchant 
+                                ? 'bg-purple-50 text-purple-600' 
+                                : 'bg-amber-50 text-amber-700'
                             }`}
+                            title={displayName}
                           >
-                            {isEnchant ? '✦' : '◆'}{displayName}
+                            {isEnchant ? (
+                              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/>
+                              </svg>
+                            ) : (
+                              <img 
+                                src="https://static.divine-pride.net/images/items/collection/4001.png" 
+                                alt="card" 
+                                className="w-3 h-3"
+                              />
+                            )}
+                            <span className="truncate max-w-[60px]">{displayName}</span>
                           </span>
                         );
                       })}
-                      {item.cards_equipped.length > 3 && (
-                        <span className="text-[10px] text-gray-400">+{item.cards_equipped.length - 3}</span>
+                      {item.cards_equipped.length > 4 && (
+                        <span className="text-[10px] text-gray-400 px-1">+{item.cards_equipped.length - 4}</span>
                       )}
                     </div>
                   )}
