@@ -416,6 +416,20 @@ public class VendingService {
             }
         }
 
+        // Parse 서버(위치) field to get map name like "prt_mk"
+        // HTML structure: <th>서버(위치)</th> <td>바포메트<br>(prt_mk)</td>
+        String mapName = null;
+        Element serverLocTd = doc.selectFirst("th:contains(서버) + td");
+        if (serverLocTd != null) {
+            String locHtml = serverLocTd.html();
+            // Look for (map_name) pattern
+            int openParen = locHtml.lastIndexOf("(");
+            int closeParen = locHtml.lastIndexOf(")");
+            if (openParen >= 0 && closeParen > openParen) {
+                mapName = Jsoup.parse(locHtml.substring(openParen + 1, closeParen)).text().trim();
+            }
+        }
+
         // Parse slot info (cards/enchants)
         // HTML structure: <th>슬롯정보</th> <td><ul><li>카드1</li><li>카드2</li></ul></td>
         // Or fallback: <th>슬롯정보</th> <td>카드1<br>카드2</td>
@@ -473,7 +487,7 @@ public class VendingService {
         detail.setVendor_name(sellerName); // Character name
         detail.setVendor_info(shopTitle); // Shop title
         detail.setSsi(ssi);
-        detail.setMap_id(mapId);
+        detail.setMap_id(mapName != null ? mapName : mapId); // Use parsed map name like 'prt_mk'
         detail.setCards_equipped(cardsEquipped);
 
         return detail;
