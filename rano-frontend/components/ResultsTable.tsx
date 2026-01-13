@@ -270,7 +270,12 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                   </div>
                 </div>
 
-                {/* 4. Price */}
+                {/* 4. Quantity - Middle column */}
+                <div className="text-right shrink-0 w-16">
+                  <span className="text-sm text-gray-600 font-medium">{item.amount.toLocaleString()}개</span>
+                </div>
+
+                {/* 5. Price */}
                 <div className="text-right shrink-0">
                   <div
                     className="text-base font-extrabold whitespace-nowrap"
@@ -279,7 +284,6 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     {formatZeny(item.price)}
                     <span className="text-[10px] text-gray-400 font-normal ml-0.5">z</span>
                   </div>
-                  <div className="text-[10px] text-gray-400">{item.amount.toLocaleString()}개</div>
                 </div>
               </div>
             );
