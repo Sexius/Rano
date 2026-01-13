@@ -175,37 +175,24 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
   return (
     <>
-      {/* High-density table-like list */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        {/* Header Row - Desktop only */}
-        <div className="hidden md:grid md:grid-cols-[48px_40px_1fr_80px_120px_200px] gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500">
-          <div className="text-center">타입</div>
-          <div></div>
-          <div>아이템</div>
-          <div className="text-right">수량</div>
-          <div className="text-right">가격</div>
-          <div>상점 정보</div>
-        </div>
+      {/* High-density list */}
+      <div className="flex flex-col gap-1.5">
+        {items.map((item) => {
+          const isSelected = selectedItemId === item.id;
+          const fullName = getFullItemName(item);
 
-        {/* Data Rows */}
-        <div className="divide-y divide-gray-100">
-          {items.map((item) => {
-            const isSelected = selectedItemId === item.id;
-            const fullName = getFullItemName(item);
-
-            return (
-              <div
-                key={item.id}
-                className={`
-                  grid grid-cols-[40px_32px_1fr_auto] md:grid-cols-[48px_40px_1fr_80px_120px_200px] 
-                  gap-2 md:gap-2 px-2 md:px-3 py-2 items-center
-                  transition-colors duration-150
-                  ${isSelected
-                    ? 'bg-kafra-50 border-l-2 border-l-kafra-500'
-                    : 'hover:bg-gray-50 border-l-2 border-l-transparent'
-                  }
-                `}
-              >
+          return (
+            <div
+              key={item.id}
+              className={`
+                flex items-center gap-2 md:gap-3 px-3 py-2.5 rounded-lg border
+                transition-all duration-150
+                ${isSelected
+                  ? 'bg-kafra-50/50 border-kafra-400 shadow-sm'
+                  : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
+                }
+              `}
+            >
                 {/* 1. Buy/Sell Tag */}
                 <div className="flex justify-center">
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${
@@ -230,7 +217,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
 
                 {/* 3. Item Name + Cards (Click opens detail) */}
-                <div className="min-w-0 overflow-hidden">
+                <div className="min-w-0 flex-1 overflow-hidden">
                   <div 
                     className="cursor-pointer hover:text-kafra-600 transition-colors"
                     onClick={(e) => {
@@ -276,43 +263,28 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                       )}
                     </div>
                   )}
+                  {/* Server & Seller Info */}
+                  <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-500">
+                    <span className="bg-gray-100 px-1 py-0.5 rounded font-medium">{item.server}</span>
+                    <span className="truncate">{item.seller}</span>
+                  </div>
                 </div>
 
-                {/* 4. Quantity - Desktop separate, Mobile combined with price */}
-                <div className="hidden md:block text-right">
-                  <span className="text-sm text-gray-600 font-medium">{item.amount.toLocaleString()}개</span>
-                </div>
-
-                {/* 5. Price */}
-                <div className="text-right">
+                {/* 4. Price */}
+                <div className="text-right shrink-0">
                   <div
-                    className="text-sm md:text-base font-bold whitespace-nowrap"
-                    style={{ color: getZenyStyle(item.price).color }}
+                    className="text-base font-extrabold whitespace-nowrap"
+                    style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
                   >
                     {formatZeny(item.price)}
                     <span className="text-[10px] text-gray-400 font-normal ml-0.5">z</span>
                   </div>
-                  {/* Mobile: Show quantity under price */}
-                  <div className="md:hidden text-[10px] text-gray-400">{item.amount.toLocaleString()}개</div>
-                </div>
-
-                {/* 6. Shop Info - Desktop only */}
-                <div className="hidden md:block text-right overflow-hidden">
-                  <div className="text-xs text-gray-700 font-medium truncate" title={item.seller}>
-                    {item.seller}
-                  </div>
-                  <div className="flex items-center justify-end gap-1.5 mt-0.5">
-                    <span className="text-[10px] text-gray-400 truncate max-w-[100px]">{item.shop_title}</span>
-                    <span className="text-[9px] bg-gray-100 text-gray-500 px-1 py-0.5 rounded font-mono">
-                      {item.server}
-                    </span>
-                  </div>
+                  <div className="text-[10px] text-gray-400">{item.amount.toLocaleString()}개</div>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
 
       {/* Desktop: Floating Panel (Inspector only) */}
       {!isMobile && panelManager.inspectorPanel && (
