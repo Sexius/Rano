@@ -62,10 +62,7 @@ export type ViewMode = 'search' | 'itemInfo' | 'market' | 'calc' | 'sim' | 'boar
 export enum ServerType {
   ALL = '전체 서버',
   BAPHOMET = '바포메트',
-  DIKE = '다이크',
-  FREYA = '프리야',
-  SARA = '사라',
-  THOR = '토르',
+ 
 }
 
 export enum ItemCategory {

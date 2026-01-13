@@ -175,138 +175,143 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
   return (
     <>
-      <div className="flex flex-col gap-2 pb-20 md:pb-0 overflow-x-hidden">
-        {items.map((item) => {
-          const isSelected = selectedItemId === item.id;
-          const fullName = getFullItemName(item);
+      {/* High-density table-like list */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        {/* Header Row - Desktop only */}
+        <div className="hidden md:grid md:grid-cols-[48px_40px_1fr_80px_120px_200px] gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500">
+          <div className="text-center">타입</div>
+          <div></div>
+          <div>아이템</div>
+          <div className="text-right">수량</div>
+          <div className="text-right">가격</div>
+          <div>상점 정보</div>
+        </div>
 
-          return (
-            <div
-              key={item.id}
-              className={`
-              relative group flex items-center justify-between p-3 rounded-xl border transition-all duration-200
-              ${isSelected
-                  ? 'bg-kafra-50/50 border-kafra-500 ring-1 ring-kafra-500 shadow-sm z-10'
-                  : 'bg-white border-gray-100 hover:border-kafra-300 hover:shadow-card'
-                }
-            `}
-            >
-              {/* Selection Indicator Bar */}
-              {isSelected && (
-                <div className="absolute left-0 top-3 bottom-3 w-1 bg-kafra-500 rounded-r-full"></div>
-              )}
+        {/* Data Rows */}
+        <div className="divide-y divide-gray-100">
+          {items.map((item) => {
+            const isSelected = selectedItemId === item.id;
+            const fullName = getFullItemName(item);
 
-              {/* Non-clickable container - only specific elements are clickable */}
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                {/* Shop Type Badge */}
-                <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                  item.shop_type === 'buy' 
-                    ? 'bg-red-50 text-red-600' 
-                    : 'bg-blue-50 text-blue-600'
-                }`}>
-                  {item.shop_type === 'buy' ? '구매' : '판매'}
-                </span>
-                
-                {/* Image Thumbnail - NOT clickable */}
-                <div className="relative shrink-0">
-                  <div className={`h-11 w-11 rounded-lg overflow-hidden border ${isSelected ? 'border-kafra-200' : 'border-gray-100'} bg-gray-50`}>
+            return (
+              <div
+                key={item.id}
+                className={`
+                  grid grid-cols-[40px_32px_1fr_auto] md:grid-cols-[48px_40px_1fr_80px_120px_200px] 
+                  gap-2 md:gap-2 px-2 md:px-3 py-2 items-center
+                  transition-colors duration-150
+                  ${isSelected
+                    ? 'bg-kafra-50 border-l-2 border-l-kafra-500'
+                    : 'hover:bg-gray-50 border-l-2 border-l-transparent'
+                  }
+                `}
+              >
+                {/* 1. Buy/Sell Tag */}
+                <div className="flex justify-center">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded whitespace-nowrap ${
+                    item.shop_type === 'buy' 
+                      ? 'bg-red-100 text-red-700' 
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {item.shop_type === 'buy' ? '구매' : '판매'}
+                  </span>
+                </div>
+
+                {/* 2. Item Image */}
+                <div className="relative">
+                  <div className={`w-8 h-8 md:w-9 md:h-9 rounded overflow-hidden border ${isSelected ? 'border-kafra-300' : 'border-gray-200'} bg-gray-50`}>
                     <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
                   </div>
                   {item.card_slots > 0 && (
-                    <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-[9px] font-bold px-1 rounded-md border border-white">
+                    <div className="absolute -bottom-0.5 -right-0.5 bg-gray-800 text-white text-[8px] font-bold w-3.5 h-3.5 rounded flex items-center justify-center">
                       {item.card_slots}
                     </div>
                   )}
                 </div>
 
-                {/* Item Text Info */}
-                <div className="min-w-0 flex-1 pr-2" style={{ minWidth: 0 }}>
-                  {/* Item Name - CLICKABLE, 2 line clamp with tooltip */}
-                  <div className="mb-1" style={{ minWidth: 0 }}>
-                    <span
-                      className={`text-sm font-bold leading-tight cursor-pointer hover:underline ${isSelected ? 'text-kafra-700' : 'text-gray-900'}`}
+                {/* 3. Item Name + Cards (Click opens detail) */}
+                <div className="min-w-0 overflow-hidden">
+                  <div 
+                    className="cursor-pointer hover:text-kafra-600 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onItemClick(item);
+                      handleItemInfoClick(item.name, item.id, e);
+                    }}
+                  >
+                    <span 
+                      className={`text-sm font-bold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} truncate block`}
                       title={fullName}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onItemClick(item);
-                        handleItemInfoClick(item.name, item.id, e);
-                      }}
-                      style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical' as const,
-                        overflow: 'hidden',
-                        whiteSpace: 'normal',
-                        wordBreak: 'break-word',
-                        textOverflow: 'clip',
-                        lineClamp: 2
-                      }}
                     >
-                      {item.refine_level > 0 && <span className="text-game-gold mr-1">+{item.refine_level}</span>}
+                      {item.refine_level > 0 && <span className="text-amber-500">+{item.refine_level} </span>}
                       {item.name}
-                      {item.card_slots > 0 && <span className="text-gray-400 ml-1">[{item.card_slots}]</span>}
+                      {item.card_slots > 0 && <span className="text-gray-400 font-normal">[{item.card_slots}]</span>}
                     </span>
                   </div>
-
-                  {/* Card/Enchant - Separate Clickable Text */}
+                  {/* Cards/Enchants - Compact */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
-                    <div
-                      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1 cursor-pointer group"
+                    <div 
+                      className="flex flex-wrap gap-x-1.5 mt-0.5 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCardClick(item, e);
                       }}
                     >
-                      {item.cards_equipped.map((card, i) => {
+                      {item.cards_equipped.slice(0, 3).map((card, i) => {
                         const isEnchant = card.startsWith('[옵션]');
                         const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
                         return (
                           <span
                             key={i}
-                            className={`text-xs font-medium transition-colors
-                              ${isEnchant
-                                ? 'text-purple-600 group-hover:text-purple-800'
-                                : 'text-amber-600 group-hover:text-amber-800'
-                              }`}
+                            className={`text-[10px] font-medium ${
+                              isEnchant ? 'text-purple-500' : 'text-amber-600'
+                            }`}
                           >
-                            {isEnchant ? '✦' : '◆'} {displayName}
+                            {isEnchant ? '✦' : '◆'}{displayName}
                           </span>
                         );
                       })}
+                      {item.cards_equipped.length > 3 && (
+                        <span className="text-[10px] text-gray-400">+{item.cards_equipped.length - 3}</span>
+                      )}
                     </div>
                   )}
-
-                  {/* Server & Seller Info */}
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span className="font-medium text-gray-600">{item.server}</span>
-                    <span className="w-0.5 h-2.5 bg-gray-200"></span>
-                    <span className="truncate max-w-[120px]">{item.seller}</span>
-                  </div>
                 </div>
-              </div>
 
-              {/* Price Column */}
-              <div className="flex items-center gap-2">
+                {/* 4. Quantity - Desktop separate, Mobile combined with price */}
+                <div className="hidden md:block text-right">
+                  <span className="text-sm text-gray-600 font-medium">{item.amount.toLocaleString()}개</span>
+                </div>
+
+                {/* 5. Price */}
                 <div className="text-right">
                   <div
-                    className="text-base font-extrabold whitespace-nowrap"
-                    style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
+                    className="text-sm md:text-base font-bold whitespace-nowrap"
+                    style={{ color: getZenyStyle(item.price).color }}
                   >
                     {formatZeny(item.price)}
-                    <span className="text-[10px] text-gray-400 font-normal ml-0.5">Z</span>
+                    <span className="text-[10px] text-gray-400 font-normal ml-0.5">z</span>
                   </div>
-                  <div className="text-[10px] font-medium text-gray-400 bg-gray-50 inline-block px-1.5 rounded-sm">
-                    {item.amount}개
+                  {/* Mobile: Show quantity under price */}
+                  <div className="md:hidden text-[10px] text-gray-400">{item.amount.toLocaleString()}개</div>
+                </div>
+
+                {/* 6. Shop Info - Desktop only */}
+                <div className="hidden md:block text-right overflow-hidden">
+                  <div className="text-xs text-gray-700 font-medium truncate" title={item.seller}>
+                    {item.seller}
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                    <span className="text-[10px] text-gray-400 truncate max-w-[100px]">{item.shop_title}</span>
+                    <span className="text-[9px] bg-gray-100 text-gray-500 px-1 py-0.5 rounded font-mono">
+                      {item.server}
+                    </span>
                   </div>
                 </div>
               </div>
-              {/* Arrow for mobile hint */}
-              <div className="ml-2 md:hidden text-gray-300">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Desktop: Floating Panel (Inspector only) */}
