@@ -175,8 +175,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
   return (
     <>
-      {/* Kafra-style Grid Layout */}
-      <div className="flex flex-col gap-1">
+      {/* Premium Dashboard Style List */}
+      <div className="flex flex-col gap-2">
         {items.map((item) => {
           const isSelected = selectedItemId === item.id;
           const fullName = getFullItemName(item);
@@ -185,65 +185,70 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
             <div
               key={item.id}
               className={`
-                grid grid-cols-[1fr_80px_70px_90px_140px] gap-2 items-center
-                px-3 py-2 rounded-lg border transition-all duration-150
-                ${isSelected
-                  ? 'bg-kafra-50/50 border-kafra-400 shadow-sm'
-                  : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
-                }
+                grid grid-cols-[50px_1fr_70px_100px_160px] gap-4 items-center
+                px-5 py-4 bg-white rounded-lg shadow-sm
+                transition-all duration-200
+                ${isSelected ? 'ring-2 ring-kafra-400 ring-offset-1' : 'hover:shadow-md'}
               `}
             >
-              {/* Column 1: 아이템 (Tag + Image + Name) */}
-              <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                {/* Buy/Sell Tag */}
-                <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+              {/* Column 1: 구매/판매 태그 */}
+              <div className="flex justify-center">
+                <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-md ${
                   item.shop_type === 'buy' 
-                    ? 'bg-red-50 text-red-600 border-red-200' 
-                    : 'bg-blue-50 text-blue-600 border-blue-200'
+                    ? 'bg-red-50 text-red-600' 
+                    : 'bg-blue-50 text-blue-600'
                 }`}>
                   {item.shop_type === 'buy' ? '구매' : '판매'}
                 </span>
+              </div>
 
+              {/* Column 2: 아이콘 + 아이템 이름 + 서버 배지 */}
+              <div className="flex items-center gap-3 min-w-0 overflow-hidden">
                 {/* Item Image */}
-                <div className={`shrink-0 w-8 h-8 rounded overflow-hidden border ${isSelected ? 'border-kafra-300' : 'border-gray-200'} bg-gray-50`}>
+                <div className="shrink-0 w-10 h-10 rounded-lg overflow-hidden bg-gray-50">
                   <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
                 </div>
 
-                {/* Item Name */}
-                <div className="min-w-0 overflow-hidden">
-                  <div 
-                    className="cursor-pointer hover:text-kafra-600 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onItemClick(item);
-                      handleItemInfoClick(item.name, item.id, e);
-                    }}
-                  >
+                {/* Item Info */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Item Name */}
                     <span 
-                      className={`text-sm font-bold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} truncate block`}
+                      className={`text-sm font-semibold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} cursor-pointer hover:text-kafra-600 transition-colors truncate`}
                       title={fullName}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onItemClick(item);
+                        handleItemInfoClick(item.name, item.id, e);
+                      }}
                     >
                       {item.refine_level > 0 && <span className="text-amber-500">+{item.refine_level} </span>}
                       {item.name}
                       {item.card_slots > 0 && <span className="text-gray-400 font-normal">[{item.card_slots}]</span>}
                     </span>
+                    
+                    {/* Server Badge */}
+                    <span className="shrink-0 text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">
+                      {item.server}
+                    </span>
                   </div>
-                  {/* Cards/Enchants - Compact */}
+
+                  {/* Cards/Enchants */}
                   {item.cards_equipped && item.cards_equipped.length > 0 && (
                     <div 
-                      className="flex flex-wrap gap-x-1 cursor-pointer"
+                      className="flex flex-wrap gap-x-1.5 mt-1 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleCardClick(item, e);
                       }}
                     >
-                      {item.cards_equipped.slice(0, 2).map((card, i) => {
+                      {item.cards_equipped.slice(0, 3).map((card, i) => {
                         const isEnchant = card.startsWith('[옵션]');
                         const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
                         return (
                           <span
                             key={i}
-                            className={`text-[9px] font-medium ${
+                            className={`text-[10px] ${
                               isEnchant ? 'text-purple-500' : 'text-amber-600'
                             }`}
                           >
@@ -251,44 +256,37 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                           </span>
                         );
                       })}
-                      {item.cards_equipped.length > 2 && (
-                        <span className="text-[9px] text-gray-400">+{item.cards_equipped.length - 2}</span>
+                      {item.cards_equipped.length > 3 && (
+                        <span className="text-[10px] text-gray-400">+{item.cards_equipped.length - 3}</span>
                       )}
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Column 2: 서버 */}
-              <div className="text-center">
-                <span className="text-xs text-gray-600">{item.server}</span>
-              </div>
-
               {/* Column 3: 수량 */}
               <div className="text-right">
-                <span className="text-sm text-gray-600">{item.amount.toLocaleString()}개</span>
+                <span className="text-sm text-gray-500">{item.amount.toLocaleString()}개</span>
               </div>
 
               {/* Column 4: 가격 */}
               <div className="text-right">
                 <span
-                  className="text-base font-extrabold whitespace-nowrap"
+                  className="text-lg font-bold whitespace-nowrap"
                   style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
                 >
                   {formatZeny(item.price)}
-                  <span className="text-[10px] text-gray-400 font-normal ml-0.5">z</span>
+                  <span className="text-xs text-gray-400 font-normal ml-0.5">z</span>
                 </span>
               </div>
 
-              {/* Column 5: 상점 정보 */}
+              {/* Column 5: 상점 상세 정보 */}
               <div className="text-right overflow-hidden">
-                <div className="text-xs text-gray-700 font-medium truncate" title={item.shop_title}>
+                <div className="text-sm text-gray-800 font-medium truncate" title={item.shop_title}>
                   {item.shop_title}
                 </div>
-                <div className="flex items-center justify-end gap-1 text-[10px] text-gray-400">
-                  <span className="truncate max-w-[70px]">{item.seller}</span>
-                  <span>·</span>
-                  <span className="shrink-0">{item.location || 'prt_mk'}</span>
+                <div className="text-[10px] text-gray-400 mt-0.5">
+                  {item.seller} · {item.location || 'prt_mk'}
                 </div>
               </div>
             </div>
