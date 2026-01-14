@@ -62,6 +62,7 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
               <Database size={16} />
               아이템 정보
             </button>
+            {/* ===== HIDDEN MENUS - 기능 완성 후 주석 해제 =====
             <button onClick={() => onNavigate('market')} className={navItemClass('market')}>
               <LineChart size={16} />
               시세 통계
@@ -78,10 +79,12 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
               <MessageSquare size={16} />
               게시판
             </button>
+            ===== END HIDDEN MENUS ===== */}
           </nav>
 
           {/* User Actions (Desktop & Mobile Toggle) */}
           <div className="flex items-center gap-3">
+            {/* ===== HIDDEN AUTH BUTTONS - 기능 완성 후 주석 해제 =====
             {user ? (
               // Logged In State (Desktop)
               <div className="hidden lg:flex items-center gap-4">
@@ -115,6 +118,7 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
                 </button>
               </div>
             )}
+            ===== END HIDDEN AUTH BUTTONS ===== */}
 
             {/* Hamburger Button (Mobile) */}
             <button
@@ -133,7 +137,7 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
         <div className="lg:hidden absolute top-16 left-0 w-full bg-white border-b border-gray-200 shadow-2xl z-50 animate-fade-in flex flex-col max-h-[calc(100vh-64px)] overflow-y-auto">
           <div className="p-4 space-y-2">
 
-            {/* Mobile User Section */}
+            {/* ===== HIDDEN MOBILE AUTH - 기능 완성 후 주석 해제 =====
             <div className="pb-4 mb-2 border-b border-gray-100">
               {user ? (
                 <div className="flex items-center justify-between p-2 bg-gray-50 rounded-xl">
@@ -172,6 +176,7 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
                 </div>
               )}
             </div>
+            ===== END HIDDEN MOBILE AUTH ===== */}
 
             {/* Mobile Nav Links */}
             <div className="space-y-1">
@@ -183,6 +188,7 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
                 <Database size={20} className={currentView === 'itemInfo' ? 'text-kafra-500' : 'text-gray-400'} />
                 아이템 정보
               </button>
+              {/* ===== HIDDEN MOBILE MENUS - 기능 완성 후 주석 해제 =====
               <button onClick={() => handleNav('market')} className={mobileNavItemClass('market')}>
                 <LineChart size={20} className={currentView === 'market' ? 'text-kafra-500' : 'text-gray-400'} />
                 시세 통계
@@ -199,6 +205,7 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
                 <MessageSquare size={20} className={currentView === 'board' ? 'text-kafra-500' : 'text-gray-400'} />
                 게시판
               </button>
+              ===== END HIDDEN MOBILE MENUS ===== */}
             </div>
           </div>
         </div>
