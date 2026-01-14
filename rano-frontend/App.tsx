@@ -118,11 +118,11 @@ const App: React.FC = () => {
             {/* Top Section: Search & Title */}
             <div className="max-w-5xl mx-auto">
               {!lastQuery && (
-                <div className="mb-8 text-center lg:text-left">
-                  <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                <div className="mb-12 text-center pt-16">
+                  <h1 className="text-5xl font-extrabold text-gray-900 sm:text-6xl">
                     <span className="text-kafra-500">RANO</span> 
                   </h1>
-                  <p className="mt-2 text-sm text-gray-500">라그나로크 노점 검색</p>
+                  <p className="mt-4 text-lg text-gray-500">라그나로크 노점 검색</p>
                 </div>
               )}
               <SearchFilters onSearch={handleSearch} isLoading={isLoading} />
