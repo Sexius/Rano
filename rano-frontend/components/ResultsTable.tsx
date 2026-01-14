@@ -208,25 +208,23 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 <div className="shrink-0 w-10 h-10 rounded overflow-hidden bg-gray-50">
                   <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span 
-                      className={`text-sm font-bold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} cursor-pointer hover:text-kafra-600 transition-colors`}
-                      title={fullName}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onItemClick(item);
-                        handleItemInfoClick(item.name, item.id, e);
-                      }}
-                    >
-                      {item.refine_level > 0 && <span className="text-amber-500">+{item.refine_level} </span>}
-                      {item.name}
-                      {item.card_slots > 0 && <span className="text-gray-400 font-normal">[{item.card_slots}]</span>}
-                    </span>
-                    <span className="shrink-0 text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">
-                      {item.server}
-                    </span>
-                  </div>
+                <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                  <span 
+                    className={`text-sm font-bold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} cursor-pointer hover:text-kafra-600 transition-colors truncate`}
+                    title={fullName}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onItemClick(item);
+                      handleItemInfoClick(item.name, item.id, e);
+                    }}
+                  >
+                    {item.refine_level > 0 && <span className="text-amber-500">+{item.refine_level} </span>}
+                    {item.name}
+                    {item.card_slots > 0 && <span className="text-gray-400 font-normal">[{item.card_slots}]</span>}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {item.server}
+                  </span>
                 </div>
               </div>
 
