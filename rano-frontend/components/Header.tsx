@@ -9,9 +9,10 @@ interface HeaderProps {
   onLogout: () => void;
   currentView: ViewMode;
   onNavigate: (view: ViewMode) => void;
+  onReset?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView, onNavigate }) => {
+const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView, onNavigate, onReset }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItemClass = (view: ViewMode) => `
@@ -41,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
         <div className="flex justify-between items-center h-16">
 
           {/* Logo Section */}
-          <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => handleNav('search')}>
+          <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => onReset ? onReset() : handleNav('search')}>
             <div className="bg-gradient-to-tr from-kafra-500 to-kafra-400 p-2.5 rounded-xl text-white shadow-lg shadow-kafra-500/30 group-hover:scale-105 transition-transform duration-200">
               <ShoppingBag size={22} strokeWidth={2.5} />
             </div>

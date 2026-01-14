@@ -101,12 +101,19 @@ const App: React.FC = () => {
     }
   };
 
+  // Reset to home screen (clear search state)
+  const handleReset = () => {
+    setCurrentView('search');
+    setLastQuery('');
+    setItems([]);
+    setSelectedItem(null);
+    setTotalResults(0);
+    setTotalPages(0);
+    setCurrentPage(1);
+  };
+
   const handleNavigate = (view: ViewMode) => {
     setCurrentView(view);
-    // Reset view specific states if needed
-    if (view === 'search') {
-      // Keep search state alive for better UX
-    }
   };
 
   // Render Content based on currentView
@@ -317,6 +324,7 @@ const App: React.FC = () => {
         onLogout={handleLogout}
         currentView={currentView}
         onNavigate={handleNavigate}
+        onReset={handleReset}
       />
 
       <div className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
