@@ -1,7 +1,21 @@
 /* Global styles for RANO */
 @layer base {
-  body {
+  html, body {
     @apply antialiased text-gray-900;
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  
+  /* 2차 방어: 모든 이미지/테이블 오버플로우 방지 */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  table {
+    max-width: 100%;
+    overflow-x: auto;
+    display: block;
   }
 }
 

@@ -56,8 +56,17 @@
       }
     </script>
     <style>
-      body {
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+      html, body {
         background-color: #f8fafc;
+        overflow-x: hidden;
+        max-width: 100%;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
       }
       /* Hide scrollbar for Chrome, Safari and Opera */
       .no-scrollbar::-webkit-scrollbar {

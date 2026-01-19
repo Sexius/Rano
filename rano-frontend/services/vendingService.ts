@@ -112,7 +112,8 @@ export const searchVendingItems = async (
             items: enrichedItems,
             total: server !== '전체' ? items.length : (result.total || 0),
             page: result.page || 1,
-            totalPages: server !== '전체' ? Math.ceil(items.length / 10) : (result.totalPages || 0)
+            // 서버 필터링 시 클라이언트 측 필터링으로 인해 정확한 페이지네이션 불가 → UI 숨김 처리 (totalPages=1)
+            totalPages: server !== '전체' ? 1 : (result.totalPages || 0)
         };
 
     } catch (error) {

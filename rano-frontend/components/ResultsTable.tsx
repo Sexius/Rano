@@ -186,14 +186,72 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
             <div
               key={item.id}
               className={`
-                grid grid-cols-[50px_1fr_170px_170px_60px_100px] gap-3 items-start
-                px-4 py-3 bg-white rounded-lg shadow-sm
+                flex gap-2 md:grid md:grid-cols-[50px_1fr_170px_170px_60px_100px] md:gap-3 md:items-start
+                px-2 py-2 md:px-4 md:py-3 bg-white rounded-lg shadow-sm
                 transition-all duration-200
                 ${isSelected ? 'ring-2 ring-kafra-400 ring-offset-1' : 'hover:shadow-md'}
               `}
             >
-              {/* Column 1: 구매/판매 태그 */}
-              <div className="flex justify-center pt-1">
+              {/* ========== 모바일 전용: 좌측 고정 칼럼 ========== */}
+              <div className="md:hidden w-16 shrink-0 flex flex-col items-center gap-0.5 pt-0.5">
+                {/* 배지 */}
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                  item.shop_type === 'buy' 
+                    ? 'bg-red-50 text-red-600' 
+                    : 'bg-blue-50 text-blue-600'
+                }`}>
+                  {item.shop_type === 'buy' ? '구매' : '판매'}
+                </span>
+                {/* 아이템 이미지 */}
+                <div className="w-8 h-8 rounded bg-gray-50 flex items-center justify-center">
+                  <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
+                </div>
+                {/* 서버명 */}
+                <span className="text-[10px] text-gray-400 truncate max-w-full text-center">
+                  {item.server}
+                </span>
+              </div>
+
+              {/* ========== 모바일 전용: 우측 가변 칼럼 (4줄) ========== */}
+              <div className="md:hidden min-w-0 flex-1 flex flex-col gap-0.5 justify-center">
+                {/* 1줄: 아이템명 + 수량 */}
+                <div className="flex justify-between items-baseline gap-2 min-w-0">
+                  <span 
+                    className={`flex-1 min-w-0 text-sm font-semibold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} cursor-pointer hover:text-kafra-600 transition-colors truncate`}
+                    title={fullName}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onItemClick(item);
+                      handleItemInfoClick(item.name, item.id, e);
+                    }}
+                  >
+                    {item.refine_level > 0 && <span className="text-amber-500">+{item.refine_level} </span>}
+                    {item.name}
+                    {item.card_slots > 0 && <span className="text-gray-400 font-normal">[{item.card_slots}]</span>}
+                  </span>
+                  <span className="shrink-0 text-xs text-gray-500">{item.amount.toLocaleString()}개</span>
+                </div>
+                {/* 2줄: 상점명 */}
+                <span className="text-xs text-gray-500 truncate min-w-0" title={item.shop_title}>
+                  {item.shop_title}
+                </span>
+                {/* 3줄: 제니 (원본 그대로, 축약 금지) */}
+                <span
+                  className="text-sm font-bold whitespace-nowrap"
+                  style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
+                >
+                  {item.price.toLocaleString()}<span className="text-xs text-gray-400 font-normal ml-0.5">z</span>
+                </span>
+                {/* 4줄: 인챈트/카드 (있을 때만) */}
+                {item.cards_equipped && item.cards_equipped.length > 0 && (
+                  <span className="text-xs text-purple-600 truncate min-w-0">
+                    {item.cards_equipped.map(c => c.replace('[옵션] ', '').replace('[옵션]', '')).join(', ')}
+                  </span>
+                )}
+              </div>
+
+              {/* ========== 데스크톱 전용: Column 1 태그 ========== */}
+              <div className="hidden md:flex justify-center pt-1">
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
                   item.shop_type === 'buy' 
                     ? 'bg-red-50 text-red-600' 
@@ -203,9 +261,9 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </span>
               </div>
 
-              {/* Column 2: 아이콘 + 아이템 이름 + 서버 */}
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="shrink-0 w-10 h-10 rounded overflow-hidden bg-gray-50">
+              {/* ========== 데스크톱 전용: Column 2 아이콘+이름 ========== */}
+              <div className="hidden md:flex items-center gap-3 min-w-0">
+                <div className="shrink-0 w-10 h-10 rounded bg-gray-50 flex items-center justify-center">
                   <img src={item.image_placeholder} alt={item.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="min-w-0 flex-1 flex flex-col gap-0.5">
@@ -228,9 +286,9 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
               </div>
 
-              {/* Column 3: 카드/인챈트 (세로 배치, 무제한) */}
+              {/* Desktop only: Column 3 카드/인챌 (모바일에서 숨김) */}
               <div 
-                className="flex flex-col gap-1 cursor-pointer"
+                className="hidden md:flex flex-col gap-1 cursor-pointer min-w-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (item.cards_equipped && item.cards_equipped.length > 0) {
@@ -274,8 +332,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 )}
               </div>
 
-              {/* Column 4: 상점 정보 */}
-              <div className="overflow-hidden pt-0.5">
+              {/* Column 4: 상점 정보 (모바일에서 숨김) */}
+              <div className="hidden md:block overflow-hidden pt-0.5">
                 <div className="text-sm text-gray-800 font-medium truncate" title={item.shop_title}>
                   {item.shop_title}
                 </div>
@@ -285,13 +343,13 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 </div>
               </div>
 
-              {/* Column 5: 수량 */}
-              <div className="text-right pt-0.5">
+              {/* Column 5: 수량 (모바일에서 숨김) */}
+              <div className="hidden md:block text-right pt-0.5">
                 <span className="text-sm text-gray-600">{item.amount.toLocaleString()}</span>
               </div>
 
-              {/* Column 6: 가격 */}
-              <div className="text-right pt-0.5">
+              {/* Column 6: 가격 (데스크톱에서만 - 모바일은 상단에 표시) */}
+              <div className="hidden md:block text-right pt-0.5">
                 <span
                   className="text-base font-bold whitespace-nowrap"
                   style={{ color: getZenyStyle(item.price).color, textShadow: getZenyStyle(item.price).textShadow }}
