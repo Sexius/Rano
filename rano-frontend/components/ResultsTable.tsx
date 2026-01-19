@@ -6,6 +6,7 @@ import { usePanelManager, CardInfo } from '../hooks/usePanelManager';
 import { getEnchantIconUrl } from '../utils/enchantIcons';
 import FloatingPanel from './FloatingPanel';
 import MobileDrawer from './MobileDrawer';
+import ItemDetailModal from './ItemDetailModal';
 
 interface ResultsTableProps {
   items: MarketItem[];
@@ -40,6 +41,9 @@ const getFullItemName = (item: MarketItem): string => {
 const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedItemId, onItemClick }) => {
   const isMobile = useIsMobile();
   const panelManager = usePanelManager();
+  
+  // 모바일 모달 상태
+  const [modalItem, setModalItem] = useState<MarketItem | null>(null);
 
   // Fetch item info and update panel
   const handleItemInfoClick = async (itemName: string, itemId: string, event: React.MouseEvent) => {
@@ -214,7 +218,6 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
 
               {/* ========== 모바일 전용: 우측 가변 칼럼 (4줄) ========== */}
               <div className="md:hidden min-w-0 flex-1 flex flex-col gap-0.5 justify-center">
-                {/* 1줄: 아이템명 + 수량 */}
                 <div className="flex justify-between items-baseline gap-2 min-w-0">
                   <span 
                     className={`flex-1 min-w-0 text-sm font-semibold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} cursor-pointer hover:text-kafra-600 transition-colors truncate`}
@@ -222,7 +225,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     onClick={(e) => {
                       e.stopPropagation();
                       onItemClick(item);
-                      handleItemInfoClick(item.name, item.id, e);
+                      // 모바일: ItemDetailModal 열기
+                      setModalItem(item);
                     }}
                   >
                     {item.refine_level > 0 && <span className="text-amber-500">+{item.refine_level} </span>}
@@ -242,9 +246,16 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                 >
                   {item.price.toLocaleString()}<span className="text-xs text-gray-400 font-normal ml-0.5">z</span>
                 </span>
-                {/* 4줄: 인챈트/카드 (있을 때만) */}
+                {/* 4줄: 인챈트/카드 (있을 때만, 클릭 가능) */}
                 {item.cards_equipped && item.cards_equipped.length > 0 && (
-                  <span className="text-xs text-purple-600 truncate min-w-0">
+                  <span 
+                    className="text-xs text-purple-600 truncate min-w-0 cursor-pointer hover:text-purple-800 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // 모바일: ItemDetailModal 열기 (카드 섹션 포함)
+                      setModalItem(item);
+                    }}
+                  >
                     {item.cards_equipped.map(c => c.replace('[옵션] ', '').replace('[옵션]', '')).join(', ')}
                   </span>
                 )}
@@ -385,6 +396,9 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
           onSelectPinned={() => { }}
         />
       )}
+
+      {/* Mobile: ItemDetailModal (아이템명/인챈트 클릭 시) */}
+      <ItemDetailModal item={modalItem} onClose={() => setModalItem(null)} />
     </>
   );
 };

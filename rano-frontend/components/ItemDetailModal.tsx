@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MarketItem } from '../types';
 import { X, Shield, Star, Zap, MapPin, Store } from 'lucide-react';
 
@@ -8,6 +8,19 @@ interface ItemDetailModalProps {
 }
 
 const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    if (item) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [item, onClose]);
+
   if (!item) return null;
 
   const formatZeny = (amount: number) => new Intl.NumberFormat('ko-KR').format(amount);

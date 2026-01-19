@@ -166,7 +166,7 @@ const App: React.FC = () => {
 
                 {/* Styled Pagination */}
                 {!isLoading && items.length > 0 && totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 mt-12 mb-20">
+                  <div className="flex items-center justify-center gap-1.5 mt-12 mb-20">
                     {/* First Page */}
                     <button
                       onClick={() => handlePageChange(1)}
@@ -176,17 +176,8 @@ const App: React.FC = () => {
                     >
                       <ChevronsLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
                     </button>
-                    {/* Prev Page */}
-                    <button
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-kafra-600 hover:border-kafra-200 hover:bg-kafra-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
-                      title="이전 페이지"
-                    >
-                      <ChevronLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-                    </button>
 
-                    <div className="flex items-center gap-1.5 mx-2 bg-white px-2 py-1 rounded-xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-1 mx-1 bg-white px-3 py-1 rounded-xl border border-gray-100 shadow-sm">
                       {/* Render visible page numbers */}
                       {(() => {
                         const pageNumbers = [];
@@ -242,15 +233,6 @@ const App: React.FC = () => {
                       })()}
                     </div>
 
-                    {/* Next Page */}
-                    <button
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-400 hover:text-kafra-600 hover:border-kafra-200 hover:bg-kafra-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
-                      title="다음 페이지"
-                    >
-                      <ChevronRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
-                    </button>
                     {/* Last Page */}
                     <button
                       onClick={() => handlePageChange(totalPages)}
