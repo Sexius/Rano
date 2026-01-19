@@ -215,7 +215,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
               <div className="md:hidden min-w-0 flex-1 flex flex-col gap-0.5 justify-center">
                 <div className="flex justify-between items-baseline gap-2 min-w-0">
                   <span 
-                    className={`flex-1 min-w-0 text-sm font-semibold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} cursor-pointer hover:text-kafra-600 transition-colors truncate`}
+                    className={`flex-1 min-w-0 text-sm font-bold ${isSelected ? 'text-kafra-700' : 'text-gray-900'} cursor-pointer hover:text-kafra-600 transition-colors truncate`}
                     title={fullName}
                     onClick={(e) => {
                       e.stopPropagation();
