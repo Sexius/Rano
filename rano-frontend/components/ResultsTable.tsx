@@ -5,8 +5,6 @@ import { getZenyStyle, formatZeny } from '../utils/zenyStyle';
 import { usePanelManager, CardInfo } from '../hooks/usePanelManager';
 import { getEnchantIconUrl } from '../utils/enchantIcons';
 import FloatingPanel from './FloatingPanel';
-import MobileDrawer from './MobileDrawer';
-import ItemDetailModal from './ItemDetailModal';
 
 interface ResultsTableProps {
   items: MarketItem[];
@@ -41,9 +39,6 @@ const getFullItemName = (item: MarketItem): string => {
 const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedItemId, onItemClick }) => {
   const isMobile = useIsMobile();
   const panelManager = usePanelManager();
-  
-  // 모바일 모달 상태
-  const [modalItem, setModalItem] = useState<MarketItem | null>(null);
 
   // Fetch item info and update panel
   const handleItemInfoClick = async (itemName: string, itemId: string, event: React.MouseEvent) => {
@@ -225,8 +220,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     onClick={(e) => {
                       e.stopPropagation();
                       onItemClick(item);
-                      // 모바일: ItemDetailModal 열기
-                      setModalItem(item);
+                      // 모바일도 FloatingPanel(Inspector) 사용
+                      handleItemInfoClick(item.name, item.id, e);
                     }}
                   >
                     {item.refine_level > 0 && <span className="text-amber-500">+{item.refine_level} </span>}
@@ -252,8 +247,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
                     className="text-xs text-purple-600 truncate min-w-0 cursor-pointer hover:text-purple-800 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // 모바일: ItemDetailModal 열기 (카드 섹션 포함)
-                      setModalItem(item);
+                      // 모바일도 FloatingPanel(Inspector) 사용
+                      handleCardClick(item, e);
                     }}
                   >
                     {item.cards_equipped.map(c => c.replace('[옵션] ', '').replace('[옵션]', '')).join(', ')}
@@ -374,8 +369,8 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
         })}
       </div>
 
-      {/* Desktop: Floating Panel (Inspector only) */}
-      {!isMobile && panelManager.inspectorPanel && (
+      {/* FloatingPanel - 모바일/데스크톱 모두 사용 */}
+      {panelManager.inspectorPanel && (
         <FloatingPanel
           panel={panelManager.inspectorPanel}
           onClose={panelManager.closeInspector}
@@ -385,20 +380,6 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedI
           isDragging={panelManager.isDragging}
         />
       )}
-
-      {/* Mobile: Bottom Drawer (Inspector only) */}
-      {isMobile && panelManager.inspectorPanel && (
-        <MobileDrawer
-          inspectorPanel={panelManager.inspectorPanel}
-          pinnedPanels={[]}
-          onClose={() => panelManager.closeInspector()}
-          onPin={() => { }}
-          onSelectPinned={() => { }}
-        />
-      )}
-
-      {/* Mobile: ItemDetailModal (아이템명/인챈트 클릭 시) */}
-      <ItemDetailModal item={modalItem} onClose={() => setModalItem(null)} />
     </>
   );
 };
