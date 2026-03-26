@@ -93,14 +93,14 @@ export const searchVendingItems = async (
         // 클라이언트 측 서버 필터링 (GNJOY API가 서버 필터링을 지원하지 않는 경우)
         if (server !== '전체') {
             const serverNameMap: Record<string, string[]> = {
-                '바포메트': ['바포메트', 'Baphomet', '바포'],
-                '이그드라실': ['이그드라실', 'Yggdrasil', '이그'],
-                '이프리트': ['이프리트', 'Ifrit', '이프']
+                '바포메트': ['바포메트', 'baphomet', '바포'],
+                '이그드라실': ['이그드라실', 'yggdrasil', '이그'],
+                '이프리트': ['이프리트', 'ifrit', '이프']
             };
             const validNames = serverNameMap[server] || [];
             if (validNames.length > 0) {
                 items = items.filter(item => 
-                    validNames.some(name => item.server.includes(name))
+                    validNames.some(name => item.server.toLowerCase().includes(name.toLowerCase()))
                 );
             }
         }
