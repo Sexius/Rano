@@ -44,7 +44,7 @@ jobs:
       
       - name: Run collector script
         env:
-          UPLOAD_URL: ${{ secrets.UPLOAD_URL }}
+          UPLOAD_URL: 'https://rano.onrender.com/api/vending/upload'
           UPLOAD_KEY: ${{ secrets.UPLOAD_KEY }}
         run: |
           python .github/scripts/collect_and_upload.py \

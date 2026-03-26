@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Call Warmup API
         env:
-          WARMUP_URL: ${{ secrets.WARMUP_URL }}
+          WARMUP_URL: 'https://rano.onrender.com/api/vending/warmup'
           WARMUP_KEY: ${{ secrets.WARMUP_KEY }}
         run: |
           echo "Starting cache warmup at $(date)"
