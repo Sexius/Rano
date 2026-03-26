@@ -118,7 +118,7 @@ export const searchVendingItems = async (
 
     } catch (error) {
         console.error('[VendingService] API Error:', error);
-        return { items: [], total: 0, page: 1, totalPages: 0 };
+        throw error;
     }
 };
 
