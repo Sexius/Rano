@@ -258,9 +258,8 @@ public class VendingController {
             }
             
             results.add(result);
-            
             // 타겟 간 딜레이 (429 방지)
-            try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+            try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
         }
         
         return ResponseEntity.ok(Map.of(
