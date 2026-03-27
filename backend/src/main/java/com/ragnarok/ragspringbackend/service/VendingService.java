@@ -384,7 +384,7 @@ public class VendingService {
 
         Document doc = Jsoup.connect(url)
                 .userAgent(
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
                 .header("Referer", "https://ro.gnjoy.com/itemdeal/itemDealList.asp")
                 .data("svrID", svrId)
                 .data("mapID", mapId)
