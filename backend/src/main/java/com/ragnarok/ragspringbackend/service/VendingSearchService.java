@@ -172,7 +172,7 @@ public class VendingSearchService {
      * Cache Key 생성
      */
     private String buildCacheKey(String server, String keyword, int page, int size, String sortField) {
-        return String.format("%s|%s|%d|%d|%s", 
+        return String.format("v2|%s|%s|%d|%d|%s", 
             server.toLowerCase(), 
             keyword, 
             page, 
