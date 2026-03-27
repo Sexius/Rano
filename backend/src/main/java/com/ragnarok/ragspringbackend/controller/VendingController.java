@@ -1,37 +1,37 @@
 package com.ragnarok.ragspringbackend.controller;
 
 import com.ragnarok.ragspringbackend.dto.VendingItemDto;
-import com.ragnarok.ragspringbackend.dto.VendingPageResponse;
-import com.ragnarok.ragspringbackend.service.VendingService;
-import com.ragnarok.ragspringbackend.service.VendingSearchService;
-import com.ragnarok.ragspringbackend.service.VendingCollectorService;
 import com.ragnarok.ragspringbackend.service.NoCacheAvailableException;
+import com.ragnarok.ragspringbackend.service.VendingCollectorService;
+import com.ragnarok.ragspringbackend.service.VendingLogger;
+import com.ragnarok.ragspringbackend.service.VendingSearchService;
+import com.ragnarok.ragspringbackend.service.VendingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-
-import com.ragnarok.ragspringbackend.service.VendingLogger;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
 public class VendingController {
 
+    private static final int DEFAULT_PAGE_SIZE = 100;
+    private static final java.util.Set<String> ALLOWED_SERVERS = java.util.Set.of("baphomet", "yggdrasil", "ifrit");
+    private static final int MAX_UPLOAD_ITEMS = 2000;
+
     private final VendingService vendingService;
     private final VendingSearchService vendingSearchService;
     private final VendingCollectorService vendingCollectorService;
     private final VendingLogger logger;
-    private static final int DEFAULT_PAGE_SIZE = 100;
 
     public VendingController(
-            VendingService vendingService,
-            VendingSearchService vendingSearchService,
-            VendingCollectorService vendingCollectorService,
-            VendingLogger logger
+        VendingService vendingService,
+        VendingSearchService vendingSearchService,
+        VendingCollectorService vendingCollectorService,
+        VendingLogger logger
     ) {
         this.vendingService = vendingService;
         this.vendingSearchService = vendingSearchService;
@@ -44,75 +44,82 @@ public class VendingController {
         return ResponseEntity.ok(logger.getRecentLogs(count));
     }
 
-    // ========== V1: 기존 실시간 크롤링 ==========
     @GetMapping("/vending")
-    public ResponseEntity<VendingPageResponse<VendingItemDto>> getVendingData(
-            @RequestParam(required = false) String item,
-            @RequestParam(defaultValue = "baphomet") String server,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(required = false) Integer size) {
-        try {
-            int pageSize = (size != null && size > 0) ? size : DEFAULT_PAGE_SIZE;
-            VendingPageResponse<VendingItemDto> result;
-
-            if (item != null && !item.trim().isEmpty()) {
-                result = vendingService.searchVendingByItem(item, server, page, pageSize);
-            } else {
-                result = vendingService.getAllVendingData(server, page, pageSize);
-            }
-
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    public ResponseEntity<?> getVendingData(
+        @RequestParam(required = false) String item,
+        @RequestParam(defaultValue = "baphomet") String server,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(required = false) Integer size
+    ) {
+        if (item == null || item.trim().isEmpty()) {
+            return ResponseEntity.ok(vendingService.getAllVendingData(server, page, size != null ? size : DEFAULT_PAGE_SIZE));
         }
+        return searchV2(item, server, page, size, "price", "asc");
     }
 
-    // ========== V2: DB 캐시 기반 검색 (Cache → GNJOY fallback) ==========
     @GetMapping("/vending/v2/search")
     public ResponseEntity<?> searchV2(
-            @RequestParam String item,
-            @RequestParam(defaultValue = "baphomet") String server,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(required = false) Integer size,
-            @RequestParam(defaultValue = "price") String sort,
-            @RequestParam(defaultValue = "asc") String dir) {
+        @RequestParam String item,
+        @RequestParam(defaultValue = "baphomet") String server,
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(required = false) Integer size,
+        @RequestParam(defaultValue = "price") String sort,
+        @RequestParam(defaultValue = "asc") String dir
+    ) {
         try {
             int pageSize = (size != null && size > 0) ? size : DEFAULT_PAGE_SIZE;
-            VendingSearchService.VendingSearchResponse result = 
+            VendingSearchService.VendingSearchResponse result =
                 vendingSearchService.search(server, item, page, pageSize, sort, dir);
             return ResponseEntity.ok(result);
         } catch (NoCacheAvailableException e) {
-            // GNJOY 에러 + 캐시 없음 → 429 반환
-            System.out.println("[VendingController] NoCacheAvailable: " + e.getReason());
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+            logger.log("CACHE_MISS", "search server=" + e.getServer() + " keyword=" + e.getKeyword());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .header("Retry-After", String.valueOf(e.getRetryAfterSeconds()))
                 .body(Map.of(
-                    "error", "Data temporarily unavailable",
+                    "error", "cache_miss",
+                    "cacheStatus", "miss",
+                    "source", "cache_only",
                     "reason", e.getReason(),
+                    "message", "Data not cached yet",
                     "server", e.getServer(),
                     "keyword", e.getKeyword(),
                     "retryAfterSeconds", e.getRetryAfterSeconds()
                 ));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log("SEARCH_ERROR", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error"));
+                .body(Map.of(
+                    "error", "internal_error",
+                    "cacheStatus", "miss",
+                    "source", "cache_only",
+                    "message", "Internal server error"
+                ));
         }
     }
 
-    // ========== 수집 트리거 (관리용) ==========
     @PostMapping("/vending/collect")
     public ResponseEntity<Map<String, Object>> triggerCollection(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "baphomet") String server,
-            @RequestParam(defaultValue = "1") int startPage,
-            @RequestParam(defaultValue = "3") int maxPages) {
+        @RequestParam String keyword,
+        @RequestParam(defaultValue = "baphomet") String server,
+        @RequestParam(defaultValue = "1") int startPage,
+        @RequestParam(defaultValue = "3") int maxPages
+    ) {
+        if (!vendingService.isLiveFetchEnabled()) {
+            logger.log("LIVE_FETCH_DISABLED", "Blocked /api/vending/collect for server=" + server + " keyword=" + keyword);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                "error", "live_fetch_disabled",
+                "cacheStatus", "miss",
+                "source", "cache_only",
+                "message", "Render cache-only mode blocks direct GNJOY collection",
+                "server", server,
+                "keyword", keyword
+            ));
+        }
+
         try {
             int effectiveStartPage = Math.max(1, startPage);
             int cappedMaxPages = Math.min(maxPages, 5);
             int endPage = effectiveStartPage + cappedMaxPages - 1;
-            
             int saved = vendingCollectorService.collectSync(server, keyword, effectiveStartPage, cappedMaxPages);
             return ResponseEntity.ok(Map.of(
                 "status", "completed",
@@ -123,66 +130,93 @@ public class VendingController {
                 "savedCount", saved
             ));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log("COLLECT_ERROR", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
         }
     }
 
     @GetMapping("/vending/detail")
-    public ResponseEntity<VendingItemDto> getVendingDetail(
-            @RequestParam String server,
-            @RequestParam String ssi,
-            @RequestParam String mapID) {
+    public ResponseEntity<?> getVendingDetail(
+        @RequestParam String server,
+        @RequestParam String ssi,
+        @RequestParam String mapID
+    ) {
         try {
-            VendingItemDto result = vendingService.getVendingDetail(server, ssi, mapID);
-            return ResponseEntity.ok(result);
+            Optional<VendingItemDto> cached = vendingService.getCachedVendingDetail(server, ssi, mapID);
+            if (cached.isPresent()) {
+                VendingItemDto detail = cached.get();
+                return ResponseEntity.ok(Map.of(
+                    "vendor_name", detail.getVendor_name(),
+                    "vendor_info", detail.getVendor_info(),
+                    "cards_equipped", detail.getCards_equipped(),
+                    "map_id", detail.getMap_id(),
+                    "ssi", detail.getSsi(),
+                    "cacheStatus", "hit",
+                    "stale", false,
+                    "source", "cache_only",
+                    "message", "Cached detail result"
+                ));
+            }
+
+            logger.log("CACHE_MISS", "detail server=" + server + " mapId=" + mapID + " ssi=" + ssi);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of(
+                    "error", "cache_miss",
+                    "cacheStatus", "miss",
+                    "stale", false,
+                    "source", "cache_only",
+                    "reason", "DETAIL_CACHE_MISS",
+                    "message", "Detail not cached yet",
+                    "server", server,
+                    "ssi", ssi,
+                    "mapID", mapID
+                ));
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            logger.log("DETAIL_ERROR", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "error", "internal_error",
+                    "cacheStatus", "miss",
+                    "source", "cache_only",
+                    "message", "Internal server error"
+                ));
         }
     }
 
-    // ========== 외부 업로드 API (GitHub Actions 전용) ==========
-    private static final java.util.Set<String> ALLOWED_SERVERS = java.util.Set.of("baphomet", "yggdrasil", "ifrit");
-    private static final int MAX_UPLOAD_ITEMS = 2000;
-    
     @PostMapping("/vending/upload")
     public ResponseEntity<Map<String, Object>> uploadVendingData(
-            @RequestHeader(value = "X-API-KEY", required = false) String apiKey,
-            @RequestParam String server,
-            @RequestBody List<VendingItemDto> items) {
-        
-        // 1. API 키 검증 (환경변수 필수, fallback 없음)
+        @RequestHeader(value = "X-API-KEY", required = false) String apiKey,
+        @RequestParam String server,
+        @RequestBody List<VendingItemDto> items
+    ) {
         String expectedKey = System.getenv("VENDING_UPLOAD_KEY");
         if (expectedKey == null || expectedKey.isEmpty()) {
-            System.out.println("[VendingUpload] DISABLED: missing VENDING_UPLOAD_KEY env var");
+            logger.log("UPLOAD_DISABLED", "missing VENDING_UPLOAD_KEY");
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(Map.of("error", "upload disabled: missing VENDING_UPLOAD_KEY"));
         }
-        
+
         if (apiKey == null || !apiKey.equals(expectedKey)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", "Invalid API key"));
         }
-        
-        // 2. 서버 허용 목록 검증
+
         if (server == null || !ALLOWED_SERVERS.contains(server.toLowerCase())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", "Invalid server. Allowed: baphomet, yggdrasil, ifrit"));
         }
-        
-        // 3. 아이템 개수 제한
+
         if (items == null || items.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", "No items provided"));
         }
-        
+
         if (items.size() > MAX_UPLOAD_ITEMS) {
             return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(Map.of("error", "Too many items. Max: " + MAX_UPLOAD_ITEMS));
         }
-        
+
         try {
             int saved = vendingCollectorService.uploadBatch(server.toLowerCase(), items);
             return ResponseEntity.ok(Map.of(
@@ -192,115 +226,9 @@ public class VendingController {
                 "savedCount", saved
             ));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log("UPLOAD_ERROR", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
         }
-    }
-
-    // ========== Cache Warmup (관리용) ==========
-    @PostMapping("/vending/warmup")
-    public ResponseEntity<?> warmupCache(
-            @RequestHeader(value = "X-API-KEY", required = false) String apiKey,
-            @RequestBody WarmupRequest request) {
-        
-        // API 키 검증
-        String expectedKey = System.getenv("VENDING_WARMUP_KEY");
-        if (expectedKey == null || expectedKey.isEmpty()) {
-            System.out.println("[VendingWarmup] DISABLED: missing VENDING_WARMUP_KEY env var");
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(Map.of("error", "warmup disabled: missing VENDING_WARMUP_KEY"));
-        }
-        
-        if (apiKey == null || !apiKey.equals(expectedKey)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Invalid API key"));
-        }
-        
-        if (request.getTargets() == null || request.getTargets().isEmpty()) {
-            logger.log("WARMUP_PING", "Received keep-alive ping with 0 targets. No outbound GNJOY requests will be made.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", "No targets provided"));
-        }
-        
-        List<Map<String, Object>> results = new ArrayList<>();
-        int successCount = 0;
-        int failCount = 0;
-        
-        for (WarmupTarget target : request.getTargets()) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("server", target.getServer());
-            result.put("keyword", target.getKeyword());
-            result.put("page", target.getPage());
-            result.put("size", target.getSize());
-            
-            try {
-                // v2/search 내부 로직 호출 (캐시 생성)
-                VendingSearchService.VendingSearchResponse response = 
-                    vendingSearchService.search(
-                        target.getServer(), 
-                        target.getKeyword(), 
-                        target.getPage(), 
-                        target.getSize(), 
-                        "price", 
-                        "asc"
-                    );
-                
-                result.put("status", "OK");
-                result.put("httpStatus", 200);
-                result.put("cached", response.isRefreshTriggered());
-                result.put("itemCount", response.getData() != null ? response.getData().size() : 0);
-                result.put("stale", response.isStale());
-                successCount++;
-                
-            } catch (NoCacheAvailableException e) {
-                result.put("status", "RATE_LIMITED");
-                result.put("httpStatus", 429);
-                result.put("cached", false);
-                result.put("reason", e.getReason());
-                failCount++;
-                
-            } catch (Exception e) {
-                result.put("status", "ERROR");
-                result.put("httpStatus", 500);
-                result.put("cached", false);
-                result.put("error", e.getMessage());
-                failCount++;
-            }
-            
-            results.add(result);
-            // 타겟 간 딜레이 (429 방지)
-            try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
-        }
-        
-        return ResponseEntity.ok(Map.of(
-            "totalTargets", request.getTargets().size(),
-            "successCount", successCount,
-            "failCount", failCount,
-            "results", results
-        ));
-    }
-    
-    // Warmup 요청 DTO
-    public static class WarmupRequest {
-        private List<WarmupTarget> targets;
-        public List<WarmupTarget> getTargets() { return targets; }
-        public void setTargets(List<WarmupTarget> targets) { this.targets = targets; }
-    }
-    
-    public static class WarmupTarget {
-        private String server = "baphomet";
-        private String keyword = "";
-        private int page = 1;
-        private int size = 10;
-        
-        public String getServer() { return server; }
-        public void setServer(String server) { this.server = server; }
-        public String getKeyword() { return keyword; }
-        public void setKeyword(String keyword) { this.keyword = keyword; }
-        public int getPage() { return page; }
-        public void setPage(int page) { this.page = page; }
-        public int getSize() { return size; }
-        public void setSize(int size) { this.size = size; }
     }
 }

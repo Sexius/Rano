@@ -72,6 +72,10 @@ public interface VendingListingRepository extends JpaRepository<VendingListing, 
         String server, String mapId, String ssi, String itemName, Long price
     );
 
+    Optional<VendingListing> findTopByServerAndMapIdAndSsiOrderByScrapedAtDesc(
+        String server, String mapId, String ssi
+    );
+
     // 8. 오래된 데이터 삭제 (정리용)
     @Modifying
     @Query("DELETE FROM VendingListing v WHERE v.scrapedAt < :cutoff")

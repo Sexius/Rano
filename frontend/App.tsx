@@ -11,7 +11,7 @@ import DamageCalculator from './components/DamageCalculator';
 import Simulator from './components/Simulator';
 import SkillSimulator from './components/SkillSimulator'; // Imported
 import { MarketItem, SearchParams, User, ViewMode } from './types';
-import { searchVendingItems, VendingSearchResult } from './services/vendingService';
+import { searchVendingItems, VendingApiError } from './services/vendingService';
 import { Sparkles, Construction, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -28,6 +28,7 @@ const App: React.FC = () => {
   const [totalResults, setTotalResults] = useState(0);
   const [lastSearchParams, setLastSearchParams] = useState<SearchParams | null>(null);
   const [lastSearchTime, setLastSearchTime] = useState<Date | null>(null);
+  const [searchNotice, setSearchNotice] = useState<{ type: 'stale' | 'cache_miss' | 'error'; message: string } | null>(null);
 
   // Auth State
   const [user, setUser] = useState<User | null>(null);
@@ -50,6 +51,7 @@ const App: React.FC = () => {
     setIsLoading(true);
     setLastQuery(params.query);
     setSelectedItem(null);
+    setSearchNotice(null);
     if (page === 1) {
       setItems([]);
     }
@@ -63,6 +65,13 @@ const App: React.FC = () => {
       setTotalPages(result.totalPages);
       setLastSearchTime(new Date());
 
+      if (result.stale) {
+        setSearchNotice({
+          type: 'stale',
+          message: result.message || '캐시된 이전 검색 결과를 표시하고 있습니다. 실시간 조회는 비활성화되어 있습니다.'
+        });
+      }
+
       // Background load card/enchant details
       if (result.items.length > 0) {
         import('./services/vendingService').then(async ({ enrichWithCardDetails }) => {
@@ -72,7 +81,23 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error("Search failed:", error);
-      alert("데이터를 불러오는데 실패했습니다. (네트워크 지연 또는 서버 오류). 잠시 후 다시 시도해주세요.");
+      if (error instanceof VendingApiError && error.status === 503 && error.payload.error === 'cache_miss') {
+        setItems([]);
+        setTotalResults(0);
+        setCurrentPage(1);
+        setTotalPages(0);
+        setLastSearchTime(new Date());
+        setSearchNotice({
+          type: 'cache_miss',
+          message: error.payload.message || '아직 캐시된 데이터가 없습니다. 잠시 후 다시 시도해 주세요.'
+        });
+        return;
+      }
+      setSearchNotice({
+        type: 'error',
+        message: '검색 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+      });
+      return;
     } finally {
       setIsLoading(false);
     }
@@ -158,11 +183,25 @@ const App: React.FC = () => {
                   )}
                 </div>
 
+                {searchNotice && (
+                  <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
+                    searchNotice.type === 'stale'
+                      ? 'border-amber-200 bg-amber-50 text-amber-800'
+                      : searchNotice.type === 'cache_miss'
+                        ? 'border-blue-200 bg-blue-50 text-blue-800'
+                        : 'border-red-200 bg-red-50 text-red-800'
+                  }`}>
+                    {searchNotice.message}
+                  </div>
+                )}
+
                 <ResultsTable
                   items={items}
                   isLoading={isLoading}
                   selectedItemId={selectedItem?.id || null}
                   onItemClick={(item) => setSelectedItem(item)}
+                  emptyTitle={searchNotice?.type === 'cache_miss' ? '아직 캐시된 검색 결과가 없습니다' : undefined}
+                  emptyDescription={searchNotice?.type === 'cache_miss' ? '실시간 GNJOY 조회는 비활성화되어 있어 캐시가 쌓인 뒤에만 결과를 보여줄 수 있습니다.' : undefined}
                 />
 
                 {/* Styled Pagination */}

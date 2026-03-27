@@ -11,6 +11,8 @@ interface ResultsTableProps {
   isLoading: boolean;
   selectedItemId: string | null;
   onItemClick: (item: MarketItem) => void;
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
 // Hook to detect mobile viewport
@@ -36,7 +38,14 @@ const getFullItemName = (item: MarketItem): string => {
   return name;
 };
 
-const ResultsTable: React.FC<ResultsTableProps> = ({ items, isLoading, selectedItemId, onItemClick }) => {
+const ResultsTable: React.FC<ResultsTableProps> = ({
+  items,
+  isLoading,
+  selectedItemId,
+  onItemClick,
+  emptyTitle,
+  emptyDescription
+}) => {
   const isMobile = useIsMobile();
   const panelManager = usePanelManager();
 
