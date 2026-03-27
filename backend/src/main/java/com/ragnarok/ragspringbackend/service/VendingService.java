@@ -109,17 +109,11 @@ public class VendingService {
                 System.err.println("[VendingService] 429 Rate Limited: status=429 server=" + server + " keyword=" + keyword + " page=" + page);
                 throw new RateLimitedException(server, keyword, page, "HTTP 429 Rate Limited");
             }
-            System.err.println("[VendingService] Direct crawl failed: " + e.getMessage());
-            VendingPageResponse<VendingItemDto> empty = new VendingPageResponse<>();
-            empty.setData(new ArrayList<>());
-            empty.setTotal(0);
-            return empty;
+            System.err.println("[VendingService] Direct crawl failed with HTTP " + e.getStatusCode() + ": " + e.getMessage());
+            throw new RuntimeException("GNJOY_HTTP_ERROR_" + e.getStatusCode(), e);
         } catch (Exception e) {
             System.err.println("[VendingService] Direct crawl failed: " + e.getMessage());
-            VendingPageResponse<VendingItemDto> empty = new VendingPageResponse<>();
-            empty.setData(new ArrayList<>());
-            empty.setTotal(0);
-            return empty;
+            throw new RuntimeException("GNJOY_SCRAPE_FAILED", e);
         }
     }
 
