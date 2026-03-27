@@ -48,11 +48,12 @@ const App: React.FC = () => {
   }, []);
 
   const handleSearch = async (params: SearchParams, page: number = 1) => {
+    const isPaginationRequest = page > 1;
     setIsLoading(true);
     setLastQuery(params.query);
     setSelectedItem(null);
     setSearchNotice(null);
-    if (page === 1) {
+    if (!isPaginationRequest) {
       setItems([]);
     }
     setLastSearchParams(params);
@@ -82,21 +83,35 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Search failed:", error);
       if (error instanceof VendingApiError && error.status === 503 && error.payload.error === 'cache_miss') {
-        setItems([]);
-        setTotalResults(0);
-        setCurrentPage(1);
-        setTotalPages(0);
+        if (!isPaginationRequest) {
+          setItems([]);
+          setTotalResults(0);
+          setCurrentPage(1);
+          setTotalPages(0);
+        }
         setLastSearchTime(new Date());
         setSearchNotice({
           type: 'cache_miss',
           message: error.payload.message || '아직 캐시된 데이터가 없습니다. 잠시 후 다시 시도해 주세요.'
         });
+        if (isPaginationRequest) {
+          setSearchNotice({
+            type: 'cache_miss',
+            message: '요청한 페이지는 아직 캐시되지 않았습니다. 현재 페이지 결과를 유지합니다.'
+          });
+        }
         return;
       }
       setSearchNotice({
         type: 'error',
         message: '검색 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
       });
+      if (isPaginationRequest) {
+        setSearchNotice({
+          type: 'error',
+          message: '페이지 이동 중 오류가 발생했습니다. 현재 페이지 결과를 유지합니다.'
+        });
+      }
       return;
     } finally {
       setIsLoading(false);

@@ -170,6 +170,18 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
     );
   }
 
+  if (items.length === 0 && (emptyTitle || emptyDescription)) {
+    return (
+      <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 border-dashed">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-50 mb-3">
+          <Package className="h-6 w-6 text-gray-300" />
+        </div>
+        <h3 className="text-base font-bold text-gray-900">{emptyTitle || '검색 결과가 없습니다'}</h3>
+        <p className="mt-1 text-xs text-gray-500">{emptyDescription || '필터를 변경하거나 검색어를 확인해주세요.'}</p>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 border-dashed">
