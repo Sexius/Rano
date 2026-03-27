@@ -2,8 +2,8 @@ name: Vending Cache Warmup
 
 on:
   schedule:
-    # 매 30분마다 실행 (GNJOY IP Ban 방지)
-    - cron: '*/30 * * * *'
+    # Render 서버 수면 방지용 빈 호출 (14분 주기)
+    - cron: '*/14 * * * *'
   workflow_dispatch:
 
 # 동시 실행 방지: 같은 workflow는 1개만 실행
@@ -28,17 +28,7 @@ jobs:
             -H "Content-Type: application/json" \
             -H "X-API-KEY: $WARMUP_KEY" \
             -d '{
-              "targets": [
-                {"server":"baphomet","keyword":"천공","page":1,"size":10},
-                {"server":"baphomet","keyword":"룬","page":1,"size":10},
-                {"server":"baphomet","keyword":"카드","page":1,"size":10},
-                {"server":"baphomet","keyword":"강화","page":1,"size":10},
-                {"server":"baphomet","keyword":"의상","page":1,"size":10},
-                {"server":"yggdrasil","keyword":"카드","page":1,"size":10},
-                {"server":"yggdrasil","keyword":"의상","page":1,"size":10},
-                {"server":"ifrit","keyword":"카드","page":1,"size":10},
-                {"server":"ifrit","keyword":"의상","page":1,"size":10}
-              ]
+              "targets": []
             }')
           
           echo "Warmup Response:"
