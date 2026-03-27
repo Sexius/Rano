@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.ragnarok.ragspringbackend.service.VendingLogger;
+
 @RestController
 @RequestMapping("/api")
 public class VendingController {
@@ -22,16 +24,24 @@ public class VendingController {
     private final VendingService vendingService;
     private final VendingSearchService vendingSearchService;
     private final VendingCollectorService vendingCollectorService;
+    private final VendingLogger logger;
     private static final int DEFAULT_PAGE_SIZE = 100;
 
     public VendingController(
             VendingService vendingService,
             VendingSearchService vendingSearchService,
-            VendingCollectorService vendingCollectorService
+            VendingCollectorService vendingCollectorService,
+            VendingLogger logger
     ) {
         this.vendingService = vendingService;
         this.vendingSearchService = vendingSearchService;
         this.vendingCollectorService = vendingCollectorService;
+        this.logger = logger;
+    }
+
+    @GetMapping("/vending/debug/logs")
+    public ResponseEntity<List<String>> getLogs(@RequestParam(defaultValue = "100") int count) {
+        return ResponseEntity.ok(logger.getRecentLogs(count));
     }
 
     // ========== V1: 기존 실시간 크롤링 ==========
@@ -208,6 +218,7 @@ public class VendingController {
         }
         
         if (request.getTargets() == null || request.getTargets().isEmpty()) {
+            logger.log("WARMUP_PING", "Received keep-alive ping with 0 targets. No outbound GNJOY requests will be made.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", "No targets provided"));
         }

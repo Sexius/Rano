@@ -30,6 +30,8 @@ public class VendingSearchService {
     private final VendingService vendingService;
     private final ObjectMapper objectMapper;
 
+    private final VendingLogger logger;
+
     // TTL 설정
     private static final long CACHE_TTL_MINUTES = 10;
     
@@ -39,11 +41,13 @@ public class VendingSearchService {
     public VendingSearchService(
             VendingSearchCacheRepository cacheRepository,
             VendingService vendingService,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            VendingLogger logger
     ) {
         this.cacheRepository = cacheRepository;
         this.vendingService = vendingService;
         this.objectMapper = objectMapper;
+        this.logger = logger;
     }
 
     /**
@@ -67,11 +71,13 @@ public class VendingSearchService {
             // Valid Cache Hit
             long cacheTime = System.currentTimeMillis() - start;
             System.out.println("[VendingSearch] CACHE_HIT key=" + cacheKey + " time=" + cacheTime + "ms");
+            logger.log("CACHE", "HIT: " + cacheKey);
             return fromCache(cached.get(), false, null);
         }
         
         // 2. Cache Miss → Singleflight GNJOY 호출
         System.out.println("[VendingSearch] CACHE_MISS key=" + cacheKey);
+        logger.log("CACHE", "MISS: " + cacheKey);
         
         // Singleflight 패턴: 동일 cacheKey에 대한 동시 요청 합치기
         final String finalServer = server;
@@ -116,15 +122,18 @@ public class VendingSearchService {
             Optional<VendingSearchCache> cached = cacheRepository.findValidCache(cacheKey, OffsetDateTime.now());
             if (cached.isPresent()) {
                 System.out.println("[Singleflight] CACHE_HIT_AFTER_JOIN key=" + cacheKey);
+                logger.log("SINGLEFLIGHT", "CACHE_HIT_AFTER_JOIN: " + cacheKey);
                 return fromCache(cached.get(), false, null);
             }
             
             // GNJOY 호출
+            logger.log("OUTBOUND", "Fetching GNJOY for key: " + cacheKey);
             VendingPageResponse<VendingItemDto> gnjoyResult = vendingService.searchVendingByItemDirect(server, keyword, page, size);
             
             long gnjoyTime = System.currentTimeMillis() - start;
             int itemCount = gnjoyResult.getData() != null ? gnjoyResult.getData().size() : 0;
             System.out.println("[Singleflight] GNJOY_FETCH time=" + gnjoyTime + "ms items=" + itemCount);
+            logger.log("OUTBOUND", "GNJOY success: " + itemCount + " items in " + gnjoyTime + "ms");
             
             // 캐시 저장
             saveCache(cacheKey, server, keyword, page, size, sortField, gnjoyResult);
@@ -145,18 +154,21 @@ public class VendingSearchService {
         } catch (Exception e) {
             String errorMsg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
             System.err.println("[Singleflight] GNJOY_ERROR: " + errorMsg);
+            logger.log("OUTBOUND_ERROR", errorMsg);
             
             // Stale 캐시 fallback
             Optional<VendingSearchCache> staleCache = cacheRepository.findLatestCache(cacheKey);
             
             if (staleCache.isPresent()) {
                 System.out.println("[Singleflight] STALE_CACHE_FALLBACK key=" + cacheKey);
+                logger.log("FALLBACK", "STALE_CACHE returned for key: " + cacheKey);
                 String reason = errorMsg.contains("429") ? "GNJOY_429" : "GNJOY_ERROR";
                 return fromCache(staleCache.get(), true, reason);
             }
             
             // Stale 캐시도 없음 → 예외
             System.err.println("[Singleflight] NO_CACHE_AVAILABLE key=" + cacheKey);
+            logger.log("FALLBACK_FAIL", "No stale cache for key: " + cacheKey);
             boolean is429 = errorMsg.contains("429");
             throw new NoCacheAvailableException(
                 is429 ? "GNJOY_429_NO_CACHE" : "GNJOY_UNAVAILABLE",
