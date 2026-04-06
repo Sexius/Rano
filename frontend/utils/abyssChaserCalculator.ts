@@ -22,6 +22,7 @@ export interface AbyssChaserDraftScenario {
   baseStr: number;
   baseDex: number;
   baseLuk: number;
+  basePatk: number;
   pow: number;
   masteryAttack: number;
   weaponAtk: number;
@@ -58,6 +59,7 @@ export interface AbyssChaserAttackBuckets {
   overRefineAttack: number;
   equipmentAttack: number;
   masteryAttack: number;
+  basePatkAttack: number;
   pAtkAttack: number;
   powAttack: number;
 }
@@ -136,6 +138,7 @@ export function buildAbyssChaserDraftScenario(): AbyssChaserDraftScenario {
     baseStr: 120,
     baseDex: 100,
     baseLuk: 82,
+    basePatk: 61,
     pow: 110,
     masteryAttack: 0,
     weaponAtk: 230,
@@ -204,6 +207,8 @@ function getRawAttackBuckets(scenario: AbyssChaserDraftScenario): AbyssChaserAtt
   const overRefineValue = Math.max(0, scenario.weaponRefine - safeRefineLevel);
   const overRefineAttack = overRefineValue * getOverRefineCoefficient(scenario.weaponLevel);
 
+  const bonusPatk = Math.max(0, scenario.totalPatk - scenario.basePatk);
+
   return {
     statusAttack,
     weaponAttack,
@@ -211,7 +216,8 @@ function getRawAttackBuckets(scenario: AbyssChaserDraftScenario): AbyssChaserAtt
     overRefineAttack,
     equipmentAttack: scenario.totalAtkFlat,
     masteryAttack: scenario.masteryAttack,
-    pAtkAttack: scenario.totalPatk * 12,
+    basePatkAttack: scenario.basePatk * 12,
+    pAtkAttack: bonusPatk * 12,
     powAttack: scenario.pow * 3
   };
 }
@@ -231,7 +237,8 @@ function getFixedAttackBudget(buckets: AbyssChaserAttackBuckets): number {
     buckets.refineAttack +
     buckets.overRefineAttack +
     buckets.equipmentAttack +
-    buckets.masteryAttack
+    buckets.masteryAttack +
+    buckets.basePatkAttack
   );
 }
 
@@ -367,6 +374,7 @@ function scaleAttackBuckets(
     overRefineAttack: buckets.overRefineAttack * ratio,
     equipmentAttack: buckets.equipmentAttack * ratio,
     masteryAttack: buckets.masteryAttack * ratio,
+    basePatkAttack: buckets.basePatkAttack * ratio,
     pAtkAttack: buckets.pAtkAttack * ratio,
     powAttack: buckets.powAttack * ratio
   };
@@ -393,10 +401,11 @@ function calibrateAttackBuckets(
   const overallRatio = rawTotal > 0 ? calibratedTotal / rawTotal : 1;
   const rawPowBudget = rawBuckets.powAttack;
   const rawPAtkBudget = rawBuckets.pAtkAttack;
+  const bonusPatk = Math.max(0, scenario.totalPatk - scenario.basePatk);
 
   if (
     rawPAtkBudget > 0 &&
-    scenario.totalPatk > 0 &&
+    bonusPatk > 0 &&
     calibratedTotal >= fixedBudget + rawPowBudget
   ) {
     const calibratedPAtkBudget = calibratedTotal - fixedBudget - rawPowBudget;
@@ -477,8 +486,9 @@ export function estimateAbyssChaserTrainingDummyDamage(
   const attackCalibration = calibrateAttackBuckets(rawAttackBuckets, baseAttackBudget, scenario);
   const calibrationRatio = attackCalibration.overallRatio;
   const calibratedAttackBuckets = attackCalibration.buckets;
-  const rawPAtkCoefficient = scenario.totalPatk > 0 ? rawAttackBuckets.pAtkAttack / scenario.totalPatk : 0;
-  const calibratedPAtkCoefficient = scenario.totalPatk > 0 ? calibratedAttackBuckets.pAtkAttack / scenario.totalPatk : 0;
+  const bonusPatk = Math.max(0, scenario.totalPatk - scenario.basePatk);
+  const rawPAtkCoefficient = bonusPatk > 0 ? rawAttackBuckets.pAtkAttack / bonusPatk : 0;
+  const calibratedPAtkCoefficient = bonusPatk > 0 ? calibratedAttackBuckets.pAtkAttack / bonusPatk : 0;
   const rawPowCoefficient = scenario.pow > 0 ? rawAttackBuckets.powAttack / scenario.pow : 0;
   const calibratedPowCoefficient = scenario.pow > 0 ? calibratedAttackBuckets.powAttack / scenario.pow : 0;
 

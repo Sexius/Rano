@@ -1002,9 +1002,9 @@ const DamageCalculator: React.FC = () => {
             <br />
             장비 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.equipmentAttack).toLocaleString()} / 마스터리 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.masteryAttack).toLocaleString()}
             <br />
-            P.ATK {Math.round(abyssEstimate.debug.calibratedAttackBuckets.pAtkAttack).toLocaleString()} / POW {Math.round(abyssEstimate.debug.calibratedAttackBuckets.powAttack).toLocaleString()} / 고정 버킷 {Math.round(abyssEstimate.debug.fixedAttackBudget).toLocaleString()}
-            <br />
-            P.ATK 계수 {abyssEstimate.debug.rawPAtkCoefficient.toFixed(2)} → {abyssEstimate.debug.calibratedPAtkCoefficient.toFixed(2)} / POW 계수 {abyssEstimate.debug.rawPowCoefficient.toFixed(2)} → {abyssEstimate.debug.calibratedPowCoefficient.toFixed(2)}
+            기본 P.ATK {Math.round(abyssEstimate.debug.calibratedAttackBuckets.basePatkAttack).toLocaleString()} / 추가 P.ATK {Math.round(abyssEstimate.debug.calibratedAttackBuckets.pAtkAttack).toLocaleString()} / POW {Math.round(abyssEstimate.debug.calibratedAttackBuckets.powAttack).toLocaleString()} / 고정 버킷 {Math.round(abyssEstimate.debug.fixedAttackBudget).toLocaleString()}
+              <br />
+            추가 P.ATK 계수 {abyssEstimate.debug.rawPAtkCoefficient.toFixed(2)} → {abyssEstimate.debug.calibratedPAtkCoefficient.toFixed(2)} / POW 계수 {abyssEstimate.debug.rawPowCoefficient.toFixed(2)} → {abyssEstimate.debug.calibratedPowCoefficient.toFixed(2)}
             <br />
             무기 랜덤 범위 {Math.round(abyssEstimate.debug.minRandomWeaponAttack).toLocaleString()} ~ {Math.round(abyssEstimate.debug.maxRandomWeaponAttack).toLocaleString()}
           </div>
