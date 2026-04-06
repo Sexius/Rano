@@ -158,6 +158,9 @@ function getBaseAttackBudget(scenario: AbyssChaserDraftScenario): number {
   const statDamageBase = frontAtk * 2;
 
   // Also from the guide: weapon contribution scales with weapon ATK * (STR + 200) / 200.
+  // We still collapse status/weapon/equipment/refine attack into one draft pool here,
+  // then calibrate against observed dummy logs.
+  // A later pass should split these groups and apply size/race/skill multipliers separately.
   const weaponDamageBase = scenario.weaponAtk * ((scenario.baseStr + 200) / 200);
 
   // The article only enumerates refine constants up to weapon level 4.
