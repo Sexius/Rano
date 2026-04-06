@@ -4,6 +4,7 @@ import { Swords, Target, Zap, RotateCcw, Crosshair, ShieldAlert, Search, PlusCir
 import { searchItems } from '../services/itemService';
 import { getSkillsWithDamage, SkillData } from '../services/skillService';
 import { calculateSkillDamage } from '../utils/SkillLogic';
+import { estimateAbyssChaserTrainingDummyDamage } from '../utils/abyssChaserCalculator';
 import { MarketItem, GearSet, EquipSlotId, EquippedItem } from '../types';
 
 // --- Interfaces & Helpers (Consolidated) ---
@@ -155,6 +156,8 @@ const NumberInput = ({ label, value, onChange, suffix }: { label: string, value:
 );
 
 const DamageCalculator: React.FC = () => {
+  const abyssEstimate = estimateAbyssChaserTrainingDummyDamage();
+
   // --- Gear & Modal State ---
   const [gear, setGear] = useState<GearSet>(INITIAL_GEAR);
   const [searchModal, setSearchModal] = useState<{
@@ -933,6 +936,59 @@ const DamageCalculator: React.FC = () => {
 
       {/* Right: Results Panel */}
       <div className="w-full xl:w-96 space-y-4">
+
+        <div className="bg-white rounded-2xl border border-emerald-200 p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs font-bold tracking-wide text-emerald-600">어비스 체이서 허수아비 비교</div>
+              <div className="mt-1 text-sm font-bold text-gray-900">중형 / 무형 / DEF 0 기준</div>
+            </div>
+            <div className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700">
+              실험값 대조중
+            </div>
+          </div>
+          <div className="mt-4 space-y-3">
+            {abyssEstimate.estimated.map((entry) => {
+              const observed = abyssEstimate.observed.find((item) => item.label === entry.label);
+              const observedPerHit = observed?.damage ?? 0;
+              const gap = observedPerHit - entry.perHit;
+              const gapPercent = observedPerHit > 0 ? (gap / observedPerHit) * 100 : 0;
+              const label =
+                entry.label === 'chasing_break'
+                  ? '체이싱 브레이크 본체'
+                  : entry.label === 'deft_stab_trigger'
+                    ? '자동 데프트 스탭'
+                    : '수동 데프트 스탭';
+
+              return (
+                <div key={entry.label} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-bold text-gray-900">{label}</span>
+                    <span className="text-[11px] font-semibold text-gray-500">{entry.hits}히트 기준</span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-lg bg-white px-3 py-2">
+                      <div className="text-gray-500">추정 1타</div>
+                      <div className="mt-1 font-bold text-gray-900">{entry.perHit.toLocaleString()}</div>
+                    </div>
+                    <div className="rounded-lg bg-white px-3 py-2">
+                      <div className="text-gray-500">실측 1타</div>
+                      <div className="mt-1 font-bold text-gray-900">{observedPerHit.toLocaleString()}</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-gray-600">
+                    차이: <span className={gap > 0 ? 'font-bold text-rose-600' : 'font-bold text-emerald-600'}>{gap.toLocaleString()}</span>
+                    {' '}({gapPercent.toFixed(1)}%)
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 px-3 py-2 text-xs leading-5 text-emerald-900">
+            현재 추정치는 앞판/뒷판 합산 수치를 넣은 1차 역산 버전입니다. 여기서 차이가 크게 나는 항목을 기준으로
+            체이싱 브레이크 본체 타수, 자동 데프트 스탭 보정, 증뎀 합산 방식을 다음 단계에서 조정합니다.
+          </div>
+        </div>
 
         {/* Main Damage Display */}
         <div className="bg-gray-900 text-white rounded-2xl p-6 shadow-xl border-t-4 border-kafra-500">
