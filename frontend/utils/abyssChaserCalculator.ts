@@ -154,7 +154,7 @@ export function buildAbyssChaserDraftScenario(): AbyssChaserDraftScenario {
       ABC_CHASING_BREAK: 100,
       ABC_DEFT_STAB: 89
     },
-    totalPatk: 260,
+    totalPatk: 290,
     targetSize: 'medium',
     targetRace: 'formless',
     targetDef: 0,
