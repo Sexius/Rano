@@ -69,6 +69,11 @@ export interface AbyssChaserEstimateResult {
     rawBaseAttackBudget: number;
     calibratedBaseAttackBudget: number;
     calibrationRatio: number;
+    traitCalibrationRatio: number;
+    calibrationMode: 'trait_residual' | 'uniform_fallback';
+    fixedAttackBudget: number;
+    rawTraitAttackBudget: number;
+    calibratedTraitAttackBudget: number;
     rawAttackBuckets: AbyssChaserAttackBuckets;
     calibratedAttackBuckets: AbyssChaserAttackBuckets;
     skillAttackBudget: Record<string, number>;
@@ -209,15 +214,24 @@ function getRawAttackBuckets(scenario: AbyssChaserDraftScenario): AbyssChaserAtt
 function getBaseAttackBudget(scenario: AbyssChaserDraftScenario): number {
   const buckets = getRawAttackBuckets(scenario);
   return (
+    getFixedAttackBudget(buckets) +
+    getTraitAttackBudget(buckets)
+  );
+}
+
+function getFixedAttackBudget(buckets: AbyssChaserAttackBuckets): number {
+  return (
     buckets.statusAttack +
     buckets.weaponAttack +
     buckets.refineAttack +
     buckets.overRefineAttack +
     buckets.equipmentAttack +
-    buckets.masteryAttack +
-    buckets.pAtkAttack +
-    buckets.powAttack
+    buckets.masteryAttack
   );
+}
+
+function getTraitAttackBudget(buckets: AbyssChaserAttackBuckets): number {
+  return buckets.pAtkAttack + buckets.powAttack;
 }
 
 function getCommonMultiplier(scenario: AbyssChaserDraftScenario): Omit<AbyssChaserEstimateResult['debug'], 'baseAttackBudget' | 'skillAttackBudget'> {
@@ -353,6 +367,55 @@ function scaleAttackBuckets(
   };
 }
 
+function calibrateAttackBuckets(
+  rawBuckets: AbyssChaserAttackBuckets,
+  calibratedTotal: number
+): {
+  buckets: AbyssChaserAttackBuckets;
+  overallRatio: number;
+  traitRatio: number;
+  mode: 'trait_residual' | 'uniform_fallback';
+  fixedBudget: number;
+  rawTraitBudget: number;
+  calibratedTraitBudget: number;
+} {
+  const rawTotal =
+    getFixedAttackBudget(rawBuckets) + getTraitAttackBudget(rawBuckets);
+  const fixedBudget = getFixedAttackBudget(rawBuckets);
+  const rawTraitBudget = getTraitAttackBudget(rawBuckets);
+  const overallRatio = rawTotal > 0 ? calibratedTotal / rawTotal : 1;
+
+  if (rawTraitBudget > 0 && calibratedTotal >= fixedBudget) {
+    const calibratedTraitBudget = calibratedTotal - fixedBudget;
+    const traitRatio = calibratedTraitBudget / rawTraitBudget;
+
+    return {
+      buckets: {
+        ...rawBuckets,
+        pAtkAttack: rawBuckets.pAtkAttack * traitRatio,
+        powAttack: rawBuckets.powAttack * traitRatio
+      },
+      overallRatio,
+      traitRatio,
+      mode: 'trait_residual',
+      fixedBudget,
+      rawTraitBudget,
+      calibratedTraitBudget
+    };
+  }
+
+  const scaled = scaleAttackBuckets(rawBuckets, overallRatio);
+  return {
+    buckets: scaled,
+    overallRatio,
+    traitRatio: overallRatio,
+    mode: 'uniform_fallback',
+    fixedBudget: getFixedAttackBudget(scaled),
+    rawTraitBudget,
+    calibratedTraitBudget: getTraitAttackBudget(scaled)
+  };
+}
+
 export function estimateAbyssChaserTrainingDummyDamage(
   scenario: AbyssChaserDraftScenario = buildAbyssChaserDraftScenario()
 ): AbyssChaserEstimateResult {
@@ -376,8 +439,9 @@ export function estimateAbyssChaserTrainingDummyDamage(
   const commonMultiplier = getCommonMultiplier(scenario);
   const calibrated = getCalibratedBaseAttackBudget(scenario, commonMultiplier, rawBaseAttackBudget);
   const baseAttackBudget = calibrated.value;
-  const calibrationRatio = rawBaseAttackBudget > 0 ? baseAttackBudget / rawBaseAttackBudget : 1;
-  const calibratedAttackBuckets = scaleAttackBuckets(rawAttackBuckets, calibrationRatio);
+  const attackCalibration = calibrateAttackBuckets(rawAttackBuckets, baseAttackBudget);
+  const calibrationRatio = attackCalibration.overallRatio;
+  const calibratedAttackBuckets = attackCalibration.buckets;
 
   const chasingBreakPerHit = estimateSkillPerHit(
     ABYSS_CHASER_SKILLS.chasing_break_lv5.percentPerHit,
@@ -423,6 +487,11 @@ export function estimateAbyssChaserTrainingDummyDamage(
       rawBaseAttackBudget,
       calibratedBaseAttackBudget: baseAttackBudget,
       calibrationRatio,
+      traitCalibrationRatio: attackCalibration.traitRatio,
+      calibrationMode: attackCalibration.mode,
+      fixedAttackBudget: attackCalibration.fixedBudget,
+      rawTraitAttackBudget: attackCalibration.rawTraitBudget,
+      calibratedTraitAttackBudget: attackCalibration.calibratedTraitBudget,
       rawAttackBuckets,
       calibratedAttackBuckets,
       skillAttackBudget: {
