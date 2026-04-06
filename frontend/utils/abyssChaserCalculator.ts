@@ -90,6 +90,7 @@ export interface AbyssChaserEstimateResult {
     elementMultiplier: number;
     bossMultiplier: number;
     atkMultiplier: number;
+    commonMultiplierProduct: number;
     calibrationSources: string[];
     deftTriggerRatio: number;
     frontAtk: number;
@@ -509,6 +510,13 @@ export function estimateAbyssChaserTrainingDummyDamage(
   );
   const deftTriggerRatio = getObservedTriggerRatio(scenario);
   const deftStabTriggerPerHit = Math.floor(deftStabPerHit * deftTriggerRatio);
+  const commonMultiplierProduct =
+    commonMultiplier.atkMultiplier *
+    commonMultiplier.meleeMultiplier *
+    commonMultiplier.sizeMultiplier *
+    commonMultiplier.raceMultiplier *
+    commonMultiplier.elementMultiplier *
+    commonMultiplier.bossMultiplier;
 
   return {
     estimated: [
@@ -554,6 +562,7 @@ export function estimateAbyssChaserTrainingDummyDamage(
       },
       ...commonMultiplier
       ,
+      commonMultiplierProduct,
       calibrationSources: calibrated.sources,
       deftTriggerRatio,
       frontAtk,

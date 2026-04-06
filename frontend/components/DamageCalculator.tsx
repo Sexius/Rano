@@ -1005,9 +1005,13 @@ const DamageCalculator: React.FC = () => {
             기본 P.ATK {Math.round(abyssEstimate.debug.calibratedAttackBuckets.basePatkAttack).toLocaleString()} / 추가 P.ATK {Math.round(abyssEstimate.debug.calibratedAttackBuckets.pAtkAttack).toLocaleString()} / POW {Math.round(abyssEstimate.debug.calibratedAttackBuckets.powAttack).toLocaleString()} / 고정 버킷 {Math.round(abyssEstimate.debug.fixedAttackBudget).toLocaleString()}
               <br />
             추가 P.ATK 계수 {abyssEstimate.debug.rawPAtkCoefficient.toFixed(2)} → {abyssEstimate.debug.calibratedPAtkCoefficient.toFixed(2)} / POW 계수 {abyssEstimate.debug.rawPowCoefficient.toFixed(2)} → {abyssEstimate.debug.calibratedPowCoefficient.toFixed(2)}
-            <br />
+              <br />
+            ATK 배율 x{abyssEstimate.debug.atkMultiplier.toFixed(2)} / 근접 x{abyssEstimate.debug.meleeMultiplier.toFixed(2)} / 크기 x{abyssEstimate.debug.sizeMultiplier.toFixed(2)}
+              <br />
+            종족 x{abyssEstimate.debug.raceMultiplier.toFixed(2)} / 속성 x{abyssEstimate.debug.elementMultiplier.toFixed(2)} / 보스 x{abyssEstimate.debug.bossMultiplier.toFixed(2)} / 공통 x{abyssEstimate.debug.commonMultiplierProduct.toFixed(2)}
+              <br />
             무기 랜덤 범위 {Math.round(abyssEstimate.debug.minRandomWeaponAttack).toLocaleString()} ~ {Math.round(abyssEstimate.debug.maxRandomWeaponAttack).toLocaleString()}
-          </div>
+            </div>
         </div>
 
         {/* Main Damage Display */}
