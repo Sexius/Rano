@@ -990,13 +990,21 @@ const DamageCalculator: React.FC = () => {
             <br />
             자동 데프트 스탭 보정비: {abyssEstimate.debug.deftTriggerRatio.toFixed(4)} / 전체 보정비: {abyssEstimate.debug.calibrationRatio.toFixed(4)}
             <br />
-            보정 방식: {abyssEstimate.debug.calibrationMode === 'trait_residual' ? 'P.ATK·POW 우선 보정' : '전체 버킷 균등 보정'} / P.ATK·POW 보정비: {abyssEstimate.debug.traitCalibrationRatio.toFixed(4)}
+            보정 방식: {
+              abyssEstimate.debug.calibrationMode === 'patk_residual'
+                ? 'P.ATK 우선 보정'
+                : abyssEstimate.debug.calibrationMode === 'trait_residual'
+                  ? 'P.ATK·POW 우선 보정'
+                  : '전체 버킷 균등 보정'
+            } / P.ATK 보정비: {abyssEstimate.debug.pAtkCalibrationRatio.toFixed(4)}
             <br />
             스탯 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.statusAttack).toLocaleString()} / 무기 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.weaponAttack).toLocaleString()} / 제련 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.refineAttack).toLocaleString()} / 오버제련 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.overRefineAttack).toLocaleString()}
             <br />
             장비 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.equipmentAttack).toLocaleString()} / 마스터리 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.masteryAttack).toLocaleString()}
             <br />
             P.ATK {Math.round(abyssEstimate.debug.calibratedAttackBuckets.pAtkAttack).toLocaleString()} / POW {Math.round(abyssEstimate.debug.calibratedAttackBuckets.powAttack).toLocaleString()} / 고정 버킷 {Math.round(abyssEstimate.debug.fixedAttackBudget).toLocaleString()}
+            <br />
+            P.ATK 계수 {abyssEstimate.debug.rawPAtkCoefficient.toFixed(2)} → {abyssEstimate.debug.calibratedPAtkCoefficient.toFixed(2)} / POW 계수 {abyssEstimate.debug.rawPowCoefficient.toFixed(2)} → {abyssEstimate.debug.calibratedPowCoefficient.toFixed(2)}
             <br />
             무기 랜덤 범위 {Math.round(abyssEstimate.debug.minRandomWeaponAttack).toLocaleString()} ~ {Math.round(abyssEstimate.debug.maxRandomWeaponAttack).toLocaleString()}
           </div>
