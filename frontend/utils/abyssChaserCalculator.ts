@@ -24,6 +24,7 @@ export interface AbyssChaserDraftScenario {
   baseLuk: number;
   pow: number;
   weaponAtk: number;
+  weaponLevel: number;
   weaponRefine: number;
   totalAtkFlat: number;
   totalAtkPercent: number;
@@ -64,6 +65,10 @@ export interface AbyssChaserEstimateResult {
     atkMultiplier: number;
     calibrationSources: string[];
     deftTriggerRatio: number;
+    frontAtk: number;
+    statDamageBase: number;
+    weaponDamageBase: number;
+    refineDamageBase: number;
   };
 }
 
@@ -105,6 +110,7 @@ export function buildAbyssChaserDraftScenario(): AbyssChaserDraftScenario {
     baseLuk: 82,
     pow: 110,
     weaponAtk: 230,
+    weaponLevel: 5,
     weaponRefine: 12,
     totalAtkFlat: 1234,
     totalAtkPercent: 138,
@@ -141,17 +147,28 @@ function getRacePercentForTarget(scenario: AbyssChaserDraftScenario): number {
 }
 
 function getBaseAttackBudget(scenario: AbyssChaserDraftScenario): number {
-  const statAttack =
-    scenario.baseStr * 2 +
+  // Based on the Inven guide for melee physical damage:
+  // front ATK = STR + DEX/5 + LUK/3 + BaseLv/4
+  // stat damage contribution = front ATK * 2
+  const frontAtk =
+    scenario.baseStr +
     Math.floor(scenario.baseDex / 5) +
     Math.floor(scenario.baseLuk / 3) +
-    Math.floor(scenario.baseLevel / 4) +
-    scenario.pow * 3;
+    Math.floor(scenario.baseLevel / 4);
+  const statDamageBase = frontAtk * 2;
 
-  const weaponAttack = scenario.weaponAtk + scenario.weaponRefine * 10;
+  // Also from the guide: weapon contribution scales with weapon ATK * (STR + 200) / 200.
+  const weaponDamageBase = scenario.weaponAtk * ((scenario.baseStr + 200) / 200);
+
+  // The article only enumerates refine constants up to weapon level 4.
+  // For this level 5 dagger, reuse the level-4 coefficient as an explicit inference
+  // until we verify modern level-5 weapon handling with more logs.
+  const inferredRefineCoefficient = scenario.weaponLevel >= 4 ? 7 : 5;
+  const refineDamageBase = scenario.weaponRefine * inferredRefineCoefficient;
   const pAtkAttack = scenario.totalPatk * 12;
+  const powAttack = scenario.pow * 3;
 
-  return statAttack + weaponAttack + scenario.totalAtkFlat + pAtkAttack;
+  return statDamageBase + weaponDamageBase + refineDamageBase + scenario.totalAtkFlat + pAtkAttack + powAttack;
 }
 
 function getCommonMultiplier(scenario: AbyssChaserDraftScenario): Omit<AbyssChaserEstimateResult['debug'], 'baseAttackBudget' | 'skillAttackBudget'> {
@@ -274,6 +291,15 @@ function getObservedTriggerRatio(scenario: AbyssChaserDraftScenario): number {
 export function estimateAbyssChaserTrainingDummyDamage(
   scenario: AbyssChaserDraftScenario = buildAbyssChaserDraftScenario()
 ): AbyssChaserEstimateResult {
+  const frontAtk =
+    scenario.baseStr +
+    Math.floor(scenario.baseDex / 5) +
+    Math.floor(scenario.baseLuk / 3) +
+    Math.floor(scenario.baseLevel / 4);
+  const statDamageBase = frontAtk * 2;
+  const weaponDamageBase = scenario.weaponAtk * ((scenario.baseStr + 200) / 200);
+  const inferredRefineCoefficient = scenario.weaponLevel >= 4 ? 7 : 5;
+  const refineDamageBase = scenario.weaponRefine * inferredRefineCoefficient;
   const rawBaseAttackBudget = getBaseAttackBudget(scenario);
   const commonMultiplier = getCommonMultiplier(scenario);
   const calibrated = getCalibratedBaseAttackBudget(scenario, commonMultiplier, rawBaseAttackBudget);
@@ -329,7 +355,11 @@ export function estimateAbyssChaserTrainingDummyDamage(
       ...commonMultiplier
       ,
       calibrationSources: calibrated.sources,
-      deftTriggerRatio
+      deftTriggerRatio,
+      frontAtk,
+      statDamageBase,
+      weaponDamageBase,
+      refineDamageBase
     }
   };
 }
