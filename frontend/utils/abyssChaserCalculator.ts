@@ -275,11 +275,13 @@ function getCommonMultiplier(scenario: AbyssChaserDraftScenario): Omit<AbyssChas
 function getAtkPercentBreakdown(scenario: AbyssChaserDraftScenario): AbyssChaserPercentBreakdown {
   const sources: AbyssChaserPercentSource[] = [
     { label: '투구', value: 8 },
-    { label: '갑옷', value: 52 },
-    { label: '걸칠것', value: 10 },
+    { label: '무기', value: 5 },
+    { label: '갑옷', value: 33 },
+    { label: '갑옷 카드(순수 STR)', value: Math.floor(scenario.baseStr / 10) * 2 },
+    { label: '걸칠것', value: 16 },
     { label: '신발', value: 22 },
     { label: '악세', value: 20 },
-    { label: '쉐도우', value: 10 }
+    { label: '쉐도우', value: 8 }
   ];
 
   const known = sources.reduce((sum, source) => sum + source.value, 0);
