@@ -988,7 +988,11 @@ const DamageCalculator: React.FC = () => {
             현재 추정치는 허수아비 실측 로그를 이용해 기준 공격 풀을 보정한 역산 버전입니다.
             기준 소스: {abyssEstimate.debug.calibrationSources.join(', ')} / 보정 공격 풀: {Math.round(abyssEstimate.debug.calibratedBaseAttackBudget).toLocaleString()}
             <br />
-            자동 데프트 스탭 보정비: {abyssEstimate.debug.deftTriggerRatio.toFixed(4)}
+            자동 데프트 스탭 보정비: {abyssEstimate.debug.deftTriggerRatio.toFixed(4)} / 버킷 보정비: {abyssEstimate.debug.calibrationRatio.toFixed(4)}
+            <br />
+            스탯 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.statusAttack).toLocaleString()} / 무기 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.weaponAttack).toLocaleString()} / 제련 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.refineAttack).toLocaleString()}
+            <br />
+            장비 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.equipmentAttack).toLocaleString()} / P.ATK·POW {Math.round(abyssEstimate.debug.calibratedAttackBuckets.traitAttack).toLocaleString()}
           </div>
         </div>
 
