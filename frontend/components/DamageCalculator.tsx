@@ -990,9 +990,11 @@ const DamageCalculator: React.FC = () => {
             <br />
             자동 데프트 스탭 보정비: {abyssEstimate.debug.deftTriggerRatio.toFixed(4)} / 버킷 보정비: {abyssEstimate.debug.calibrationRatio.toFixed(4)}
             <br />
-            스탯 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.statusAttack).toLocaleString()} / 무기 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.weaponAttack).toLocaleString()} / 제련 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.refineAttack).toLocaleString()}
+            스탯 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.statusAttack).toLocaleString()} / 무기 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.weaponAttack).toLocaleString()} / 제련 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.refineAttack).toLocaleString()} / 오버제련 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.overRefineAttack).toLocaleString()}
             <br />
             장비 {Math.round(abyssEstimate.debug.calibratedAttackBuckets.equipmentAttack).toLocaleString()} / P.ATK·POW {Math.round(abyssEstimate.debug.calibratedAttackBuckets.traitAttack).toLocaleString()}
+            <br />
+            무기 랜덤 범위 {Math.round(abyssEstimate.debug.minRandomWeaponAttack).toLocaleString()} ~ {Math.round(abyssEstimate.debug.maxRandomWeaponAttack).toLocaleString()}
           </div>
         </div>
 

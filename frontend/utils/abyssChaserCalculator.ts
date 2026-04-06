@@ -54,6 +54,7 @@ export interface AbyssChaserAttackBuckets {
   statusAttack: number;
   weaponAttack: number;
   refineAttack: number;
+  overRefineAttack: number;
   equipmentAttack: number;
   traitAttack: number;
 }
@@ -80,6 +81,9 @@ export interface AbyssChaserEstimateResult {
     statDamageBase: number;
     weaponDamageBase: number;
     refineDamageBase: number;
+    overRefineDamageBase: number;
+    minRandomWeaponAttack: number;
+    maxRandomWeaponAttack: number;
   };
 }
 
@@ -157,6 +161,20 @@ function getRacePercentForTarget(scenario: AbyssChaserDraftScenario): number {
   return scenario.totalRacePercent;
 }
 
+function getSafeRefineLevel(weaponLevel: number): number {
+  if (weaponLevel <= 1) return 7;
+  if (weaponLevel === 2) return 6;
+  if (weaponLevel === 3) return 5;
+  return 4;
+}
+
+function getOverRefineCoefficient(weaponLevel: number): number {
+  if (weaponLevel <= 1) return 3;
+  if (weaponLevel === 2) return 5;
+  if (weaponLevel === 3) return 8;
+  return 14;
+}
+
 function getRawAttackBuckets(scenario: AbyssChaserDraftScenario): AbyssChaserAttackBuckets {
   const frontAtk =
     scenario.baseStr +
@@ -168,11 +186,15 @@ function getRawAttackBuckets(scenario: AbyssChaserDraftScenario): AbyssChaserAtt
   const weaponAttack = scenario.weaponAtk * ((scenario.baseStr + 200) / 200);
   const inferredRefineCoefficient = scenario.weaponLevel >= 4 ? 7 : 5;
   const refineAttack = scenario.weaponRefine * inferredRefineCoefficient;
+  const safeRefineLevel = getSafeRefineLevel(scenario.weaponLevel);
+  const overRefineValue = Math.max(0, scenario.weaponRefine - safeRefineLevel);
+  const overRefineAttack = overRefineValue * getOverRefineCoefficient(scenario.weaponLevel);
 
   return {
     statusAttack,
     weaponAttack,
     refineAttack,
+    overRefineAttack,
     equipmentAttack: scenario.totalAtkFlat,
     traitAttack: scenario.totalPatk * 12 + scenario.pow * 3
   };
@@ -184,6 +206,7 @@ function getBaseAttackBudget(scenario: AbyssChaserDraftScenario): number {
     buckets.statusAttack +
     buckets.weaponAttack +
     buckets.refineAttack +
+    buckets.overRefineAttack +
     buckets.equipmentAttack +
     buckets.traitAttack
   );
@@ -314,6 +337,7 @@ function scaleAttackBuckets(
     statusAttack: buckets.statusAttack * ratio,
     weaponAttack: buckets.weaponAttack * ratio,
     refineAttack: buckets.refineAttack * ratio,
+    overRefineAttack: buckets.overRefineAttack * ratio,
     equipmentAttack: buckets.equipmentAttack * ratio,
     traitAttack: buckets.traitAttack * ratio
   };
@@ -331,6 +355,13 @@ export function estimateAbyssChaserTrainingDummyDamage(
   const statDamageBase = rawAttackBuckets.statusAttack;
   const weaponDamageBase = rawAttackBuckets.weaponAttack;
   const refineDamageBase = rawAttackBuckets.refineAttack;
+  const overRefineDamageBase = rawAttackBuckets.overRefineAttack;
+  const minRandomWeaponAttack =
+    scenario.weaponAtk *
+    (1 - 0.05 * scenario.weaponLevel + scenario.baseStr / 200);
+  const maxRandomWeaponAttack =
+    scenario.weaponAtk *
+    (1 + 0.05 * scenario.weaponLevel + scenario.baseStr / 200);
   const rawBaseAttackBudget = getBaseAttackBudget(scenario);
   const commonMultiplier = getCommonMultiplier(scenario);
   const calibrated = getCalibratedBaseAttackBudget(scenario, commonMultiplier, rawBaseAttackBudget);
@@ -395,7 +426,10 @@ export function estimateAbyssChaserTrainingDummyDamage(
       frontAtk,
       statDamageBase,
       weaponDamageBase,
-      refineDamageBase
+      refineDamageBase,
+      overRefineDamageBase,
+      minRandomWeaponAttack,
+      maxRandomWeaponAttack
     }
   };
 }
