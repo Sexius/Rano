@@ -64,6 +64,18 @@ export interface AbyssChaserAttackBuckets {
   powAttack: number;
 }
 
+export interface AbyssChaserPercentSource {
+  label: string;
+  value: number;
+}
+
+export interface AbyssChaserPercentBreakdown {
+  total: number;
+  known: number;
+  unresolved: number;
+  sources: AbyssChaserPercentSource[];
+}
+
 export interface AbyssChaserEstimateResult {
   estimated: AbyssChaserEstimatedHit[];
   observed: AbyssChaserObservedHit[];
@@ -100,6 +112,8 @@ export interface AbyssChaserEstimateResult {
     overRefineDamageBase: number;
     minRandomWeaponAttack: number;
     maxRandomWeaponAttack: number;
+    atkPercentBreakdown: AbyssChaserPercentBreakdown;
+    meleePercentBreakdown: AbyssChaserPercentBreakdown;
   };
 }
 
@@ -255,6 +269,47 @@ function getCommonMultiplier(scenario: AbyssChaserDraftScenario): Omit<AbyssChas
     elementMultiplier: 1 + scenario.totalElementPercent / 100,
     bossMultiplier: 1 + scenario.totalBossPercent / 100,
     atkMultiplier: 1 + scenario.totalAtkPercent / 100
+  };
+}
+
+function getAtkPercentBreakdown(scenario: AbyssChaserDraftScenario): AbyssChaserPercentBreakdown {
+  const sources: AbyssChaserPercentSource[] = [
+    { label: '투구', value: 8 },
+    { label: '갑옷', value: 52 },
+    { label: '걸칠것', value: 10 },
+    { label: '신발', value: 22 },
+    { label: '악세', value: 20 },
+    { label: '쉐도우', value: 10 }
+  ];
+
+  const known = sources.reduce((sum, source) => sum + source.value, 0);
+  return {
+    total: scenario.totalAtkPercent,
+    known,
+    unresolved: Math.max(0, scenario.totalAtkPercent - known),
+    sources
+  };
+}
+
+function getMeleePercentBreakdown(scenario: AbyssChaserDraftScenario): AbyssChaserPercentBreakdown {
+  const sources: AbyssChaserPercentSource[] = [
+    { label: '투구', value: 15 },
+    { label: '갑옷', value: 57 },
+    { label: '걸칠것', value: 88 },
+    { label: '신발', value: 23 },
+    { label: '방패', value: 10 },
+    { label: '악세(우)', value: 42 },
+    { label: '악세(좌)', value: 27 },
+    { label: '의상', value: 2 },
+    { label: '쉐도우', value: 22 }
+  ];
+
+  const known = sources.reduce((sum, source) => sum + source.value, 0);
+  return {
+    total: scenario.totalMeleePercent,
+    known,
+    unresolved: Math.max(0, scenario.totalMeleePercent - known),
+    sources
   };
 }
 
@@ -517,6 +572,8 @@ export function estimateAbyssChaserTrainingDummyDamage(
     commonMultiplier.raceMultiplier *
     commonMultiplier.elementMultiplier *
     commonMultiplier.bossMultiplier;
+  const atkPercentBreakdown = getAtkPercentBreakdown(scenario);
+  const meleePercentBreakdown = getMeleePercentBreakdown(scenario);
 
   return {
     estimated: [
@@ -571,7 +628,9 @@ export function estimateAbyssChaserTrainingDummyDamage(
       refineDamageBase,
       overRefineDamageBase,
       minRandomWeaponAttack,
-      maxRandomWeaponAttack
+      maxRandomWeaponAttack,
+      atkPercentBreakdown,
+      meleePercentBreakdown
     }
   };
 }
