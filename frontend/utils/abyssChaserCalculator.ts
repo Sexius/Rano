@@ -23,6 +23,7 @@ export interface AbyssChaserDraftScenario {
   baseDex: number;
   baseLuk: number;
   pow: number;
+  masteryAttack: number;
   weaponAtk: number;
   weaponLevel: number;
   weaponRefine: number;
@@ -56,7 +57,9 @@ export interface AbyssChaserAttackBuckets {
   refineAttack: number;
   overRefineAttack: number;
   equipmentAttack: number;
-  traitAttack: number;
+  masteryAttack: number;
+  pAtkAttack: number;
+  powAttack: number;
 }
 
 export interface AbyssChaserEstimateResult {
@@ -124,6 +127,7 @@ export function buildAbyssChaserDraftScenario(): AbyssChaserDraftScenario {
     baseDex: 100,
     baseLuk: 82,
     pow: 110,
+    masteryAttack: 0,
     weaponAtk: 230,
     weaponLevel: 5,
     weaponRefine: 12,
@@ -196,7 +200,9 @@ function getRawAttackBuckets(scenario: AbyssChaserDraftScenario): AbyssChaserAtt
     refineAttack,
     overRefineAttack,
     equipmentAttack: scenario.totalAtkFlat,
-    traitAttack: scenario.totalPatk * 12 + scenario.pow * 3
+    masteryAttack: scenario.masteryAttack,
+    pAtkAttack: scenario.totalPatk * 12,
+    powAttack: scenario.pow * 3
   };
 }
 
@@ -208,7 +214,9 @@ function getBaseAttackBudget(scenario: AbyssChaserDraftScenario): number {
     buckets.refineAttack +
     buckets.overRefineAttack +
     buckets.equipmentAttack +
-    buckets.traitAttack
+    buckets.masteryAttack +
+    buckets.pAtkAttack +
+    buckets.powAttack
   );
 }
 
@@ -339,7 +347,9 @@ function scaleAttackBuckets(
     refineAttack: buckets.refineAttack * ratio,
     overRefineAttack: buckets.overRefineAttack * ratio,
     equipmentAttack: buckets.equipmentAttack * ratio,
-    traitAttack: buckets.traitAttack * ratio
+    masteryAttack: buckets.masteryAttack * ratio,
+    pAtkAttack: buckets.pAtkAttack * ratio,
+    powAttack: buckets.powAttack * ratio
   };
 }
 
