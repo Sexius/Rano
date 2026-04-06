@@ -987,6 +987,8 @@ const DamageCalculator: React.FC = () => {
           <div className="mt-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 px-3 py-2 text-xs leading-5 text-emerald-900">
             현재 추정치는 허수아비 실측 로그를 이용해 기준 공격 풀을 보정한 역산 버전입니다.
             기준 소스: {abyssEstimate.debug.calibrationSources.join(', ')} / 보정 공격 풀: {Math.round(abyssEstimate.debug.calibratedBaseAttackBudget).toLocaleString()}
+            <br />
+            자동 데프트 스탭 보정비: {abyssEstimate.debug.deftTriggerRatio.toFixed(4)}
           </div>
         </div>
 

@@ -63,6 +63,7 @@ export interface AbyssChaserEstimateResult {
     bossMultiplier: number;
     atkMultiplier: number;
     calibrationSources: string[];
+    deftTriggerRatio: number;
   };
 }
 
@@ -259,6 +260,17 @@ function getCalibratedBaseAttackBudget(
   return { value: average, sources };
 }
 
+function getObservedTriggerRatio(scenario: AbyssChaserDraftScenario): number {
+  const trigger = getObservedDamage(scenario, 'deft_stab_trigger');
+  const manual = getObservedDamage(scenario, 'deft_stab_manual');
+
+  if (!trigger || !manual || manual === 0) {
+    return 1;
+  }
+
+  return trigger / manual;
+}
+
 export function estimateAbyssChaserTrainingDummyDamage(
   scenario: AbyssChaserDraftScenario = buildAbyssChaserDraftScenario()
 ): AbyssChaserEstimateResult {
@@ -282,6 +294,8 @@ export function estimateAbyssChaserTrainingDummyDamage(
     commonMultiplier,
     scenario.targetDef
   );
+  const deftTriggerRatio = getObservedTriggerRatio(scenario);
+  const deftStabTriggerPerHit = Math.floor(deftStabPerHit * deftTriggerRatio);
 
   return {
     estimated: [
@@ -293,8 +307,8 @@ export function estimateAbyssChaserTrainingDummyDamage(
       },
       {
         label: 'deft_stab_trigger',
-        perHit: deftStabPerHit,
-        total: deftStabPerHit,
+        perHit: deftStabTriggerPerHit,
+        total: deftStabTriggerPerHit,
         hits: 1
       },
       {
@@ -314,7 +328,8 @@ export function estimateAbyssChaserTrainingDummyDamage(
       },
       ...commonMultiplier
       ,
-      calibrationSources: calibrated.sources
+      calibrationSources: calibrated.sources,
+      deftTriggerRatio
     }
   };
 }
