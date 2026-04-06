@@ -34,36 +34,36 @@ export const MVP_CORE_SLOTS: EquipSlotId[] = [
 export const MVP_SUPPORTED_JOBS: SimulatorMvpJob[] = [
   {
     id: 'rune_knight',
-    label: 'Rune Knight',
+    label: '룬 나이트',
     damageType: 'physical',
-    notes: 'Physical melee baseline for the first build comparison flow.'
+    notes: '첫 MVP 비교 흐름의 기준이 되는 근접 물리 직업군입니다.'
   },
   {
     id: 'arch_mage',
-    label: 'Arch Mage',
+    label: '아크 메이지',
     damageType: 'magic',
-    notes: 'Magic baseline for the first spell damage flow.'
+    notes: '첫 MVP 비교 흐름의 기준이 되는 마법 직업군입니다.'
   }
 ];
 
 export const MVP_ROADMAP_PHASES: SimulatorRoadmapPhase[] = [
   {
     id: 'foundation',
-    title: 'Phase 1. Simulator foundation',
+    title: '1단계. 시뮬레이터 기반 정리',
     status: 'active',
-    summary: 'Define supported jobs, core slots, and build readiness for the first public simulator flow.'
+    summary: '지원 직업, 핵심 슬롯, 빌드 완성도 기준을 먼저 고정합니다.'
   },
   {
     id: 'engine',
-    title: 'Phase 2. Calculation cleanup',
+    title: '2단계. 계산 엔진 정리',
     status: 'next',
-    summary: 'Unify formula helpers and reuse parsed item effects instead of duplicating logic per component.'
+    summary: '컴포넌트마다 흩어진 공식과 옵션 적용 로직을 공통 엔진으로 통합합니다.'
   },
   {
     id: 'ocr',
-    title: 'Phase 3. OCR / AI assist',
+    title: '3단계. OCR / AI 보조',
     status: 'later',
-    summary: 'Add screenshot parsing only after the calculation engine and item effect model are stable.'
+    summary: '계산식과 아이템 효과 구조가 안정된 뒤에 스크린샷 분석을 붙입니다.'
   }
 ];
 
@@ -86,16 +86,16 @@ export function getSimulatorMvpSnapshot(gear: GearSet): SimulatorMvpSnapshot {
 
 export function formatEquipSlotLabel(slot: EquipSlotId): string {
   const labels: Record<EquipSlotId, string> = {
-    headUpper: 'Head Upper',
-    headMid: 'Head Mid',
-    headLower: 'Head Lower',
-    armor: 'Armor',
-    weapon: 'Weapon',
-    shield: 'Shield',
-    garment: 'Garment',
-    shoes: 'Shoes',
-    accRight: 'Accessory R',
-    accLeft: 'Accessory L'
+    headUpper: '투구 상단',
+    headMid: '투구 중단',
+    headLower: '투구 하단',
+    armor: '갑옷',
+    weapon: '무기',
+    shield: '방패',
+    garment: '걸칠것',
+    shoes: '신발',
+    accRight: '악세 우',
+    accLeft: '악세 좌'
   };
 
   return labels[slot];

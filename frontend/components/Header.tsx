@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ShoppingBag, Menu, X, User as UserIcon, LogOut, Calculator, Swords, MessageSquare, LineChart, Database, Search, BookOpen } from 'lucide-react';
+import { ShoppingBag, Menu, X, User as UserIcon, LogOut, Calculator, Swords, Database, Search } from 'lucide-react';
 import { User, ViewMode } from '../types';
 
 interface HeaderProps {
@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold text-xl text-gray-900 leading-none tracking-tight font-sans">RANO</span>
-              <span className="text-[10px] text-kafra-500 font-bold tracking-widest uppercase mt-0.5">Ragnarok Nojeom</span>
+              <span className="text-[10px] text-kafra-500 font-bold tracking-widest mt-0.5">라그나로크 장비 연구소</span>
             </div>
           </div>
 
@@ -62,24 +62,14 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
               <Database size={16} />
               아이템 정보
             </button>
-            {/* ===== HIDDEN MENUS - 기능 완성 후 주석 해제 =====
-            <button onClick={() => onNavigate('market')} className={navItemClass('market')}>
-              <LineChart size={16} />
-              시세 통계
-            </button>
             <button onClick={() => onNavigate('calc')} className={navItemClass('calc')}>
               <Swords size={16} />
               데미지 계산기
             </button>
-            <button onClick={() => onNavigate('skill')} className={navItemClass('skill')}>
-              <BookOpen size={16} />
-              스킬
+            <button onClick={() => onNavigate('sim')} className={navItemClass('sim')}>
+              <Calculator size={16} />
+              시뮬레이터
             </button>
-            <button onClick={() => onNavigate('board')} className={navItemClass('board')}>
-              <MessageSquare size={16} />
-              게시판
-            </button>
-            ===== END HIDDEN MENUS ===== */}
           </nav>
 
           {/* User Actions (Desktop & Mobile Toggle) */}
@@ -188,24 +178,14 @@ const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onLogout, currentView
                 <Database size={20} className={currentView === 'itemInfo' ? 'text-kafra-500' : 'text-gray-400'} />
                 아이템 정보
               </button>
-              {/* ===== HIDDEN MOBILE MENUS - 기능 완성 후 주석 해제 =====
-              <button onClick={() => handleNav('market')} className={mobileNavItemClass('market')}>
-                <LineChart size={20} className={currentView === 'market' ? 'text-kafra-500' : 'text-gray-400'} />
-                시세 통계
-              </button>
               <button onClick={() => handleNav('calc')} className={mobileNavItemClass('calc')}>
                 <Swords size={20} className={currentView === 'calc' ? 'text-kafra-500' : 'text-gray-400'} />
                 데미지 계산기
               </button>
-              <button onClick={() => handleNav('skill')} className={mobileNavItemClass('skill')}>
-                <BookOpen size={20} className={currentView === 'skill' ? 'text-kafra-500' : 'text-gray-400'} />
-                스킬 시뮬레이터
+              <button onClick={() => handleNav('sim')} className={mobileNavItemClass('sim')}>
+                <Calculator size={20} className={currentView === 'sim' ? 'text-kafra-500' : 'text-gray-400'} />
+                시뮬레이터
               </button>
-              <button onClick={() => handleNav('board')} className={mobileNavItemClass('board')}>
-                <MessageSquare size={20} className={currentView === 'board' ? 'text-kafra-500' : 'text-gray-400'} />
-                게시판
-              </button>
-              ===== END HIDDEN MOBILE MENUS ===== */}
             </div>
           </div>
         </div>

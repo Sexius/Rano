@@ -431,11 +431,10 @@ const Simulator: React.FC = () => {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600">Simulator First</p>
-                <h2 className="mt-1 text-xl font-bold text-gray-900">RANO MVP is centered on build simulation</h2>
+                <p className="text-xs font-bold tracking-[0.2em] text-emerald-600">시뮬레이터 우선</p>
+                <h2 className="mt-1 text-xl font-bold text-gray-900">현재 RANO MVP의 중심은 빌드 시뮬레이션입니다</h2>
                 <p className="mt-1 text-sm text-gray-600">
-                  Vending search stays online as a supporting lookup tool, while the main product shifts to
-                  equipment-based damage planning.
+                  노점 검색은 보조 도구로 유지하고, 메인 제품은 장비 기반 데미지 계산과 빌드 비교로 이동합니다.
                 </p>
               </div>
 
@@ -446,7 +445,7 @@ const Simulator: React.FC = () => {
                     className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-700"
                     title={job.notes}
                   >
-                    {job.label} · {job.damageType}
+                    {job.label} · {job.damageType === 'physical' ? '물리' : '마법'}
                   </span>
                 ))}
               </div>
@@ -454,7 +453,7 @@ const Simulator: React.FC = () => {
 
             <div className="min-w-[260px] rounded-2xl border border-emerald-200 bg-white p-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wide text-emerald-600">Build readiness</span>
+                <span className="text-xs font-bold tracking-wide text-emerald-600">빌드 준비도</span>
                 <span className="text-sm font-bold text-gray-900">{mvpSnapshot.completionRate}%</span>
               </div>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100">
@@ -464,13 +463,13 @@ const Simulator: React.FC = () => {
                 />
               </div>
               <p className="mt-3 text-xs text-gray-600">
-                {mvpSnapshot.readinessLabel === 'empty' && 'Start with the core weapon and armor slots first.'}
-                {mvpSnapshot.readinessLabel === 'draft' && 'Core simulator inputs are partially filled.'}
-                {mvpSnapshot.readinessLabel === 'core_ready' && 'This build is close to the first MVP-ready comparison flow.'}
+                {mvpSnapshot.readinessLabel === 'empty' && '무기와 갑옷부터 채우면 첫 비교 흐름을 시작할 수 있습니다.'}
+                {mvpSnapshot.readinessLabel === 'draft' && '핵심 시뮬레이터 입력이 일부만 채워진 상태입니다.'}
+                {mvpSnapshot.readinessLabel === 'core_ready' && '첫 MVP 비교 흐름에 거의 들어갈 수 있는 세팅입니다.'}
               </p>
               {mvpSnapshot.missingCoreSlots.length > 0 && (
                 <p className="mt-2 text-xs text-gray-500">
-                  Missing: {mvpSnapshot.missingCoreSlots.map(formatEquipSlotLabel).join(', ')}
+                  부족한 슬롯: {mvpSnapshot.missingCoreSlots.map(formatEquipSlotLabel).join(', ')}
                 </p>
               )}
             </div>

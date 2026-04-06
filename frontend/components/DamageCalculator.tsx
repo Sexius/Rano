@@ -728,6 +728,22 @@ const DamageCalculator: React.FC = () => {
 
       {/* Left: Gear Panel */}
       <div className="flex-1 space-y-4">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+          <div className="flex items-center gap-2 text-sm font-bold text-amber-800">
+            <ShieldAlert size={16} />
+            계산 엔진 베타 안내
+          </div>
+          <p className="mt-2 text-sm leading-6 text-amber-900">
+            현재 화면은 시뮬레이터 UI와 기본 계산 흐름을 먼저 맞추는 단계입니다.
+            실제 데미지 공식, 장비 옵션 해석, 스킬 계수, 세트 효과는 아직 정리 중이라
+            일부 결과는 참고용으로만 보는 것이 안전합니다.
+          </p>
+          <div className="mt-3 grid gap-2 text-xs text-amber-900 sm:grid-cols-3">
+            <div className="rounded-xl border border-amber-200 bg-white px-3 py-2">1. 직업별 공식 정리</div>
+            <div className="rounded-xl border border-amber-200 bg-white px-3 py-2">2. 장비 옵션 구조화</div>
+            <div className="rounded-xl border border-amber-200 bg-white px-3 py-2">3. 스킬 계수/타수 검증</div>
+          </div>
+        </div>
         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-bold text-gray-900 flex items-center gap-2"><Swords className="text-kafra-600" size={18} /> 장비 세팅</h3>
@@ -922,11 +938,11 @@ const DamageCalculator: React.FC = () => {
         <div className="bg-gray-900 text-white rounded-2xl p-6 shadow-xl border-t-4 border-kafra-500">
           <div className="flex items-center gap-2 mb-6 opacity-80">
             <Target size={20} className="animate-pulse text-kafra-400" />
-            <span className="font-bold text-sm tracking-widest uppercase text-kafra-100">Predicted Damage</span>
+            <span className="font-bold text-sm tracking-widest uppercase text-kafra-100">예상 데미지</span>
           </div>
           <div className="space-y-6">
             <div>
-              <div className="text-xs font-bold text-gray-400 mb-1 uppercase">Final Damage</div>
+              <div className="text-xs font-bold text-gray-400 mb-1 uppercase">최종 데미지</div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-black">{result.min.toLocaleString()}</span>
                 <span className="text-gray-500">~</span>
@@ -934,7 +950,7 @@ const DamageCalculator: React.FC = () => {
               </div>
             </div>
             <div>
-              <div className="text-xs font-bold text-amber-400 mb-1 uppercase flex items-center gap-1"><Zap size={12} /> Critical</div>
+              <div className="text-xs font-bold text-amber-400 mb-1 uppercase flex items-center gap-1"><Zap size={12} /> 크리티컬</div>
               <div className="text-4xl font-black text-white tracking-tighter drop-shadow-lg">{result.crit.toLocaleString()}</div>
             </div>
           </div>
@@ -943,7 +959,7 @@ const DamageCalculator: React.FC = () => {
         {/* Auto Calculated Mods List */}
         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm h-full max-h-[500px] overflow-y-auto custom-scrollbar">
           <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-1.5">
-            <ShieldAlert size={14} /> 자동 적용 옵션 (Auto Mods)
+            <ShieldAlert size={14} /> 자동 적용 옵션
           </h4>
           <div className="space-y-1">
             {autoMods.equipAtk > 0 && <div className="flex justify-between text-xs py-1 px-2 bg-gray-50 rounded"><span className="text-gray-600">장비 ATK 합</span><span className="font-bold">+{autoMods.equipAtk}</span></div>}

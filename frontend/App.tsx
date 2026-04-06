@@ -174,16 +174,16 @@ const App: React.FC = () => {
                   <div className="mt-8 rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-blue-50 p-6 text-left shadow-sm">
                     <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                       <div className="max-w-2xl">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-bold tracking-[0.18em] text-emerald-700">
                           <Sparkles size={14} />
-                          Simulator First
+                          시뮬레이터 중심 전환
                         </div>
                         <h2 className="mt-4 text-2xl font-bold text-gray-900">
-                          RANO is shifting from pure market lookup to build and damage planning.
+                          이제 RANO의 중심은 노점 검색보다 장비 세팅과 데미지 비교입니다.
                         </h2>
                         <p className="mt-2 text-sm leading-6 text-gray-600">
-                          Search stays available, but the main roadmap is now focused on equipment-based damage simulation,
-                          build comparison, and later screenshot-assisted analysis.
+                          노점 검색은 계속 제공하지만, 앞으로의 핵심 로드맵은 장비 기반 데미지 시뮬레이션,
+                          빌드 비교, 그리고 장비 스크린샷 분석 기능입니다.
                         </p>
                       </div>
                       <div className="flex flex-col gap-3 sm:flex-row">
@@ -191,13 +191,13 @@ const App: React.FC = () => {
                           onClick={() => setCurrentView('sim')}
                           className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md shadow-emerald-200 transition hover:bg-emerald-700"
                         >
-                          Open Simulator Beta
+                          시뮬레이터 베타 열기
                         </button>
                         <button
                           onClick={() => setCurrentView('calc')}
                           className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-gray-700 transition hover:border-kafra-200 hover:text-kafra-700"
                         >
-                          Open Damage Calculator
+                          데미지 계산기 열기
                         </button>
                       </div>
                     </div>
