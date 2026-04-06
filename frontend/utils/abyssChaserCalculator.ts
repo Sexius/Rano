@@ -168,7 +168,7 @@ export function buildAbyssChaserDraftScenario(): AbyssChaserDraftScenario {
     weaponAtk: 230,
     weaponLevel: 5,
     weaponRefine: 12,
-    totalAtkFlat: 1234,
+    totalAtkFlat: 1214,
     totalAtkPercent: 138,
     totalMeleePercent: 294,
     totalRangedPercent: 68,
