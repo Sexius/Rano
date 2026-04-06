@@ -1014,6 +1014,10 @@ const DamageCalculator: React.FC = () => {
               <br />
             근접% {abyssEstimate.debug.meleePercentBreakdown.total}% = 확인 {abyssEstimate.debug.meleePercentBreakdown.known}% + 미확정 {abyssEstimate.debug.meleePercentBreakdown.unresolved}%
               <br />
+            종족% {abyssEstimate.debug.racePercentBreakdown.total}% = 확인 {abyssEstimate.debug.racePercentBreakdown.known}% + 미확정 {abyssEstimate.debug.racePercentBreakdown.unresolved}%
+              <br />
+            표시 ATK {abyssEstimate.debug.flatAttackBreakdown.total} = 확인 {abyssEstimate.debug.flatAttackBreakdown.known} + 미확정 {abyssEstimate.debug.flatAttackBreakdown.unresolved}
+              <br />
             무기 랜덤 범위 {Math.round(abyssEstimate.debug.minRandomWeaponAttack).toLocaleString()} ~ {Math.round(abyssEstimate.debug.maxRandomWeaponAttack).toLocaleString()}
             </div>
         </div>

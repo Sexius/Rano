@@ -76,6 +76,13 @@ export interface AbyssChaserPercentBreakdown {
   sources: AbyssChaserPercentSource[];
 }
 
+export interface AbyssChaserValueBreakdown {
+  total: number;
+  known: number;
+  unresolved: number;
+  sources: AbyssChaserPercentSource[];
+}
+
 export interface AbyssChaserEstimateResult {
   estimated: AbyssChaserEstimatedHit[];
   observed: AbyssChaserObservedHit[];
@@ -114,6 +121,8 @@ export interface AbyssChaserEstimateResult {
     maxRandomWeaponAttack: number;
     atkPercentBreakdown: AbyssChaserPercentBreakdown;
     meleePercentBreakdown: AbyssChaserPercentBreakdown;
+    racePercentBreakdown: AbyssChaserPercentBreakdown;
+    flatAttackBreakdown: AbyssChaserValueBreakdown;
   };
 }
 
@@ -311,6 +320,43 @@ function getMeleePercentBreakdown(scenario: AbyssChaserDraftScenario): AbyssChas
     total: scenario.totalMeleePercent,
     known,
     unresolved: Math.max(0, scenario.totalMeleePercent - known),
+    sources
+  };
+}
+
+function getRacePercentBreakdown(scenario: AbyssChaserDraftScenario): AbyssChaserPercentBreakdown {
+  const sources: AbyssChaserPercentSource[] = [
+    { label: '요르 종족 세트(1회)', value: 15 },
+    { label: '의상 하단+걸칠것', value: 15 },
+    { label: '스윗 드롭스의 알', value: 7 }
+  ];
+
+  const known = sources.reduce((sum, source) => sum + source.value, 0);
+  return {
+    total: scenario.totalRacePercent,
+    known,
+    unresolved: Math.max(0, scenario.totalRacePercent - known),
+    sources
+  };
+}
+
+function getFlatAttackBreakdown(scenario: AbyssChaserDraftScenario): AbyssChaserValueBreakdown {
+  const sources: AbyssChaserPercentSource[] = [
+    { label: '투구', value: 18 },
+    { label: '무기', value: 350 },
+    { label: '갑옷', value: 330 },
+    { label: '걸칠것', value: 50 },
+    { label: '신발', value: 20 },
+    { label: '악세', value: 120 },
+    { label: '쉐도우', value: 114 },
+    { label: '이벤트 알', value: 20 }
+  ];
+
+  const known = sources.reduce((sum, source) => sum + source.value, 0);
+  return {
+    total: scenario.totalAtkFlat,
+    known,
+    unresolved: Math.max(0, scenario.totalAtkFlat - known),
     sources
   };
 }
@@ -576,6 +622,8 @@ export function estimateAbyssChaserTrainingDummyDamage(
     commonMultiplier.bossMultiplier;
   const atkPercentBreakdown = getAtkPercentBreakdown(scenario);
   const meleePercentBreakdown = getMeleePercentBreakdown(scenario);
+  const racePercentBreakdown = getRacePercentBreakdown(scenario);
+  const flatAttackBreakdown = getFlatAttackBreakdown(scenario);
 
   return {
     estimated: [
@@ -632,7 +680,9 @@ export function estimateAbyssChaserTrainingDummyDamage(
       minRandomWeaponAttack,
       maxRandomWeaponAttack,
       atkPercentBreakdown,
-      meleePercentBreakdown
+      meleePercentBreakdown,
+      racePercentBreakdown,
+      flatAttackBreakdown
     }
   };
 }
