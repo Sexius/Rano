@@ -53,7 +53,8 @@ export interface AbyssChaserEstimateResult {
   estimated: AbyssChaserEstimatedHit[];
   observed: AbyssChaserObservedHit[];
   debug: {
-    baseAttackBudget: number;
+    rawBaseAttackBudget: number;
+    calibratedBaseAttackBudget: number;
     skillAttackBudget: Record<string, number>;
     meleeMultiplier: number;
     sizeMultiplier: number;
@@ -61,6 +62,7 @@ export interface AbyssChaserEstimateResult {
     elementMultiplier: number;
     bossMultiplier: number;
     atkMultiplier: number;
+    calibrationSources: string[];
   };
 }
 
@@ -184,11 +186,86 @@ function estimateSkillPerHit(
   return Math.floor(combined / defenseDivisor);
 }
 
+function getObservedDamage(
+  scenario: AbyssChaserDraftScenario,
+  label: AbyssChaserObservedHit['label']
+): number | null {
+  const match = scenario.observed.find((item) => item.label === label);
+  return match ? match.damage : null;
+}
+
+function reverseBaseAttackBudgetFromObservation(
+  observedDamage: number,
+  skillPercent: number,
+  skillBonusPercent: number,
+  commonMultiplier: ReturnType<typeof getCommonMultiplier>,
+  defense: number
+): number {
+  const skillMultiplier = (skillPercent / 100) * (1 + skillBonusPercent / 100);
+  const defenseDivisor = 1 + defense / 4000;
+  const totalCommonMultiplier =
+    commonMultiplier.atkMultiplier *
+    commonMultiplier.meleeMultiplier *
+    commonMultiplier.sizeMultiplier *
+    commonMultiplier.raceMultiplier *
+    commonMultiplier.elementMultiplier *
+    commonMultiplier.bossMultiplier *
+    skillMultiplier;
+
+  return (observedDamage * defenseDivisor) / totalCommonMultiplier;
+}
+
+function getCalibratedBaseAttackBudget(
+  scenario: AbyssChaserDraftScenario,
+  commonMultiplier: ReturnType<typeof getCommonMultiplier>,
+  rawBaseAttackBudget: number
+): { value: number; sources: string[] } {
+  const samples: number[] = [];
+  const sources: string[] = [];
+
+  const chasingBreakObserved = getObservedDamage(scenario, 'chasing_break');
+  if (chasingBreakObserved) {
+    samples.push(
+      reverseBaseAttackBudgetFromObservation(
+        chasingBreakObserved,
+        ABYSS_CHASER_SKILLS.chasing_break_lv5.percentPerHit,
+        scenario.totalSkillPercent.ABC_CHASING_BREAK ?? 0,
+        commonMultiplier,
+        scenario.targetDef
+      )
+    );
+    sources.push('체이싱 브레이크 본체');
+  }
+
+  const deftManualObserved = getObservedDamage(scenario, 'deft_stab_manual');
+  if (deftManualObserved) {
+    samples.push(
+      reverseBaseAttackBudgetFromObservation(
+        deftManualObserved,
+        ABYSS_CHASER_SKILLS.deft_stab_lv10.percentPerHit,
+        scenario.totalSkillPercent.ABC_DEFT_STAB ?? 0,
+        commonMultiplier,
+        scenario.targetDef
+      )
+    );
+    sources.push('수동 데프트 스탭');
+  }
+
+  if (samples.length === 0) {
+    return { value: rawBaseAttackBudget, sources: ['설명문 합산 초안'] };
+  }
+
+  const average = samples.reduce((sum, value) => sum + value, 0) / samples.length;
+  return { value: average, sources };
+}
+
 export function estimateAbyssChaserTrainingDummyDamage(
   scenario: AbyssChaserDraftScenario = buildAbyssChaserDraftScenario()
 ): AbyssChaserEstimateResult {
-  const baseAttackBudget = getBaseAttackBudget(scenario);
+  const rawBaseAttackBudget = getBaseAttackBudget(scenario);
   const commonMultiplier = getCommonMultiplier(scenario);
+  const calibrated = getCalibratedBaseAttackBudget(scenario, commonMultiplier, rawBaseAttackBudget);
+  const baseAttackBudget = calibrated.value;
 
   const chasingBreakPerHit = estimateSkillPerHit(
     ABYSS_CHASER_SKILLS.chasing_break_lv5.percentPerHit,
@@ -229,12 +306,15 @@ export function estimateAbyssChaserTrainingDummyDamage(
     ],
     observed: scenario.observed,
     debug: {
-      baseAttackBudget,
+      rawBaseAttackBudget,
+      calibratedBaseAttackBudget: baseAttackBudget,
       skillAttackBudget: {
         ABC_CHASING_BREAK: chasingBreakPerHit,
         ABC_DEFT_STAB: deftStabPerHit
       },
       ...commonMultiplier
+      ,
+      calibrationSources: calibrated.sources
     }
   };
 }

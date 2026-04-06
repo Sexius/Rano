@@ -985,8 +985,8 @@ const DamageCalculator: React.FC = () => {
             })}
           </div>
           <div className="mt-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/60 px-3 py-2 text-xs leading-5 text-emerald-900">
-            현재 추정치는 앞판/뒷판 합산 수치를 넣은 1차 역산 버전입니다. 여기서 차이가 크게 나는 항목을 기준으로
-            체이싱 브레이크 본체 타수, 자동 데프트 스탭 보정, 증뎀 합산 방식을 다음 단계에서 조정합니다.
+            현재 추정치는 허수아비 실측 로그를 이용해 기준 공격 풀을 보정한 역산 버전입니다.
+            기준 소스: {abyssEstimate.debug.calibrationSources.join(', ')} / 보정 공격 풀: {Math.round(abyssEstimate.debug.calibratedBaseAttackBudget).toLocaleString()}
           </div>
         </div>
 
