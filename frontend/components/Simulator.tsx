@@ -8,6 +8,13 @@ import {
 } from 'lucide-react';
 import { EquipSlotId, GearSet, MarketItem, EquippedItem } from '../types';
 import { searchItems } from '../services/itemService';
+import {
+  MVP_ROADMAP_PHASES,
+  MVP_SUPPORTED_JOBS,
+  formatEquipSlotLabel,
+  getSimulatorMvpSnapshot
+} from '../services/simulatorMvpService';
+import { calculatePhysicalDamageSummary } from '../utils/simulatorEngine';
 
 // --- Enums for Calc ---
 enum WeaponType {
@@ -145,6 +152,8 @@ const Simulator: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<MarketItem[]>([]);
 
+  const mvpSnapshot = useMemo(() => getSimulatorMvpSnapshot(normalGear), [normalGear]);
+
   // --- Parsing Logic ---
   useEffect(() => {
     const newBonuses: ParsedBonuses = { ...INITIAL_PARSED };
@@ -216,61 +225,34 @@ const Simulator: React.FC = () => {
 
   // --- Damage Calc Logic ---
   useEffect(() => {
-    // 1. Status ATK
-    const finalStr = baseStats.str + bonuses.str;
-    const finalDex = baseStats.dex + bonuses.dex;
-    const finalLuk = baseStats.luk + bonuses.luk;
-    
-    // Simple Renewal Formula approximation
-    const statAtk = (finalStr + Math.floor(finalLuk/3) + Math.floor(finalDex/5) + Math.floor(calcConfig.baseLv/4) + (traitStats.pow * 5)) * 2;
-    const pAtkMult = 1 + (traitStats.pow / 100); // Rough approximation of P.ATK
-    const finalStatAtk = (statAtk + calcConfig.masteryAtk) * pAtkMult;
+    const result = calculatePhysicalDamageSummary({
+      baseStr: baseStats.str + bonuses.str,
+      baseDex: baseStats.dex + bonuses.dex,
+      baseLuk: baseStats.luk + bonuses.luk,
+      baseLevel: calcConfig.baseLv,
+      pow: traitStats.pow,
+      weaponAtk: weaponInfo.atk,
+      weaponLevel: weaponInfo.level,
+      weaponRefine: weaponInfo.refine,
+      targetDef: calcConfig.targetDef,
+      targetSizePenalty: SIZE_PENALTY[weaponInfo.type][calcConfig.targetSize] / 100,
+      masteryAtk: calcConfig.masteryAtk,
+      skillPercent: calcConfig.skillPercent,
+      equipAtk: bonuses.atk,
+      atkPercent: bonuses.atkP,
+      racePercent: bonuses.raceP,
+      sizePercent: bonuses.sizeP,
+      bossPercent: bonuses.bossP,
+      rangeOrMeleePercent: Math.max(bonuses.rangeP, bonuses.meleeP),
+      critDamagePercent: bonuses.critDmgP,
+      ignoreDefPercent: bonuses.ignoreDef
+    });
 
-    // 2. Weapon ATK
-    const gradeBonus = 10; // Avg for calculation
-    const refineAtk = weaponInfo.refine * gradeBonus;
-    const variance = weaponInfo.level * weaponInfo.atk * 0.05;
-    const strBonus = (weaponInfo.atk * finalStr) / 200;
-    const wAtkBase = weaponInfo.atk + refineAtk + strBonus;
-
-    const sizeP = SIZE_PENALTY[weaponInfo.type][calcConfig.targetSize] / 100;
-    const wAtkMinRaw = (wAtkBase - variance) * sizeP;
-    const wAtkMaxRaw = (wAtkBase + variance) * sizeP;
-
-    // 3. Modifiers (Bonuses)
-    const equipAtk = bonuses.atk;
-    
-    // Multipliers
-    const raceMult = 1 + (bonuses.raceP / 100);
-    const sizeMult = 1 + (bonuses.sizeP / 100);
-    const bossMult = 1 + (bonuses.bossP / 100);
-    const atkPMult = 1 + (bonuses.atkP / 100);
-
-    const totalModMult = raceMult * sizeMult * bossMult * atkPMult;
-
-    const finalWAtkMin = (wAtkMinRaw + equipAtk) * pAtkMult * totalModMult;
-    const finalWAtkMax = (wAtkMaxRaw + equipAtk) * pAtkMult * totalModMult;
-
-    // 4. Total
-    const rangeMult = 1 + (Math.max(bonuses.rangeP, bonuses.meleeP) / 100);
-    
-    const totalMin = (finalStatAtk + finalWAtkMin) * rangeMult;
-    const totalMax = (finalStatAtk + finalWAtkMax) * rangeMult;
-
-    // Def Reduction
-    let effectiveDef = calcConfig.targetDef * (1 - bonuses.ignoreDef/100);
-    const defReduction = (4000 + effectiveDef) / 4000;
-    const skillMult = calcConfig.skillPercent / 100;
-
-    const finalMin = Math.floor((totalMin / defReduction) * skillMult);
-    const finalMax = Math.floor((totalMax / defReduction) * skillMult);
-
-    // Crit
-    const critMod = 1.4 + (bonuses.critDmgP / 100);
-    const critDmg = Math.floor(totalMax * critMod * skillMult);
-
-    setCalcResult({ min: finalMin, max: finalMax, crit: critDmg });
-
+    setCalcResult({
+      min: result.min,
+      max: result.max,
+      crit: result.crit
+    });
   }, [baseStats, traitStats, bonuses, weaponInfo, calcConfig]);
 
 
@@ -445,6 +427,76 @@ const Simulator: React.FC = () => {
       
       {/* --- Left Panel: Equipment Slots --- */}
       <div className="flex-1 min-w-0">
+        <div className="mb-6 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600">Simulator First</p>
+                <h2 className="mt-1 text-xl font-bold text-gray-900">RANO MVP is centered on build simulation</h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Vending search stays online as a supporting lookup tool, while the main product shifts to
+                  equipment-based damage planning.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {MVP_SUPPORTED_JOBS.map((job) => (
+                  <span
+                    key={job.id}
+                    className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-700"
+                    title={job.notes}
+                  >
+                    {job.label} · {job.damageType}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="min-w-[260px] rounded-2xl border border-emerald-200 bg-white p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wide text-emerald-600">Build readiness</span>
+                <span className="text-sm font-bold text-gray-900">{mvpSnapshot.completionRate}%</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all"
+                  style={{ width: `${mvpSnapshot.completionRate}%` }}
+                />
+              </div>
+              <p className="mt-3 text-xs text-gray-600">
+                {mvpSnapshot.readinessLabel === 'empty' && 'Start with the core weapon and armor slots first.'}
+                {mvpSnapshot.readinessLabel === 'draft' && 'Core simulator inputs are partially filled.'}
+                {mvpSnapshot.readinessLabel === 'core_ready' && 'This build is close to the first MVP-ready comparison flow.'}
+              </p>
+              {mvpSnapshot.missingCoreSlots.length > 0 && (
+                <p className="mt-2 text-xs text-gray-500">
+                  Missing: {mvpSnapshot.missingCoreSlots.map(formatEquipSlotLabel).join(', ')}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            {MVP_ROADMAP_PHASES.map((phase) => (
+              <div key={phase.id} className="rounded-xl border border-gray-100 bg-white p-4">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-block h-2.5 w-2.5 rounded-full ${
+                      phase.status === 'active'
+                        ? 'bg-emerald-500'
+                        : phase.status === 'next'
+                          ? 'bg-amber-400'
+                          : 'bg-gray-300'
+                    }`}
+                  />
+                  <h3 className="text-sm font-bold text-gray-900">{phase.title}</h3>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-gray-600">{phase.summary}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="flex items-center justify-between mb-4">
            <div>
               <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
