@@ -75,10 +75,11 @@ public class VendingSearchService {
             if (vendingService.isLiveFetchEnabled()) {
                 logger.log("CACHE_MISS_TRIGGER_ASYNC", cacheKey);
                 collectorService.collectAsync(server, keyword, 1, 5);
+                throw new NoCacheAvailableException("CACHE_MISS", server, keyword, 10);
             } else {
-                logger.log("LIVE_FETCH_DISABLED", "Blocked async crawl for " + cacheKey);
+                logger.log("LIVE_FETCH_DISABLED", "Blocked async crawl for " + cacheKey + ", serving DB data");
+                // Do not throw 503, just fall through and load from DB (which might be empty or stale)
             }
-            throw new NoCacheAvailableException("CACHE_MISS", server, keyword, 10);
         }
 
         // 3. Fresh in DB or Recently Crawled -> Load, Cache, Paginate
