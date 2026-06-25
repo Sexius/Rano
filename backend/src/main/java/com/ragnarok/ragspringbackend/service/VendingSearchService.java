@@ -74,7 +74,7 @@ public class VendingSearchService {
         if (isStale) {
             if (vendingService.isLiveFetchEnabled()) {
                 logger.log("CACHE_MISS_TRIGGER_ASYNC", cacheKey);
-                collectorService.collectAsync(server, keyword, 1, 5);
+                collectorService.collectAsync(server, keyword, 1, 20);
                 throw new NoCacheAvailableException("CACHE_MISS", server, keyword, 10);
             } else {
                 logger.log("LIVE_FETCH_DISABLED", "Blocked async crawl for " + cacheKey + ", serving DB data");

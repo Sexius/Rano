@@ -40,7 +40,7 @@ public class VendingCollectorService {
     // 429 백오프 설정
     private static final long BACKOFF_MIN_MINUTES = 15;
     private static final long BACKOFF_MAX_MINUTES = 60;
-    private static final int MAX_PAGES_CAP = 5;
+    private static final int MAX_PAGES_CAP = 20;
     private final Random random = new Random();
 
     public VendingCollectorService(
