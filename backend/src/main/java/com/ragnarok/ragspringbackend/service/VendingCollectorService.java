@@ -104,10 +104,8 @@ public class VendingCollectorService {
                         break;
                     }
 
-                    // DB upsert
-                    for (VendingItemDto dto : response.getData()) {
-                        totalSaved += upsertListing(server, dto, page, debugLog);
-                    }
+                    // DB batch upsert
+                    totalSaved += upsertListingsBatch(server, response.getData(), page, debugLog);
 
                     // Rate limit: 페이지 간 3~6초 랜덤 대기 (완만한 패턴)
                     if (page < endPage) {
@@ -156,6 +154,13 @@ public class VendingCollectorService {
     }
 
     /**
+     * 마지막 수집 시각 조회
+     */
+    public LocalDateTime getLastCrawlTime(String server, String keyword) {
+        return lastCrawlTime.get(server + "|" + keyword);
+    }
+
+    /**
      * 외부 업로드 API용 배치 저장
      * @param server 서버명
      * @param items 저장할 아이템 목록
@@ -163,74 +168,100 @@ public class VendingCollectorService {
      */
     @Transactional
     public int uploadBatch(String server, java.util.List<VendingItemDto> items) {
-        int saved = 0;
-        for (VendingItemDto dto : items) {
-            saved += upsertListing(server, dto, 0, false);
-        }
+        int saved = upsertListingsBatch(server, items, 0, false);
         System.out.println("[VendingUpload] server=" + server + " received=" + items.size() + " saved=" + saved);
         return saved;
     }
 
     /**
-     * DB upsert (기존 레코드 업데이트 or 신규 삽입)
+     * DB 배치 upsert (N+1 방지)
      */
-    private int upsertListing(String server, VendingItemDto dto, int page, boolean debugLog) {
-        if (dto.getMap_id() == null || dto.getSsi() == null) {
-            return 0;  // map_id, ssi 없으면 저장 불가
+    private int upsertListingsBatch(String server, List<VendingItemDto> dtos, int page, boolean debugLog) {
+        if (dtos == null || dtos.isEmpty()) {
+            return 0;
         }
 
-        String normalizedName = normalizeItemName(dto.getItem_name());
-        String rawName = dto.getItem_name();  // 크롤링 원문
-        
-        if (debugLog) {
-            System.out.println("[VendingCollector] RAW: " + rawName);
-            System.out.println("[VendingCollector] NORMALIZED: " + normalizedName);
-            System.out.println("[VendingCollector] UPSERT_LOOKUP_KEY: " + rawName);
-        }
-        
-        // price 포함하여 조회 (UNIQUE 제약: server, map_id, ssi, item_name, price)
-        Optional<VendingListing> existing = listingRepository.findByServerAndMapIdAndSsiAndItemNameAndPrice(
-            server, dto.getMap_id(), dto.getSsi(), rawName, dto.getPrice()
-        );
+        // 1. 유효한 ssi 추출
+        List<String> ssiList = dtos.stream()
+                .filter(dto -> dto.getMap_id() != null && dto.getSsi() != null)
+                .map(VendingItemDto::getSsi)
+                .distinct()
+                .toList();
 
-        VendingListing listing;
-        if (existing.isPresent()) {
-            listing = existing.get();
-            // 업데이트
-            listing.setPrice(dto.getPrice());
-            listing.setAmount(dto.getQuantity());
-            listing.setScrapedAt(LocalDateTime.now());
-            if (debugLog) {
-                System.out.println("[VendingCollector] ACTION: UPDATE existing row");
+        if (ssiList.isEmpty()) {
+            return 0;
+        }
+
+        // 2. DB 일괄 조회
+        List<VendingListing> existingListings = listingRepository.findByServerAndSsiIn(server, ssiList);
+        
+        // ssi 기반 맵퍼 구성 (유니크 키: ssi + itemName + price)
+        Map<String, VendingListing> existingMap = new java.util.HashMap<>();
+        for (VendingListing listing : existingListings) {
+            String key = listing.getSsi() + "|" + listing.getItemName() + "|" + listing.getPrice();
+            existingMap.put(key, listing);
+        }
+
+        List<VendingListing> toSave = new java.util.ArrayList<>();
+
+        // 3. 삽입/수정 판단
+        for (VendingItemDto dto : dtos) {
+            if (dto.getMap_id() == null || dto.getSsi() == null) {
+                continue;
             }
-        } else {
-            // 신규 생성
-            listing = new VendingListing();
-            listing.setServer(server);
-            listing.setMapId(dto.getMap_id());
-            listing.setSsi(dto.getSsi());
-            listing.setItemName(rawName);  // DB에 RAW 원문 저장
-            listing.setItemNameNormalized(normalizedName);
-            if (debugLog) {
-                System.out.println("[VendingCollector] DB_SAVE_ITEM_NAME: " + rawName);
-                System.out.println("[VendingCollector] ACTION: INSERT new row");
-            }
-            listing.setPrice(dto.getPrice());
-            listing.setAmount(dto.getQuantity());
-            listing.setShopName(dto.getVendor_info());
-            listing.setSellerName(dto.getVendor_name());
-            listing.setSourcePage(page);
+
+            String rawName = dto.getItem_name();
+            String key = dto.getSsi() + "|" + rawName + "|" + dto.getPrice();
             
-            // Item ID 매칭
-            Integer itemId = itemCacheService.getIdByName(normalizedName);
-            if (itemId == null) {
-                itemId = itemCacheService.getIdByPrefix(normalizedName);
+            VendingListing listing = existingMap.get(key);
+
+            if (listing != null) {
+                // Update
+                listing.setPrice(dto.getPrice());
+                listing.setAmount(dto.getQuantity());
+                listing.setScrapedAt(LocalDateTime.now());
+                if (debugLog) {
+                    System.out.println("[VendingCollector] ACTION: UPDATE existing row");
+                }
+                toSave.add(listing);
+            } else {
+                // Insert
+                String normalizedName = normalizeItemName(rawName);
+                listing = new VendingListing();
+                listing.setServer(server);
+                listing.setMapId(dto.getMap_id());
+                listing.setSsi(dto.getSsi());
+                listing.setItemName(rawName);
+                listing.setItemNameNormalized(normalizedName);
+                listing.setPrice(dto.getPrice());
+                listing.setAmount(dto.getQuantity());
+                listing.setShopName(dto.getVendor_info());
+                listing.setSellerName(dto.getVendor_name());
+                listing.setSourcePage(page);
+
+                Integer itemId = itemCacheService.getIdByName(normalizedName);
+                if (itemId == null) {
+                    itemId = itemCacheService.getIdByPrefix(normalizedName);
+                }
+                listing.setItemId(itemId);
+                
+                if (debugLog) {
+                    System.out.println("[VendingCollector] DB_SAVE_ITEM_NAME: " + rawName);
+                    System.out.println("[VendingCollector] ACTION: INSERT new row");
+                }
+                
+                toSave.add(listing);
+                // 중복 insert 방지용 맵 업데이트
+                existingMap.put(key, listing);
             }
-            listing.setItemId(itemId);
         }
 
-        listingRepository.save(listing);
-        return 1;
+        // 4. 일괄 저장
+        if (!toSave.isEmpty()) {
+            listingRepository.saveAll(toSave);
+        }
+        
+        return toSave.size();
     }
 
     /**

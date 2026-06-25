@@ -72,6 +72,12 @@ public interface VendingListingRepository extends JpaRepository<VendingListing, 
         String server, String mapId, String ssi, String itemName, Long price
     );
 
+    @Query("SELECT v FROM VendingListing v WHERE v.server = :server AND v.ssi IN :ssiList")
+    List<VendingListing> findByServerAndSsiIn(
+        @Param("server") String server,
+        @Param("ssiList") List<String> ssiList
+    );
+
     Optional<VendingListing> findTopByServerAndMapIdAndSsiOrderByScrapedAtDesc(
         String server, String mapId, String ssi
     );

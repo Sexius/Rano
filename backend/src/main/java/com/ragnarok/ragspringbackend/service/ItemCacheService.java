@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ItemCacheService {
 
     private final ItemRepository itemRepository;
-    private final Map<String, Integer> nameToIdMap = new ConcurrentHashMap<>();
+    private volatile Map<String, Integer> nameToIdMap = Map.of();
 
     public ItemCacheService(ItemRepository itemRepository) {
         this.itemRepository = itemRepository;
@@ -46,8 +46,8 @@ public class ItemCacheService {
             }
         }
         
-        nameToIdMap.clear();
-        nameToIdMap.putAll(newMap);
+        // Atomic reassignment
+        this.nameToIdMap = newMap;
         
         long elapsed = System.currentTimeMillis() - start;
         System.out.println("[ItemCacheService] Loaded " + nameToIdMap.size() + " items in " + elapsed + "ms");

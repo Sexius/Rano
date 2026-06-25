@@ -52,7 +52,7 @@ function getBaseApiUrl() {
 function mapServerParam(server: string) {
   if (server === '바포메트') return 'baphomet';
   if (server === '이프리트') return 'ifrit';
-  if (server === '위그드라실') return 'yggdrasil';
+  if (server === '위그드라실' || server === '이그드라실') return 'yggdrasil';
   return server || 'baphomet';
 }
 
@@ -113,16 +113,11 @@ export const searchVendingItems = async (
   const result = payload as VendingPageResponse;
   let items = result.data ? result.data.map((dto, index) => convertToMarketItem(dto, index)) : [];
 
-  if (server !== '전체') {
-    const validServer = mapServerParam(server).toLowerCase();
-    items = items.filter(item => item.server.toLowerCase().includes(validServer));
-  }
-
   return {
     items,
-    total: server !== '전체' ? items.length : (result.total || 0),
+    total: result.total || 0,
     page: result.page || 1,
-    totalPages: server !== '전체' ? 1 : (result.totalPages || 0),
+    totalPages: result.totalPages || 0,
     stale: Boolean(result.stale),
     cacheStatus: result.cacheStatus || 'hit',
     source: result.source || 'cache_only',

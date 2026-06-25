@@ -1,43 +1,41 @@
 package com.ragnarok.ragspringbackend.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragnarok.ragspringbackend.dto.VendingItemDto;
 import com.ragnarok.ragspringbackend.dto.VendingPageResponse;
-import com.ragnarok.ragspringbackend.entity.VendingSearchCache;
-import com.ragnarok.ragspringbackend.repository.VendingSearchCacheRepository;
+import com.ragnarok.ragspringbackend.entity.VendingListing;
+import com.ragnarok.ragspringbackend.repository.VendingListingRepository;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 public class VendingSearchService {
 
-    private static final long CACHE_TTL_MINUTES = 10;
-    private static final ConcurrentHashMap<String, CompletableFuture<VendingSearchResponse>> inFlightRequests =
-        new ConcurrentHashMap<>();
-
-    private final VendingSearchCacheRepository cacheRepository;
+    private final VendingListingRepository listingRepository;
+    private final VendingCollectorService collectorService;
     private final VendingService vendingService;
-    private final ObjectMapper objectMapper;
+    private final CacheManager cacheManager;
     private final VendingLogger logger;
 
     public VendingSearchService(
-        VendingSearchCacheRepository cacheRepository,
+        VendingListingRepository listingRepository,
+        VendingCollectorService collectorService,
         VendingService vendingService,
-        ObjectMapper objectMapper,
+        CacheManager cacheManager,
         VendingLogger logger
     ) {
-        this.cacheRepository = cacheRepository;
+        this.listingRepository = listingRepository;
+        this.collectorService = collectorService;
         this.vendingService = vendingService;
-        this.objectMapper = objectMapper;
+        this.cacheManager = cacheManager;
         this.logger = logger;
     }
 
@@ -49,177 +47,109 @@ public class VendingSearchService {
             keyword = "";
         }
 
-        String cacheKey = buildCacheKey(server, keyword, page, size, sortField);
-        OffsetDateTime now = OffsetDateTime.now();
+        String cacheKey = server.toLowerCase() + "|" + keyword;
+        Cache cache = cacheManager.getCache("vendingSearch");
 
-        Optional<VendingSearchCache> cached = cacheRepository.findValidCache(cacheKey, now);
-        if (cached.isPresent()) {
-            logger.log("CACHE_HIT", cacheKey);
-            return fromCache(cached.get(), "hit", false, null, "Cached search result");
-        }
-
-        if (!vendingService.isLiveFetchEnabled()) {
-            logger.log("CACHE_MISS", cacheKey + " source=cache_only");
-            Optional<VendingSearchCache> staleCache = cacheRepository.findLatestCache(cacheKey);
-            if (staleCache.isPresent()) {
-                logger.log("CACHE_STALE", cacheKey + " source=cache_only");
-                return fromCache(staleCache.get(), "stale", true, "CACHE_STALE", "Serving stale cached result");
+        // 1. Check Caffeine Cache
+        if (cache != null) {
+            @SuppressWarnings("unchecked")
+            List<VendingItemDto> cachedList = cache.get(cacheKey, List.class);
+            if (cachedList != null) {
+                logger.log("CACHE_HIT", cacheKey);
+                return paginate(cachedList, page, size, "hit", false, null, "Cached in memory", sortField, sortDir);
             }
-            throw new NoCacheAvailableException("CACHE_MISS", server, keyword, 60);
         }
 
-        final String finalServer = server;
-        final String finalKeyword = keyword;
-        final boolean[] isLeader = {false};
+        // 2. Check DB Freshness and Crawl Status
+        Optional<LocalDateTime> lastScraped = listingRepository.findLatestScrapedAtByKeyword(server, keyword);
+        LocalDateTime lastCrawlAttempt = collectorService.getLastCrawlTime(server, keyword);
+        
+        LocalDateTime newestRecord = lastScraped.orElse(null);
+        if (lastCrawlAttempt != null && (newestRecord == null || lastCrawlAttempt.isAfter(newestRecord))) {
+            newestRecord = lastCrawlAttempt;
+        }
 
-        CompletableFuture<VendingSearchResponse> future = inFlightRequests.computeIfAbsent(cacheKey, key -> {
-            isLeader[0] = true;
-            return CompletableFuture.supplyAsync(() ->
-                doGnjoyFetch(key, finalServer, finalKeyword, page, size, sortField)
-            );
-        });
+        boolean isStale = newestRecord == null || newestRecord.plusMinutes(10).isBefore(LocalDateTime.now());
 
-        try {
-            return future.get();
-        } catch (InterruptedException | ExecutionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof NoCacheAvailableException) {
-                throw (NoCacheAvailableException) cause;
+        if (isStale) {
+            if (vendingService.isLiveFetchEnabled()) {
+                logger.log("CACHE_MISS_TRIGGER_ASYNC", cacheKey);
+                collectorService.collectAsync(server, keyword, 1, 5);
+            } else {
+                logger.log("LIVE_FETCH_DISABLED", "Blocked async crawl for " + cacheKey);
             }
-            throw new RuntimeException("Singleflight error", e);
+            throw new NoCacheAvailableException("CACHE_MISS", server, keyword, 10);
         }
+
+        // 3. Fresh in DB or Recently Crawled -> Load, Cache, Paginate
+        logger.log("DB_LOAD", cacheKey);
+        List<VendingListing> listings = listingRepository.findByServerAndItemNamePrefixSorted(server, keyword, Pageable.unpaged()).getContent();
+        
+        List<VendingItemDto> dtoList = listings.stream().map(this::toDto).collect(Collectors.toList());
+
+        if (cache != null) {
+            cache.put(cacheKey, dtoList);
+        }
+
+        return paginate(dtoList, page, size, "db_load", false, null, "Loaded from DB", sortField, sortDir);
     }
 
-    private VendingSearchResponse doGnjoyFetch(String cacheKey, String server, String keyword, int page, int size, String sortField) {
-        try {
-            Optional<VendingSearchCache> cached = cacheRepository.findValidCache(cacheKey, OffsetDateTime.now());
-            if (cached.isPresent()) {
-                logger.log("CACHE_HIT_AFTER_JOIN", cacheKey);
-                return fromCache(cached.get(), "hit", false, null, "Cached search result");
-            }
-
-            VendingPageResponse<VendingItemDto> gnjoyResult = vendingService.searchVendingByItemDirect(server, keyword, page, size);
-            saveCache(cacheKey, server, keyword, page, size, sortField, gnjoyResult);
-
-            VendingSearchResponse response = new VendingSearchResponse();
-            response.setData(gnjoyResult.getData());
-            response.setTotal(gnjoyResult.getTotal());
-            response.setPage(page);
-            response.setTotalPages(gnjoyResult.getTotalPages());
-            response.setScrapedAt(LocalDateTime.now());
-            response.setStale(false);
-            response.setRefreshTriggered(true);
-            response.setReason(null);
-            response.setCacheStatus("refreshed");
-            response.setSource("upstream");
-            response.setMessage("Fetched from GNJOY and cached");
-            return response;
-        } catch (Exception e) {
-            String reason = classifyFetchFailure(e);
-            logger.log(reason, cacheKey);
-
-            Optional<VendingSearchCache> staleCache = cacheRepository.findLatestCache(cacheKey);
-            if (staleCache.isPresent()) {
-                logger.log("CACHE_STALE", cacheKey + " reason=" + reason);
-                return fromCache(staleCache.get(), "stale", true, reason, "Serving stale cached result");
-            }
-
-            throw new NoCacheAvailableException(reason, server, keyword, 60);
-        } finally {
-            inFlightRequests.remove(cacheKey);
+    private VendingItemDto toDto(VendingListing listing) {
+        VendingItemDto dto = new VendingItemDto();
+        dto.setId(listing.getItemId() != null ? listing.getItemId() : 0);
+        dto.setVendor_name(listing.getSellerName());
+        dto.setVendor_info(listing.getShopName());
+        dto.setServer_name(listing.getServer());
+        dto.setItem_name(listing.getItemName());
+        dto.setQuantity(listing.getAmount());
+        dto.setPrice(listing.getPrice());
+        dto.setMap_id(listing.getMapId());
+        dto.setSsi(listing.getSsi());
+        
+        if (listing.getItemId() != null) {
+            dto.setItem_icon_url("https://static.divine-pride.net/images/items/item/" + listing.getItemId() + ".png");
         }
+        return dto;
     }
 
-    private String classifyFetchFailure(Throwable throwable) {
-        String message = throwable.getMessage() != null ? throwable.getMessage() : throwable.getClass().getSimpleName();
-        if (message.contains("403")) {
-            return "UPSTREAM_HTTP_403";
+    private VendingSearchResponse paginate(List<VendingItemDto> allItems, int page, int size, 
+                                           String cacheStatus, boolean isStale, String reason, String message, String sortField, String sortDir) {
+        
+        // Sorting logic in memory
+        boolean isAsc = "asc".equalsIgnoreCase(sortDir);
+        List<VendingItemDto> sortedList = new ArrayList<>(allItems);
+        
+        if ("name".equalsIgnoreCase(sortField)) {
+            sortedList.sort(isAsc ? Comparator.comparing(VendingItemDto::getItem_name) : Comparator.comparing(VendingItemDto::getItem_name).reversed());
+        } else if ("amount".equalsIgnoreCase(sortField)) {
+            sortedList.sort(isAsc ? Comparator.comparing(VendingItemDto::getQuantity) : Comparator.comparing(VendingItemDto::getQuantity).reversed());
+        } else {
+            // Default to price
+            sortedList.sort(isAsc ? Comparator.comparing(VendingItemDto::getPrice) : Comparator.comparing(VendingItemDto::getPrice).reversed());
         }
-        if (message.contains("429")) {
-            return "UPSTREAM_HTTP_429";
-        }
-        if (message.contains("PARSE")) {
-            return "UPSTREAM_PARSE_ERROR";
-        }
-        if (message.contains("LIVE_FETCH_DISABLED")) {
-            return "LIVE_FETCH_DISABLED";
-        }
-        return "UPSTREAM_ERROR";
-    }
 
-    private String buildCacheKey(String server, String keyword, int page, int size, String sortField) {
-        return String.format(
-            "v2|%s|%s|%d|%d|%s",
-            server.toLowerCase(),
-            keyword,
-            page,
-            size,
-            sortField != null ? sortField : "price"
-        );
-    }
+        int total = sortedList.size();
+        int fromIndex = Math.max((page - 1) * size, 0);
+        int toIndex = Math.min(fromIndex + size, total);
 
-    @Transactional
-    protected void saveCache(
-        String cacheKey,
-        String server,
-        String keyword,
-        int page,
-        int size,
-        String sortField,
-        VendingPageResponse<VendingItemDto> result
-    ) {
-        try {
-            String resultJson = objectMapper.writeValueAsString(result.getData());
+        List<VendingItemDto> pageData = fromIndex >= total
+            ? new ArrayList<>()
+            : new ArrayList<>(sortedList.subList(fromIndex, toIndex));
 
-            VendingSearchCache cache = cacheRepository.findByCacheKey(cacheKey).orElse(new VendingSearchCache());
-            cache.setCacheKey(cacheKey);
-            cache.setServer(server);
-            cache.setKeyword(keyword);
-            cache.setPage(page);
-            cache.setSize(size);
-            cache.setItemOrder(sortField != null ? sortField : "price");
-            cache.setResultJson(resultJson);
-            cache.setTotalCount(result.getTotal());
-            cache.setCachedAt(OffsetDateTime.now());
-            cache.setExpiresAt(OffsetDateTime.now().plusMinutes(CACHE_TTL_MINUTES));
-
-            cacheRepository.save(cache);
-            logger.log("CACHE_SAVED", cacheKey);
-        } catch (JsonProcessingException e) {
-            logger.log("CACHE_SAVE_ERROR", e.getMessage());
-        }
-    }
-
-    private VendingSearchResponse fromCache(
-        VendingSearchCache cache,
-        String cacheStatus,
-        boolean isStale,
-        String reason,
-        String message
-    ) {
         VendingSearchResponse response = new VendingSearchResponse();
-
-        try {
-            List<VendingItemDto> items = objectMapper.readValue(
-                cache.getResultJson(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, VendingItemDto.class)
-            );
-            response.setData(items);
-        } catch (JsonProcessingException e) {
-            logger.log("CACHE_PARSE_ERROR", e.getMessage());
-            response.setData(List.of());
-        }
-
-        response.setTotal(cache.getTotalCount());
-        response.setPage(cache.getPage());
-        response.setTotalPages((int) Math.ceil((double) cache.getTotalCount() / 10));
-        response.setScrapedAt(cache.getCachedAt().toLocalDateTime());
+        response.setData(pageData);
+        response.setTotal(total);
+        response.setPage(page);
+        response.setSize(pageData.size());
+        response.setTotalPages((int) Math.ceil((double) total / size));
+        response.setScrapedAt(LocalDateTime.now());
         response.setStale(isStale);
-        response.setRefreshTriggered(false);
+        response.setRefreshTriggered(isStale);
         response.setReason(reason);
         response.setCacheStatus(cacheStatus);
-        response.setSource("cache_only");
+        response.setSource(cacheStatus.equals("hit") ? "memory" : "db");
         response.setMessage(message);
+
         return response;
     }
 
@@ -236,7 +166,7 @@ public class VendingSearchService {
         public void setScrapedAt(LocalDateTime scrapedAt) { this.scrapedAt = scrapedAt; }
 
         public boolean isStale() { return isStale; }
-        public void setStale(boolean stale) { isStale = stale; }
+        public void setStale(boolean stale) { this.isStale = stale; }
 
         public boolean isRefreshTriggered() { return refreshTriggered; }
         public void setRefreshTriggered(boolean refreshTriggered) { this.refreshTriggered = refreshTriggered; }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MarketItem } from '../types';
 import { X, Shield, Star, Zap, MapPin, Store } from 'lucide-react';
 
@@ -8,6 +8,8 @@ interface ItemDetailModalProps {
 }
 
 const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
+  const [copied, setCopied] = useState(false);
+
   // ESC 키로 모달 닫기
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -22,6 +24,23 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
   }, [item, onClose]);
 
   if (!item) return null;
+
+  const handleCopyWhisper = () => {
+    if (!item.seller || item.seller === 'Unknown') return;
+    const action = item.shop_type === 'buy' ? '판매' : '구매';
+    const whisperText = `/w "${item.seller}" ${item.refine_level > 0 ? '+' + item.refine_level + ' ' : ''}${item.name} ${item.amount}개 ${action} 원합니다.`;
+    
+    navigator.clipboard.writeText(whisperText).then(() => {
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+        onClose();
+      }, 1200);
+    }).catch(err => {
+      console.error('Failed to copy whisper:', err);
+      onClose();
+    });
+  };
 
   const formatZeny = (amount: number) => new Intl.NumberFormat('ko-KR').format(amount);
 
@@ -140,10 +159,15 @@ const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose }) => {
           <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
             <button 
                 type="button" 
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-kafra-500 text-base font-medium text-white hover:bg-kafra-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kafra-500 sm:w-auto sm:text-sm"
-                onClick={onClose}
+                disabled={copied || !item.seller || item.seller === 'Unknown'}
+                className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kafra-500 sm:w-auto sm:text-sm transition-colors duration-200 ${
+                  copied 
+                    ? 'bg-green-600 hover:bg-green-700' 
+                    : 'bg-kafra-500 hover:bg-kafra-700'
+                } disabled:opacity-75 disabled:cursor-not-allowed`}
+                onClick={handleCopyWhisper}
             >
-              귓속말 복사
+              {copied ? '복사 완료! ✅' : '귓속말 복사'}
             </button>
             <button 
                 type="button" 

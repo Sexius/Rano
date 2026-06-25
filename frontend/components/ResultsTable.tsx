@@ -49,6 +49,36 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
   const isMobile = useIsMobile();
   const panelManager = usePanelManager();
 
+  // Dynamic on-demand card/enchant detail cache
+  const [loadedDetails, setLoadedDetails] = useState<Record<string, { cards_equipped: string[]; seller: string; shop_title: string; location: string }>>({});
+  const [loadingDetails, setLoadingDetails] = useState<Record<string, boolean>>({});
+
+  const fetchItemDetailInternal = async (item: MarketItem): Promise<{ cards_equipped: string[]; seller: string; shop_title: string; location: string } | null> => {
+    if (loadedDetails[item.id]) return loadedDetails[item.id];
+    if (!item.ssi || !item.map_id) return null;
+
+    setLoadingDetails(prev => ({ ...prev, [item.id]: true }));
+    try {
+      const { getVendingItemDetail } = await import('../services/vendingService');
+      const detail = await getVendingItemDetail(item.server, item.ssi, item.map_id);
+      if (detail) {
+        const enriched = {
+          cards_equipped: detail.cards_equipped || [],
+          seller: detail.seller || item.seller,
+          shop_title: detail.shop_title || item.shop_title,
+          location: detail.location || item.location
+        };
+        setLoadedDetails(prev => ({ ...prev, [item.id]: enriched }));
+        return enriched;
+      }
+    } catch (e) {
+      console.error("Failed to load details on demand:", e);
+    } finally {
+      setLoadingDetails(prev => ({ ...prev, [item.id]: false }));
+    }
+    return null;
+  };
+
   // Fetch item info and update panel
   const handleItemInfoClick = async (itemName: string, itemId: string, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -122,8 +152,14 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
       apiBase = apiBase.replace(/\/+$/, '');
       const apiUrl = apiBase.endsWith('/api') ? apiBase : `${apiBase}/api`;
 
+      // 온디맨드로 디테일 데이터 로드
+      let details = loadedDetails[item.id];
+      if (!details) {
+        details = await fetchItemDetailInternal(item) || { cards_equipped: [], seller: item.seller, shop_title: item.shop_title, location: item.location };
+      }
+
       const cards: CardInfo[] = [];
-      for (const cardName of item.cards_equipped || []) {
+      for (const cardName of details.cards_equipped || []) {
         const cleanName = cardName.replace(/^\[옵션\]\s*/, '').trim();
         try {
           const response = await fetch(`${apiUrl}/items/search?keyword=${encodeURIComponent(cleanName)}`);
@@ -262,19 +298,41 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
                 >
                   {item.price.toLocaleString()}<span className="text-xs text-gray-400 font-normal ml-0.5">z</span>
                 </span>
-                {/* 4줄: 인챈트/카드 (있을 때만, 클릭 가능) */}
-                {item.cards_equipped && item.cards_equipped.length > 0 && (
-                  <span 
-                    className="text-xs text-purple-600 truncate min-w-0 cursor-pointer hover:text-purple-800 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // 모바일도 FloatingPanel(Inspector) 사용
-                      handleCardClick(item, e);
-                    }}
-                  >
-                    {item.cards_equipped.map(c => c.replace('[옵션] ', '').replace('[옵션]', '')).join(', ')}
-                  </span>
-                )}
+                {/* 4줄: 인챈트/카드 (동적 온디맨드 로딩) */}
+                {(() => {
+                  const detail = loadedDetails[item.id];
+                  const isLoadingDetail = loadingDetails[item.id];
+                  if (isLoadingDetail) {
+                    return <span className="text-[10px] text-gray-400">옵션 로딩중...</span>;
+                  }
+                  if (detail) {
+                    if (detail.cards_equipped && detail.cards_equipped.length > 0) {
+                      return (
+                        <span 
+                          className="text-xs text-purple-600 truncate min-w-0 cursor-pointer hover:text-purple-800 transition-colors font-semibold"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCardClick(item, e);
+                          }}
+                        >
+                          {detail.cards_equipped.map(c => c.replace('[옵션] ', '').replace('[옵션]', '')).join(', ')}
+                        </span>
+                      );
+                    }
+                    return <span className="text-[10px] text-gray-300">옵션 없음</span>;
+                  }
+                  return (
+                    <button
+                      className="text-left text-[11px] text-kafra-600 hover:text-kafra-800 hover:underline font-semibold"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fetchItemDetailInternal(item);
+                      }}
+                    >
+                      [옵션 확인]
+                    </button>
+                  );
+                })()}
               </div>
 
               {/* ========== 데스크톱 전용: Column 1 태그 ========== */}
@@ -315,58 +373,82 @@ const ResultsTable: React.FC<ResultsTableProps> = ({
 
               {/* Desktop only: Column 3 카드/인챌 (모바일에서 숨김) */}
               <div 
-                className="hidden md:flex flex-col gap-1 cursor-pointer min-w-0"
+                className="hidden md:flex flex-col gap-1 min-w-0"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (item.cards_equipped && item.cards_equipped.length > 0) {
-                    handleCardClick(item, e);
-                  }
                 }}
               >
-                {item.cards_equipped && item.cards_equipped.length > 0 ? (
-                  <>
-                    {item.cards_equipped.map((card, i) => {
-                      const isEnchant = card.startsWith('[옵션]');
-                      const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
+                {(() => {
+                  const detail = loadedDetails[item.id];
+                  const isLoadingDetail = loadingDetails[item.id];
+                  if (isLoadingDetail) {
+                    return <span className="text-xs text-gray-400">옵션 로딩중...</span>;
+                  }
+                  if (detail) {
+                    if (detail.cards_equipped && detail.cards_equipped.length > 0) {
                       return (
-                        <div
-                          key={i}
-                          className={`inline-flex items-center gap-1.5 text-xs ${
-                            isEnchant ? 'text-purple-600' : 'text-amber-700'
-                          }`}
-                          title={displayName}
+                        <div 
+                          className="cursor-pointer flex flex-col gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCardClick(item, e);
+                          }}
                         >
-                          {isEnchant ? (
-                            <img 
-                              src={getEnchantIconUrl(card)} 
-                              alt="enchant" 
-                              className="w-4 h-4 shrink-0"
-                            />
-                          ) : (
-                            <img 
-                              src="https://static.divine-pride.net/images/items/collection/4001.png" 
-                              alt="card" 
-                              className="w-4 h-4 shrink-0"
-                            />
-                          )}
-                          <span className="truncate">{displayName}</span>
+                          {detail.cards_equipped.map((card, i) => {
+                            const isEnchant = card.startsWith('[옵션]');
+                            const displayName = card.replace('[옵션] ', '').replace('[옵션]', '');
+                            return (
+                              <div
+                                key={i}
+                                className={`inline-flex items-center gap-1.5 text-xs ${
+                                  isEnchant ? 'text-purple-600' : 'text-amber-700'
+                                }`}
+                                title={displayName}
+                              >
+                                {isEnchant ? (
+                                  <img 
+                                    src={getEnchantIconUrl(card)} 
+                                    alt="enchant" 
+                                    className="w-4 h-4 shrink-0"
+                                  />
+                                ) : (
+                                  <img 
+                                    src="https://static.divine-pride.net/images/items/collection/4001.png" 
+                                    alt="card" 
+                                    className="w-4 h-4 shrink-0"
+                                  />
+                                )}
+                                <span className="truncate">{displayName}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       );
-                    })}
-                  </>
-                ) : (
-                  <span className="text-xs text-gray-300">-</span>
-                )}
+                    }
+                    return <span className="text-xs text-gray-300">-</span>;
+                  }
+                  return (
+                    <button
+                      className="text-xs text-kafra-600 hover:text-kafra-800 hover:underline font-semibold text-left"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fetchItemDetailInternal(item);
+                      }}
+                    >
+                      [옵션 확인]
+                    </button>
+                  );
+                })()}
               </div>
 
               {/* Column 4: 상점 정보 (모바일에서 숨김) */}
               <div className="hidden md:block overflow-hidden pt-0.5">
-                <div className="text-sm text-gray-800 font-medium truncate" title={item.shop_title}>
-                  {item.shop_title}
+                <div className="text-sm text-gray-800 font-medium truncate" title={loadedDetails[item.id]?.shop_title || item.shop_title}>
+                  {loadedDetails[item.id]?.shop_title || item.shop_title}
                 </div>
                 <div className="text-xs text-gray-400 truncate">
-                  {item.seller !== item.shop_title && item.seller !== 'Unknown' && `${item.seller} `}
-                  {item.location && /[a-zA-Z]/.test(item.location) && `· ${item.location}`}
+                  {(loadedDetails[item.id]?.seller || item.seller) !== (loadedDetails[item.id]?.shop_title || item.shop_title) && (loadedDetails[item.id]?.seller || item.seller) !== 'Unknown' && `${loadedDetails[item.id]?.seller || item.seller} `}
+                  {(loadedDetails[item.id]?.location || item.location) && /[a-zA-Z가-힣]/.test(loadedDetails[item.id]?.location || item.location) && `· ${loadedDetails[item.id]?.location || item.location}`}
                 </div>
               </div>
 

@@ -56,31 +56,13 @@ public class VendingService {
     }
 
     public VendingPageResponse<VendingItemDto> searchVendingByItem(String itemName, String server, int page, int size) {
-        long startTime = System.currentTimeMillis();
-        String cacheKey = server + "|" + itemName + "|" + page + "|" + size;
-        Cache cache = cacheManager.getCache("vendingSearch");
-
-        if (cache != null) {
-            @SuppressWarnings("unchecked")
-            VendingPageResponse<VendingItemDto> cached = cache.get(cacheKey, VendingPageResponse.class);
-            if (cached != null) {
-                long elapsed = System.currentTimeMillis() - startTime;
-                logger.log("CACHE", "HIT: " + cacheKey + " time=" + elapsed + "ms");
-                return cached;
-            }
-        }
-
         if (!liveFetchEnabled) {
-            logger.log("LIVE_FETCH_DISABLED", "Blocked direct vending search for key=" + cacheKey);
+            logger.log("LIVE_FETCH_DISABLED", "Blocked direct vending search for server=" + server + " keyword=" + itemName);
             throw new IllegalStateException("LIVE_FETCH_DISABLED");
         }
 
         try {
-            VendingPageResponse<VendingItemDto> result = scrapeItemVending(itemName, server, page, size);
-            if (cache != null) {
-                cache.put(cacheKey, result);
-            }
-            return result;
+            return scrapeItemVending(itemName, server, page, size);
         } catch (Exception e) {
             logger.log("OUTBOUND_ERROR", "Search failed: " + classifyFetchFailure(e));
             throw new RuntimeException("GNJOY_SEARCH_FAILED", e);

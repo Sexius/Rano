@@ -511,8 +511,8 @@ export const ALL_JOB_SKILLS: Record<string, SkillInfo[]> = {
         { id: 5013, name: "채집 수련", maxLevel: 5, type: "passive" },
     ],
 
-    // ================ 확장직업: 권성 ================
-    "권성": [
+    // ================ 확장직업: 권성 (클래식) ================
+    "권성_클래식": [
         { id: 418, name: "태양의 무", maxLevel: 1, type: "active" },
         { id: 419, name: "달의 무", maxLevel: 1, type: "active" },
         { id: 420, name: "별의 무", maxLevel: 1, type: "active" },
