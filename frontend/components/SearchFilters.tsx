@@ -12,7 +12,6 @@ interface SearchFiltersProps {
 const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) => {
   const [query, setQuery] = useState('');
   const [server, setServer] = useState(SERVERS[0]);
-  const [category, setCategory] = useState(CATEGORIES[0]);
   const [placeholder] = useState(DEFAULT_SEARCH_PLACEHOLDERS[Math.floor(Math.random() * DEFAULT_SEARCH_PLACEHOLDERS.length)]);
 
   // Recent Search State
@@ -38,13 +37,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Trigger search on server or category change
-  useEffect(() => {
-    if (query.trim()) {
-      onSearch({ query, server, category });
-    }
-  }, [server, category]);
-
   const saveRecentSearch = (searchTerm: string) => {
     if (!searchTerm.trim()) return;
     const newRecent = [searchTerm, ...recentSearches.filter(s => s !== searchTerm)].slice(0, 5);
@@ -64,20 +56,19 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
     if (!query.trim()) return;
     saveRecentSearch(query);
     setShowRecent(false);
-    onSearch({ query, server, category });
+    onSearch({ query, server, category: '전체' });
   };
 
   const handleRecentClick = (term: string) => {
     setQuery(term);
     saveRecentSearch(term);
     setShowRecent(false);
-    onSearch({ query: term, server, category });
+    onSearch({ query: term, server, category: '전체' });
   };
 
   const handleReset = () => {
     setQuery('');
     setServer(SERVERS[0]);
-    setCategory(CATEGORIES[0]);
   }
 
   return (
@@ -158,29 +149,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
               )}
             </button>
           </div>
-        </div>
-
-        {/* Category Tabs */}
-        <div className="flex gap-1.5 mt-3 overflow-x-auto pb-1 scrollbar-thin">
-          {CATEGORIES.map((cat) => {
-            const isSelected = category === cat;
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategory(cat)}
-                className={`
-                  shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200
-                  ${isSelected
-                    ? 'bg-kafra-500 text-white shadow-sm font-bold'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-150'
-                  }
-                `}
-              >
-                {cat}
-              </button>
-            );
-          })}
         </div>
       </form>
     </div>

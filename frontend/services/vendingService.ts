@@ -56,11 +56,18 @@ function mapServerParam(server: string) {
   return server || 'baphomet';
 }
 
+function mapServerToKorean(server: string) {
+  if (server === 'baphomet') return '바포메트';
+  if (server === 'ifrit') return '이프리트';
+  if (server === 'yggdrasil') return '이그드라실';
+  return server;
+}
+
 function convertToMarketItem(dto: any, index: number): MarketItem {
   const now = new Date().toISOString();
   return {
     id: `${dto.item_id || dto.id || index}-${index}`,
-    server: dto.server || dto.server_name || 'Unknown',
+    server: mapServerToKorean(dto.server || dto.server_name || 'Unknown'),
     name: dto.item_name || 'Unknown',
     price: dto.price || 0,
     amount: dto.quantity || 1,
@@ -94,7 +101,7 @@ export const searchVendingItems = async (
   if (server !== '전체') params.append('server', mapServerParam(server));
   if (category && category !== '전체') params.append('category', category);
   params.append('page', page.toString());
-  params.append('size', '100');
+  params.append('size', '10');
   params.append('sort', 'price');
   params.append('dir', 'asc');
 

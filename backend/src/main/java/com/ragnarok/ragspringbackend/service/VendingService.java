@@ -47,7 +47,7 @@ public class VendingService {
     }
 
     public boolean isLiveFetchEnabled() {
-        return liveFetchEnabled;
+        return true;
     }
 
     public VendingPageResponse<VendingItemDto> getAllVendingData(String server, int page, int size) {
