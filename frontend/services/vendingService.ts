@@ -92,7 +92,8 @@ export const searchVendingItems = async (
   itemName: string,
   server: string,
   category: string,
-  page: number = 1
+  page: number = 1,
+  size: number = 100
 ): Promise<VendingSearchResult> => {
   const baseUrl = getBaseApiUrl();
   const params = new URLSearchParams();
@@ -101,7 +102,7 @@ export const searchVendingItems = async (
   if (server !== '전체') params.append('server', mapServerParam(server));
   if (category && category !== '전체') params.append('category', category);
   params.append('page', page.toString());
-  params.append('size', '10');
+  params.append('size', size.toString());
   params.append('sort', 'price');
   params.append('dir', 'asc');
 
