@@ -153,9 +153,9 @@ export async function enrichWithCardDetails(items: MarketItem[]): Promise<Market
             enrichedItems[i + batchIndex] = {
               ...enrichedItems[i + batchIndex],
               cards_equipped: cardsEquipped,
-              seller: detail.seller || enrichedItems[i + batchIndex].seller,
-              shop_title: detail.shop_title || enrichedItems[i + batchIndex].shop_title,
-              location: detail.location || enrichedItems[i + batchIndex].location
+              seller: detail.seller && detail.seller !== 'Unknown' ? detail.seller : enrichedItems[i + batchIndex].seller,
+              shop_title: detail.shop_title && detail.shop_title !== 'Unknown' ? detail.shop_title : enrichedItems[i + batchIndex].shop_title,
+              location: detail.location && detail.location !== 'Unknown' ? detail.location : enrichedItems[i + batchIndex].location
             };
           }
         } catch {

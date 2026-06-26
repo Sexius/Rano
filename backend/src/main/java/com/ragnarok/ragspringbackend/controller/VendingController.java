@@ -136,6 +136,30 @@ public class VendingController {
         }
     }
 
+    @GetMapping("/vending/debug-detail")
+    public ResponseEntity<?> debugDetail(
+        @RequestParam String server,
+        @RequestParam String ssi,
+        @RequestParam String mapID
+    ) {
+        try {
+            String url = "https://ro.gnjoy.com/itemdeal/itemDealView.asp";
+            String svrId = server.equals("baphomet") ? "1" : server.equals("ifrit") ? "2" : "3";
+            org.jsoup.nodes.Document doc = org.jsoup.Jsoup.connect(url)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                .header("Referer", "https://ro.gnjoy.com/itemdeal/itemDealList.asp")
+                .data("svrID", svrId)
+                .data("mapID", mapID)
+                .data("ssi", ssi)
+                .data("curpage", "1")
+                .timeout(5000)
+                .get();
+            return ResponseEntity.ok(doc.html());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(e.getMessage());
+        }
+    }
+
     @GetMapping("/vending/detail")
     public ResponseEntity<?> getVendingDetail(
         @RequestParam String server,

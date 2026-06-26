@@ -1,32 +1,19 @@
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import java.io.File;
+import java.io.IOException;
 
 public class TestJsoup {
-    public static void main(String[] args) throws Exception {
-        Document doc = Jsoup.parse(new File("gnjoy_yo.html"), "UTF-8");
-        Element targetTable = doc.selectFirst("table.listTypeOfDefault.dealList");
-        Elements rows = targetTable.select("tr");
-        for (Element row : rows) {
-            Elements columns = row.select("td");
-            if (columns.size() < 5) continue;
-            Element itemNameElement = columns.get(1);
-            Element aTag = itemNameElement.selectFirst("a");
-            if (aTag != null) {
-                String onclick = aTag.attr("onclick");
-                System.out.println("onclick: " + onclick);
-                try {
-                    String cleanOnclick = onclick.substring(onclick.indexOf("(") + 1, onclick.indexOf(")"));
-                    String[] params = cleanOnclick.split(",");
-                    if (params.length >= 3) {
-                        String mapId = params[1].trim().replace("'", "");
-                        String ssi = params[2].trim().replace("'", "");
-                        System.out.println("  -> mapId: " + mapId + ", ssi: " + ssi);
-                    }
-                } catch (Exception e) {}
-            }
-        }
+    public static void main(String[] args) throws IOException {
+        String url = "https://ro.gnjoy.com/itemdeal/itemDealView.asp";
+        Document doc = Jsoup.connect(url)
+            .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+            .header("Referer", "https://ro.gnjoy.com/itemdeal/itemDealList.asp")
+            .data("svrID", "1")
+            .data("mapID", "2023")
+            .data("ssi", "7655662493679422025") // "천공의 무기 제련망치"
+            .data("curpage", "1")
+            .timeout(5000)
+            .get();
+        System.out.println(doc.html());
     }
 }
