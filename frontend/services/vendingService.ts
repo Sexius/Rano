@@ -134,38 +134,9 @@ export const searchVendingItems = async (
 };
 
 export async function enrichWithCardDetails(items: MarketItem[]): Promise<MarketItem[]> {
-  const { lookupEnchantId } = await import('../utils/enchantIcons');
-  const batchSize = 5;
-  const enrichedItems = [...items];
-
-  for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
-    const promises = batch.map(async (item, batchIndex) => {
-      if (item.ssi && item.map_id) {
-        try {
-          const detail = await getVendingItemDetailInternal(item.server, item.ssi, item.map_id);
-          if (detail) {
-            const cardsEquipped = detail.cards_equipped || enrichedItems[i + batchIndex].cards_equipped;
-            if (cardsEquipped && cardsEquipped.length > 0) {
-              await Promise.all(cardsEquipped.map(cardName => lookupEnchantId(cardName)));
-            }
-
-            enrichedItems[i + batchIndex] = {
-              ...enrichedItems[i + batchIndex],
-              cards_equipped: cardsEquipped,
-              seller: detail.seller && detail.seller !== 'Unknown' ? detail.seller : enrichedItems[i + batchIndex].seller,
-              shop_title: detail.shop_title && detail.shop_title !== 'Unknown' ? detail.shop_title : enrichedItems[i + batchIndex].shop_title,
-              location: detail.location && detail.location !== 'Unknown' ? detail.location : enrichedItems[i + batchIndex].location
-            };
-          }
-        } catch {
-        }
-      }
-    });
-    await Promise.all(promises);
-  }
-
-  return enrichedItems;
+  // Cloudflare Turnstile 방어로 인해 상세 API 호출 중단 (100% 실패 및 지연 유발)
+  // TODO: 우회 로직 구현 전까지 리스트 데이터만 반환
+  return items;
 }
 
 async function getVendingItemDetailInternal(

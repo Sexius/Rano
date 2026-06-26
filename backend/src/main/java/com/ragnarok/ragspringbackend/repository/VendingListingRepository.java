@@ -20,16 +20,16 @@ import java.util.Optional;
 @Repository
 public interface VendingListingRepository extends JpaRepository<VendingListing, Long> {
 
-    // 1. Prefix 검색 (1차 - 빠름) - 기존 (scraped_at DESC 고정)
-    @Query("SELECT v FROM VendingListing v WHERE v.server = :server AND v.itemName LIKE :keyword% ORDER BY v.scrapedAt DESC")
+    // 1. Contains 검색 (1차 - 빠름) - 기존 (scraped_at DESC 고정)
+    @Query("SELECT v FROM VendingListing v WHERE v.server = :server AND v.itemName LIKE %:keyword% ORDER BY v.scrapedAt DESC")
     Page<VendingListing> findByServerAndItemNamePrefix(
         @Param("server") String server, 
         @Param("keyword") String keyword, 
         Pageable pageable
     );
 
-    // 1b. Prefix 검색 (Pageable 정렬 사용)
-    @Query("SELECT v FROM VendingListing v WHERE v.server = :server AND v.itemName LIKE :keyword%")
+    // 1b. Contains 검색 (Pageable 정렬 사용)
+    @Query("SELECT v FROM VendingListing v WHERE v.server = :server AND v.itemName LIKE %:keyword%")
     Page<VendingListing> findByServerAndItemNamePrefixSorted(
         @Param("server") String server, 
         @Param("keyword") String keyword, 
@@ -44,12 +44,12 @@ public interface VendingListingRepository extends JpaRepository<VendingListing, 
         Pageable pageable
     );
 
-    // 3. 전체 서버 검색 (prefix - scraped_at DESC 고정)
-    @Query("SELECT v FROM VendingListing v WHERE v.itemName LIKE :keyword% ORDER BY v.scrapedAt DESC")
+    // 3. 전체 서버 검색 (contains - scraped_at DESC 고정)
+    @Query("SELECT v FROM VendingListing v WHERE v.itemName LIKE %:keyword% ORDER BY v.scrapedAt DESC")
     Page<VendingListing> findByItemNamePrefix(@Param("keyword") String keyword, Pageable pageable);
 
     // 3b. 전체 서버 검색 (Pageable 정렬 사용)
-    @Query("SELECT v FROM VendingListing v WHERE v.itemName LIKE :keyword%")
+    @Query("SELECT v FROM VendingListing v WHERE v.itemName LIKE %:keyword%")
     Page<VendingListing> findByItemNamePrefixSorted(@Param("keyword") String keyword, Pageable pageable);
 
     // 4. 최신 scraped_at 조회 (데이터 신선도 확인)
@@ -57,7 +57,7 @@ public interface VendingListingRepository extends JpaRepository<VendingListing, 
     Optional<LocalDateTime> findLatestScrapedAt(@Param("server") String server);
 
     // 5. 특정 키워드 최신 scraped_at
-    @Query("SELECT MAX(v.scrapedAt) FROM VendingListing v WHERE v.server = :server AND v.itemName LIKE :keyword%")
+    @Query("SELECT MAX(v.scrapedAt) FROM VendingListing v WHERE v.server = :server AND v.itemName LIKE %:keyword%")
     Optional<LocalDateTime> findLatestScrapedAtByKeyword(
         @Param("server") String server, 
         @Param("keyword") String keyword

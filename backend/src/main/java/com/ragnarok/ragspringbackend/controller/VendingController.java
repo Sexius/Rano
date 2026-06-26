@@ -39,10 +39,7 @@ public class VendingController {
         this.logger = logger;
     }
 
-    @GetMapping("/vending/debug/logs")
-    public ResponseEntity<List<String>> getLogs(@RequestParam(defaultValue = "100") int count) {
-        return ResponseEntity.ok(logger.getRecentLogs(count));
-    }
+
 
     @GetMapping("/vending")
     public ResponseEntity<?> getVendingData(
@@ -136,29 +133,7 @@ public class VendingController {
         }
     }
 
-    @GetMapping("/vending/debug-detail")
-    public ResponseEntity<?> debugDetail(
-        @RequestParam String server,
-        @RequestParam String ssi,
-        @RequestParam String mapID
-    ) {
-        try {
-            String url = "https://ro.gnjoy.com/itemdeal/itemDealView.asp";
-            String svrId = server.equals("baphomet") ? "1" : server.equals("ifrit") ? "2" : "3";
-            org.jsoup.nodes.Document doc = org.jsoup.Jsoup.connect(url)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-                .header("Referer", "https://ro.gnjoy.com/itemdeal/itemDealList.asp")
-                .data("svrID", svrId)
-                .data("mapID", mapID)
-                .data("ssi", ssi)
-                .data("curpage", "1")
-                .timeout(5000)
-                .get();
-            return ResponseEntity.ok(doc.html());
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(e.getMessage());
-        }
-    }
+
 
     @GetMapping("/vending/detail")
     public ResponseEntity<?> getVendingDetail(
@@ -238,30 +213,5 @@ public class VendingController {
                 .body(Map.of("error", e.getMessage()));
         }
     }
-    @org.springframework.web.bind.annotation.GetMapping("/vending/debug-gnjoy")
-    public ResponseEntity<String> debugGnjoy(@RequestParam String keyword) {
-        try {
-            org.jsoup.Connection.Response httpResponse = org.jsoup.Jsoup.connect("https://ro.gnjoy.com/itemdeal/itemDealList.asp")
-                .userAgent("Mozilla/5.0")
-                .data("svrID", "9")
-                .data("itemFullName", keyword)
-                .data("curpage", "1")
-                .timeout(5000)
-                .method(org.jsoup.Connection.Method.GET)
-                .execute();
-            return ResponseEntity.ok(new String(httpResponse.bodyAsBytes(), "UTF-8"));
-        } catch (Exception e) {
-            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
-    }
 
-    @org.springframework.web.bind.annotation.GetMapping("/vending/debug-collect")
-    public ResponseEntity<String> debugCollect(@RequestParam String keyword) {
-        try {
-            int saved = vendingCollectorService.collectSync("baphomet", keyword, 1, 1);
-            return ResponseEntity.ok("Saved: " + saved);
-        } catch (Exception e) {
-            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body("Collect Error: " + e.getMessage() + "\n" + java.util.Arrays.toString(e.getStackTrace()));
-        }
-    }
 }
