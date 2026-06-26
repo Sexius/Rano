@@ -242,9 +242,19 @@ public class VendingController {
                 .timeout(5000)
                 .method(org.jsoup.Connection.Method.GET)
                 .execute();
-            return ResponseEntity.ok(new String(httpResponse.bodyAsBytes(), "EUC-KR"));
+            return ResponseEntity.ok(new String(httpResponse.bodyAsBytes(), "UTF-8"));
         } catch (Exception e) {
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @org.springframework.web.bind.annotation.GetMapping("/vending/debug-collect")
+    public ResponseEntity<String> debugCollect(@RequestParam String keyword) {
+        try {
+            int saved = vendingCollectorService.collectSync("baphomet", keyword, 1, 1);
+            return ResponseEntity.ok("Saved: " + saved);
+        } catch (Exception e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body("Collect Error: " + e.getMessage() + "\n" + java.util.Arrays.toString(e.getStackTrace()));
         }
     }
 }
