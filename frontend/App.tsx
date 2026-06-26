@@ -73,7 +73,13 @@ const App: React.FC = () => {
         });
       }
 
-      // Background load card/enchant details - REMOVED to avoid N+1 API waterfall
+      // Background load card/enchant details
+      if (result.items.length > 0) {
+        import('./services/vendingService').then(async ({ enrichWithCardDetails }) => {
+          const enrichedItems = await enrichWithCardDetails(result.items);
+          setItems(enrichedItems);
+        });
+      }
     } catch (error) {
       console.error("Search failed:", error);
       if (error instanceof VendingApiError && error.status === 503 && error.payload.error === 'cache_miss') {
