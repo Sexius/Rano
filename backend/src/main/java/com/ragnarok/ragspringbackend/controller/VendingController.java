@@ -231,4 +231,20 @@ public class VendingController {
                 .body(Map.of("error", e.getMessage()));
         }
     }
+    @org.springframework.web.bind.annotation.GetMapping("/vending/debug-gnjoy")
+    public ResponseEntity<String> debugGnjoy(@RequestParam String keyword) {
+        try {
+            org.jsoup.Connection.Response httpResponse = org.jsoup.Jsoup.connect("https://ro.gnjoy.com/itemdeal/itemDealList.asp")
+                .userAgent("Mozilla/5.0")
+                .data("svrID", "9")
+                .data("itemFullName", keyword)
+                .data("curpage", "1")
+                .timeout(5000)
+                .method(org.jsoup.Connection.Method.GET)
+                .execute();
+            return ResponseEntity.ok(new String(httpResponse.bodyAsBytes(), "EUC-KR"));
+        } catch (Exception e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
 }
