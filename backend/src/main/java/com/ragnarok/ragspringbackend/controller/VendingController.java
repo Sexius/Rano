@@ -143,35 +143,18 @@ public class VendingController {
         @RequestParam String mapID
     ) {
         try {
-            Optional<VendingItemDto> cached = vendingService.getCachedVendingDetail(server, ssi, mapID);
-            if (cached.isPresent()) {
-                VendingItemDto detail = cached.get();
-                return ResponseEntity.ok(Map.of(
-                    "vendor_name", detail.getVendor_name(),
-                    "vendor_info", detail.getVendor_info(),
-                    "cards_equipped", detail.getCards_equipped(),
-                    "map_id", detail.getMap_id(),
-                    "ssi", detail.getSsi(),
-                    "cacheStatus", "hit",
-                    "stale", false,
-                    "source", "cache_only",
-                    "message", "Cached detail result"
-                ));
-            }
-
-            logger.log("CACHE_MISS", "detail server=" + server + " mapId=" + mapID + " ssi=" + ssi);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(Map.of(
-                    "error", "cache_miss",
-                    "cacheStatus", "miss",
-                    "stale", false,
-                    "source", "cache_only",
-                    "reason", "DETAIL_CACHE_MISS",
-                    "message", "Detail not cached yet",
-                    "server", server,
-                    "ssi", ssi,
-                    "mapID", mapID
-                ));
+            VendingItemDto detail = vendingService.getVendingDetail(server, ssi, mapID);
+            return ResponseEntity.ok(Map.of(
+                "vendor_name", detail.getVendor_name(),
+                "vendor_info", detail.getVendor_info(),
+                "cards_equipped", detail.getCards_equipped(),
+                "map_id", detail.getMap_id(),
+                "ssi", detail.getSsi(),
+                "cacheStatus", "live",
+                "stale", false,
+                "source", "gnjoy",
+                "message", "Live detail result"
+            ));
         } catch (Exception e) {
             logger.log("DETAIL_ERROR", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
