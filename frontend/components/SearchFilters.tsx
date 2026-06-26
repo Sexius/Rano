@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Filter, RotateCcw, Clock, X } from 'lucide-react';
 import { SERVERS, CATEGORIES, DEFAULT_SEARCH_PLACEHOLDERS } from '../constants';
 import { SearchParams } from '../types';
@@ -19,12 +19,41 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
   const [showRecent, setShowRecent] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // Autocomplete State
+  const [itemsIndex, setItemsIndex] = useState<[number, string][]>([]);
+  const [isIndexLoaded, setIsIndexLoaded] = useState(false);
+
   useEffect(() => {
     const saved = localStorage.getItem('kafra_recent_searches');
     if (saved) {
       setRecentSearches(JSON.parse(saved));
     }
+
+    // Fetch client-side index for autocomplete
+    const fetchIndex = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+        const res = await fetch(`${API_BASE_URL}/api/items/index.json`);
+        if (res.ok) {
+          const data = await res.json();
+          setItemsIndex(data);
+          setIsIndexLoaded(true);
+        }
+      } catch (err) {
+        console.error('Failed to load item index', err);
+      }
+    };
+    fetchIndex();
   }, []);
+
+  // Compute suggestions
+  const suggestions = useMemo(() => {
+    if (!query.trim() || !isIndexLoaded) return [];
+    const lowerQuery = query.toLowerCase();
+    return itemsIndex
+      .filter(([id, name]) => name.toLowerCase().includes(lowerQuery))
+      .slice(0, 10); // Show top 10 matches
+  }, [query, itemsIndex, isIndexLoaded]);
 
   // Close recent dropdown when clicking outside
   useEffect(() => {
@@ -107,29 +136,58 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ onSearch, isLoading }) =>
               onFocus={() => setShowRecent(true)}
             />
 
-            {/* Recent Searches Dropdown */}
-            {showRecent && recentSearches.length > 0 && (
+            {/* Autocomplete & Recent Searches Dropdown */}
+            {showRecent && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-lg shadow-lg z-50 overflow-hidden">
-                <div className="px-3 py-2 bg-gray-50 text-xs font-bold text-gray-500 border-b border-gray-100">최근 검색어</div>
-                {recentSearches.map((term, idx) => (
-                  <div
-                    key={idx}
-                    className="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between group/item text-sm"
-                    onClick={() => handleRecentClick(term)}
-                  >
-                    <div className="flex items-center gap-2 text-gray-700">
-                      <Clock size={14} className="text-gray-400" />
-                      <span>{term}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => removeRecentSearch(e, term)}
-                      className="text-gray-300 hover:text-red-500 p-1 rounded-full hover:bg-red-50 opacity-0 group-hover/item:opacity-100 transition-all"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
+                {query.trim() && suggestions.length > 0 ? (
+                  <>
+                    <div className="px-3 py-2 bg-gray-50 text-xs font-bold text-gray-500 border-b border-gray-100">추천 검색어</div>
+                    {suggestions.map(([id, name], idx) => (
+                      <div
+                        key={id}
+                        className="px-3 py-2 hover:bg-kafra-50 cursor-pointer flex items-center gap-2 text-sm text-gray-700"
+                        onMouseDown={(e) => {
+                          e.preventDefault(); // Prevent blur
+                          handleRecentClick(name);
+                        }}
+                      >
+                        <Search size={14} className="text-gray-400" />
+                        <span>{name}</span>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  !query.trim() && recentSearches.length > 0 && (
+                    <>
+                      <div className="px-3 py-2 bg-gray-50 text-xs font-bold text-gray-500 border-b border-gray-100">최근 검색어</div>
+                      {recentSearches.map((term, idx) => (
+                        <div
+                          key={idx}
+                          className="px-3 py-2 hover:bg-gray-50 cursor-pointer flex items-center justify-between group/item text-sm"
+                          onMouseDown={(e) => {
+                            e.preventDefault(); // Prevent blur
+                            handleRecentClick(term);
+                          }}
+                        >
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <Clock size={14} className="text-gray-400" />
+                            <span>{term}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              removeRecentSearch(e as unknown as React.MouseEvent, term);
+                            }}
+                            className="text-gray-300 hover:text-red-500 p-1 rounded-full hover:bg-red-50 opacity-0 group-hover/item:opacity-100 transition-all"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </>
+                  )
+                )}
               </div>
             )}
 

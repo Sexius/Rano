@@ -53,6 +53,10 @@ public class ItemCacheService {
         System.out.println("[ItemCacheService] Loaded " + nameToIdMap.size() + " items in " + elapsed + "ms");
     }
 
+    public Map<String, Integer> getNameToIdMap() {
+        return nameToIdMap;
+    }
+
     /**
      * Get item ID by exact name match.
      * @return item ID or null if not found

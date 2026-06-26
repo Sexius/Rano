@@ -76,7 +76,7 @@ function convertToMarketItem(dto: any, index: number): MarketItem {
     location: dto.map_id || dto.location || '',
     created_at: now,
     category: dto.item_type || '기타',
-    image_placeholder: dto.item_icon_url || dto.image_url || `https://picsum.photos/seed/${dto.item_id || index}/64/64`,
+    image_placeholder: dto.item_icon_url || dto.image_url || `https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif`,
     refine_level: 0,
     card_slots: 0,
     cards_equipped: [],
