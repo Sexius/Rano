@@ -207,7 +207,7 @@ public class VendingService {
             .method(org.jsoup.Connection.Method.GET)
             .execute();
 
-        Document doc = Jsoup.parse(httpResponse.bodyStream(), "EUC-KR", url);
+        Document doc = httpResponse.parse();
         Element targetTable = doc.selectFirst("table.listTypeOfDefault.dealList");
         if (targetTable == null) {
             logger.log("PARSER_ERROR", "Missing dealList table for server=" + server + " item=" + itemName + " page=" + page);
