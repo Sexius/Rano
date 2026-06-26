@@ -47,7 +47,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const handleSearch = async (params: SearchParams, page: number = 1, itemsPerPage: number = 20) => {
+  const handleSearch = async (params: SearchParams, page: number = 1, itemsPerPage: number = 10) => {
     const isPaginationRequest = page > 1;
     setIsLoading(true);
     setLastQuery(params.query);

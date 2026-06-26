@@ -93,7 +93,7 @@ export const searchVendingItems = async (
   server: string,
   category: string,
   page: number = 1,
-  size: number = 100
+  size: number = 10
 ): Promise<VendingSearchResult> => {
   const baseUrl = getBaseApiUrl();
   const params = new URLSearchParams();
