@@ -56,7 +56,7 @@ public class VendingService {
     }
 
     public VendingPageResponse<VendingItemDto> searchVendingByItem(String itemName, String server, int page, int size) {
-        if (!liveFetchEnabled) {
+        if (!isLiveFetchEnabled()) {
             logger.log("LIVE_FETCH_DISABLED", "Blocked direct vending search for server=" + server + " keyword=" + itemName);
             throw new IllegalStateException("LIVE_FETCH_DISABLED");
         }
@@ -346,7 +346,7 @@ public class VendingService {
     }
 
     private void ensureLiveFetchEnabled(String path, String server, String target) {
-        if (!liveFetchEnabled) {
+        if (!isLiveFetchEnabled()) {
             logger.log("LIVE_FETCH_DISABLED", "Blocked GNJOY " + path + " call for server=" + normalizeServer(server) + " target=" + target);
             throw new IllegalStateException("LIVE_FETCH_DISABLED");
         }

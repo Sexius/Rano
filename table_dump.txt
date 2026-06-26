@@ -1,0 +1,105 @@
+[<table class="listTypeOfDefault dealList">
+<caption>거래아이템 검색결과 리스트</caption>
+<thead>
+<tr>
+<th class="server">서버</th>
+<th class="item">아이템</th>
+<th class="quantity">수량</th>
+<th class="price">가격<a href="javascript:CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, 'DESC', '', 1)"><img alt="높은 가격순으로 정렬" src="https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/icon_priceUp.gif"/></a><a href="javascript:CallItemDealList(document.getElementById('svrID').value, document.getElementById('itemFullName').value, '', '', 1)"><img alt="낮은 가격순으로 정렬" src="https://imgc.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/icon_priceDown.gif"/></a></th>
+<!-- th class="price"><a href="">가격</a>▲</th -->
+<th class="shop">노점 이름(<span class="sale">판매</span>, <span class="buy">구매</span>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2023,'7655460613036603212',1)"><img alt="요르문간드 교리서" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001629.png"/><span>요르문간드 교리서</span></a>
+</td>
+<td class="quantity">157</td>
+<td class="price"><span class="priceLv3">3,600</span></td>
+<td class="shop sale">1시</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2017,'7655356859510965732',1)"><img alt="요르문간드 교리서" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001629.png"/><span>요르문간드 교리서</span></a>
+</td>
+<td class="quantity">937</td>
+<td class="price"><span class="priceLv3">3,800</span></td>
+<td class="shop sale">★최저가 퀘템★</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2017,'7655492842470524755',1)"><img alt="요르문간드 교리서" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001629.png"/><span>요르문간드 교리서</span></a>
+</td>
+<td class="quantity">1624</td>
+<td class="price"><span class="priceLv3">4,000</span></td>
+<td class="shop sale">넌 이미 사고이따</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2017,'7655494667831625591',1)"><img alt="요르문간드 교리서" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001629.png"/><span>요르문간드 교리서</span></a>
+</td>
+<td class="quantity">1000</td>
+<td class="price"><span class="priceLv3">6,000</span></td>
+<td class="shop sale">퀘템최저가싹다</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2017,'7655494813860513662',1)"><img alt="요르문간드 교리서" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001629.png"/><span>요르문간드 교리서</span></a>
+</td>
+<td class="quantity">990</td>
+<td class="price"><span class="priceLv3">6,000</span></td>
+<td class="shop sale">최저가/다리/교리서/핵/단검/별사탕 등</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2017,'7654192012840676658',1)"><img alt="요르문간드 교리서" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001629.png"/><span>요르문간드 교리서</span></a>
+</td>
+<td class="quantity">530</td>
+<td class="price"><span class="priceLv3">7,000</span></td>
+<td class="shop sale">다리/말랑/별사탕/구아노/교리서/단검</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2023,'7655331854212020614',1)"><img alt="요르스칼프의 정신" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001836.png"/><span>요르스칼프의 정신</span></a>
+</td>
+<td class="quantity">111</td>
+<td class="price"><span class="priceLv4">15,003</span></td>
+<td class="shop buy">단속 재개</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2023,'7655475804335931557',1)"><img alt="요르스칼프의 정신" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001836.png"/><span>요르스칼프의 정신</span></a>
+</td>
+<td class="quantity">324</td>
+<td class="price"><span class="priceLv4">15,042</span></td>
+<td class="shop buy">삼▶저주/독기/타락/정신/12시카프라/5</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2023,'7655526540784606706',1)"><img alt="요르스칼프의 정신" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001836.png"/><span>요르스칼프의 정신</span></a>
+</td>
+<td class="quantity">1461</td>
+<td class="price"><span class="priceLv4">15,045</span></td>
+<td class="shop buy">----삽니다</td>
+</tr>
+<tr>
+<td>바포메트</td>
+<td class="item">
+<a href="#" onclick="javascript:CallItemDealView(129,2023,'7655554303453211994',1)"><img alt="요르스칼프의 정신" onerror="this.src='https://imgc1.gnjoy.com/games/ro1/20130212_item_deal/itemDeal/images/no-img.gif';" src="https://imgc1.gnjoy.com/games/ro1/object/201306/1001836.png"/><span>요르스칼프의 정신</span></a>
+</td>
+<td class="quantity">994</td>
+<td class="price"><span class="priceLv4">15,050</span></td>
+<td class="shop buy">시장남문 ###</td>
+</tr>
+</tbody>
+</table>]
